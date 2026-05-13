@@ -112,7 +112,10 @@ CREATE TABLE Venta(
 	NombreCliente VARCHAR(150) NULL,
 	FechaVenta DATE DEFAULT GETDATE(),
 	MetodoPago VARCHAR(50) NOT NULL,
-	Total DECIMAL(6,2) NOT NULL
+	Total DECIMAL(6,2) NOT NULL,
+	CONSTRAINT ValidacionCliente CHECK(
+		IdCliente IS NOT NULL OR NombreCliente IS NOT NULL
+	)
 );
 
 CREATE TABLE DetalleVenta(
@@ -130,3 +133,44 @@ CREATE TABLE DetalleDescuento(
 	IdDescuento INT NOT NULL FOREIGN KEY REFERENCES Descuento(IdDescuento),
 	DescuentoUnitario DECIMAL(4,2) NOT NULL 
 );
+
+------------------------------------
+--------SP DE Rol
+------------------------------------
+
+
+------------------------------------
+--------SP DE Cargo
+------------------------------------
+
+------------------------------------
+--------SP DE Mesa
+------------------------------------
+
+------------------------------------
+--------SP DE Categoria
+------------------------------------
+
+------------------------------------
+--------SP DE Cliente
+------------------------------------
+
+------------------------------------
+--------SP DE Usuario
+------------------------------------
+
+------------------------------------
+--------SP DE Descuento
+------------------------------------
+
+------------------------------------
+--------SP DE Platillo
+------------------------------------
+
+------------------------------------
+--------SP DE Reserva
+------------------------------------
+
+------------------------------------
+--------SP DE Venta
+------------------------------------
