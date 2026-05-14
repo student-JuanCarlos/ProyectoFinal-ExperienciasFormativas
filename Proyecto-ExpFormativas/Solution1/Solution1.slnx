@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Business Layer/">
+    <Project Path="Business Logic/Business Logic.csproj" />
+    <Project Path="Entities/Entities.csproj" />
+  </Folder>
+  <Folder Name="/Data Layer/">
+    <Project Path="Data/Data.csproj" />
+  </Folder>
+  <Folder Name="/Presentation Layer/">
+    <Project Path="App Web/App Web.csproj" />
+  </Folder>
+</Solution>

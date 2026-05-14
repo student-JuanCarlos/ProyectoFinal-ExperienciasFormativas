@@ -170,15 +170,31 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_Detalle_Listado_Rol --Se usara el mismo para para el listado y detalle
+CREATE PROC sp_DetalleRol
+@IdRol INT
 AS
 BEGIN
 	SELECT 
 	IdRol,
 	NombreRol,
-	Descripcion
+	ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
 	FROM Rol
+	WHERE IdRol = @IdRol
 END
+
+GO
+CREATE PROC sp_ListadoRol 
+@Busqueda VARCHAR(50) = NULL
+AS
+BEGIN
+	SELECT 
+	IdRol,
+	NombreRol,
+	ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
+	FROM Rol
+	WHERE (@Busqueda IS NULL OR NombreRol LIKE '%'+@Busqueda+'%')
+END
+
 ------------------------------------
 --------SP DE Cargo
 ------------------------------------
@@ -207,14 +223,29 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_Detalle_Listado_Cargo --Se usara el mismo tanto para detalle como listado
+CREATE PROC sp_DetalleCargo
+@IdCargo INT
 AS
 BEGIN
 	SELECT
 		IdCargo,
 		NombreCargo,
-		Descripcion
+		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
 	FROM Cargo
+	WHERE IdCargo = @IdCargo
+END
+
+GO
+CREATE PROC sp_ListadoCargo
+@Busqueda VARCHAR(50)
+AS
+BEGIN
+	SELECT
+		IdCargo,
+		NombreCargo,
+		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
+	FROM Cargo
+	WHERE (@Busqueda IS NULL OR NombreCargo LIKE '%'+@Busqueda+'%')
 END
 ------------------------------------
 --------SP DE Mesa
@@ -283,14 +314,14 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_FiltradoCategoria--Se usara el mismo para Detalle y Listado
+CREATE PROC sp_FiltradoCategoria
 @Busqueda VARCHAR(50) = NULL
 AS
 BEGIN
 	SELECT
 		IdCategoria,
 		NombreCategoria,
-		Descripcion
+		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
 	FROM Categoria
 	WHERE (@Busqueda IS NULL OR NombreCategoria LIKE '%'+ @Busqueda +'%')
 END
@@ -303,7 +334,7 @@ BEGIN
 	SELECT
 		IdCategoria,
 		NombreCategoria,
-		Descripcion
+		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
 	FROM Categoria
 	WHERE IdCategoria = @IdCategoria
 END
