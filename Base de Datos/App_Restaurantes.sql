@@ -18,12 +18,14 @@ GO
 ------------------------------------
 CREATE TABLE Rol(
 	IdRol INT IDENTITY(1,1) PRIMARY KEY,
-	NombreRol VARCHAR(50) NOT NULL
+	NombreRol VARCHAR(50) NOT NULL,
+	Descripcion VARCHAR(150) NULL
 );
 
 CREATE TABLE Cargo(
 	IdCargo INT IDENTITY(1,1) PRIMARY KEY,
-	NombreCargo VARCHAR(100) NOT NULL
+	NombreCargo VARCHAR(100) NOT NULL,
+	Descripcion VARCHAR(150) NULL
 );
 
 CREATE TABLE Mesa(
@@ -35,7 +37,8 @@ CREATE TABLE Mesa(
 
 CREATE TABLE Categoria(
 	IdCategoria INT IDENTITY(1,1) PRIMARY KEY,
-	NombreCategoria VARCHAR(50) NOT NULL
+	NombreCategoria VARCHAR(50) NOT NULL,
+	Descripcion VARCHAR(150) NULL
 );
 
 CREATE TABLE ConfiguracionReserva (
@@ -48,7 +51,7 @@ CREATE TABLE Cliente(
 	Nombres VARCHAR(100) NOT NULL,
 	Apellidos VARCHAR(100) NOT NULL,
 	Fotografia VARCHAR(255) NOT NULL,
-	Documento VARCHAR(255) NOT NULL UNIQUE,
+	Documento VARCHAR(100) NOT NULL UNIQUE,
 	Telefono VARCHAR(50) NOT NULL, 
 	Email VARCHAR(150) NOT NULL UNIQUE,
 	Contraseña VARCHAR(255) NOT NULL,
@@ -141,39 +144,532 @@ CREATE TABLE DetalleDescuento(
 ------------------------------------
 --------SP DE Rol
 ------------------------------------
+GO
+CREATE PROC sp_InsertarRol
+@NombreRol VARCHAR(50),
+@Descripcion VARCHAR(150) NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Rol(NombreRol, Descripcion) 
+	VALUES(@NombreRol, @Descripcion)
+END
 
+GO
+CREATE PROC sp_ActualizarRol
+@IdRol INT,
+@NombreRol VARCHAR(50),
+@Descripcion VARCHAR(150) NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Rol
+	SET NombreRol = @NombreRol,
+	Descripcion = @Descripcion
+	WHERE IdRol = @IdRol
+END
 
+GO
+CREATE PROC sp_Detalle_Listado_Rol --Se usara el mismo para para el listado y detalle
+AS
+BEGIN
+	SELECT 
+	IdRol,
+	NombreRol,
+	Descripcion
+	FROM Rol
+END
 ------------------------------------
 --------SP DE Cargo
 ------------------------------------
+GO
+CREATE PROC sp_InsertarCargo
+@NombreCargo VARCHAR(50),
+@Descripcion VARCHAR(150) NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Cargo(NombreCargo, Descripcion) VALUES(@NombreCargo, @Descripcion)
+END
 
+GO
+CREATE PROC sp_ActualizarCargo
+@IdCargo INT,
+@NombreCargo VARCHAR(50),
+@Descripcion VARCHAR(150) NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Cargo
+	SET NombreCargo = @NombreCargo,
+	Descripcion = @Descripcion 
+	WHERE IdCargo = @IdCargo
+END
+
+GO
+CREATE PROC sp_Detalle_Listado_Cargo --Se usara el mismo tanto para detalle como listado
+AS
+BEGIN
+	SELECT
+		IdCargo,
+		NombreCargo,
+		Descripcion
+	FROM Cargo
+END
 ------------------------------------
 --------SP DE Mesa
 ------------------------------------
+GO
+CREATE PROC	sp_InsertarMesa
+@NumeroMesa INT,
+@EspacioOcupable INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Mesa(NumeroMesa, EspacioOcupable)
+	VALUES(@NumeroMesa, @EspacioOcupable)
+END
 
+GO
+CREATE PROC SP_ActualizarMesa
+@IdMesa INT,
+@NumeroMesa INT,
+@EspacioOcupable INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Mesa
+	SET NumeroMesa = @NumeroMesa,
+		EspacioOcupable = @EspacioOcupable
+		WHERE IdMesa = @IdMesa
+END
+
+GO
+CREATE PROC sp_Listado_Detalle_Mesa --Se usara el mismo para detalle y listado
+AS
+BEGIN
+	SELECT
+		IdMesa,
+		NumeroMesa,
+		EspacioOcupable,
+		Estado
+	FROM Mesa
+END
 ------------------------------------
 --------SP DE Categoria
 ------------------------------------
+GO
+CREATE PROC sp_InsertarCategoria
+@NombreCategoria VARCHAR(50),
+@Descripcion VARCHAR(150) NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Categoria(NombreCategoria, Descripcion)
+	VALUES(@NombreCategoria, @Descripcion)
+END
+
+GO
+CREATE PROC sp_ActualizarCategoria
+@IdCategoria INT,
+@NombreCategoria VARCHAR(50),
+@Descripcion VARCHAR(150) NULL
+AS
+BEGIN
+	UPDATE Categoria
+		SET NombreCategoria = @NombreCategoria,
+			Descripcion = @Descripcion
+			WHERE IdCategoria = @IdCategoria
+END
+
+GO
+CREATE PROC sp_FiltradoCategoria--Se usara el mismo para Detalle y Listado
+@Busqueda VARCHAR(50) = NULL
+AS
+BEGIN
+	SELECT
+		IdCategoria,
+		NombreCategoria,
+		Descripcion
+	FROM Categoria
+	WHERE (@Busqueda IS NULL OR NombreCategoria LIKE '%'+ @Busqueda +'%')
+END
+
+GO
+CREATE PROC sp_DetalleCategoria
+@IdCategoria INT
+AS
+BEGIN
+	SELECT
+		IdCategoria,
+		NombreCategoria,
+		Descripcion
+	FROM Categoria
+	WHERE IdCategoria = @IdCategoria
+END
 
 ------------------------------------
 --------SP DE Cliente
 ------------------------------------
+GO
+CREATE PROC sp_RegistrarCliente
+@Nombres VARCHAR(100),
+@Apellidos VARCHAR(100),
+@Fotografia VARCHAR(255),
+@Documento VARCHAR(100),
+@Telefono VARCHAR(50),
+@Email VARCHAR(150),
+@Contraseña VARCHAR(255)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Cliente(Nombres, Apellidos, Fotografia, Documento, Telefono, Email, Contraseña)
+	VALUES(@Nombres, @Apellidos, @Fotografia, @Documento, @Telefono, @Email, @Contraseña)
+END
 
+GO
+CREATE PROC sp_ActualizarCliente --Solo lo puede hacer el mismo cliente
+@IdCliente INT,
+@Nombres VARCHAR(100),
+@Apellidos VARCHAR(100),
+@Fotografia VARCHAR(255),
+@Documento VARCHAR(100),
+@Telefono VARCHAR(50),
+@Email VARCHAR(150)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Cliente
+	SET Nombres = @Nombres,
+		Apellidos = @Apellidos,
+		Fotografia = @Fotografia,
+		Documento = @Documento,
+		Telefono = @Telefono,
+		Email = @Email
+		WHERE IdCliente = @IdCliente
+END
+
+GO
+CREATE PROC sp_ListadoCliente --Listado para el sistema interno
+@Busqueda VARCHAR(150)
+AS
+BEGIN	
+	SELECT
+		Nombres+' '+Apellidos AS NombreCompleto,
+		Documento, 
+		Telefono,
+		Email
+	FROM Cliente
+	WHERE (@Busqueda IS NULL OR Nombres LIKE '%'+ @Busqueda +'%' OR
+	Email LIKE '%'+ @Busqueda +'%' OR Documento LIKE '%'+@Busqueda+'%')
+END
+
+GO
+CREATE PROC sp_DetalleCliente --Para el sistema interno
+@IdCliente INT
+AS
+BEGIN
+	SELECT
+		Nombres+' '+Apellidos AS NombreCompleto,
+		Fotografia,
+		Documento,
+		Telefono,
+		Email
+	FROM Cliente
+	WHERE IdCliente = @IdCliente
+END
+
+GO 
+CREATE PROC sp_LoginCliente
+@Email VARCHAR(150),
+@Contraseña VARCHAR(255)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	SELECT
+		Nombres,
+		Apellidos,
+		Documento,
+		Telefono,
+		Email
+	FROM Cliente
+	WHERE Email = @Email AND Contraseña = @Contraseña
+END
 ------------------------------------
 --------SP DE Usuario
 ------------------------------------
+GO
+CREATE PROC sp_RegistrarUsuario
+@NombreUsuario VARCHAR(100),
+@Documento VARCHAR(50),
+@Telefono VARCHAR(50),
+@Email VARCHAR(150),
+@Contraseña VARCHAR(255),
+@Sueldo DECIMAL(5,2),
+@IdCargo INT,
+@IdRol INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Usuario(NombreUsuario, Documento, Telefono, Email, Contraseña, Sueldo, IdCargo, IdRol)
+	VALUES(@NombreUsuario, @Documento, @Telefono, @Email, @Contraseña, @Sueldo, @IdCargo, @IdRol)
+END
 
+GO
+CREATE PROC sp_ActualizarUsuario
+@IdUsuario INT,
+@NombreUsuario VARCHAR(100),
+@Documento VARCHAR(50),
+@Telefono VARCHAR(50),
+@Email VARCHAR(150),
+@Sueldo DECIMAL(5,2),
+@IdCargo INT,
+@IdRol INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Usuario
+	SET NombreUsuario = @NombreUsuario,
+		Documento = @Documento,
+		Telefono = @Telefono ,
+		Email = @Email,
+		Sueldo = @Sueldo,
+		IdCargo = @IdCargo,
+		IdRol = @IdRol
+	WHERE IdUsuario = @IdUsuario
+END
+
+GO
+CREATE PROC sp_ListadoUsuario
+@Busqueda VARCHAR(150) = NULL,
+@Estado BIT = NULL
+AS
+BEGIN
+	SELECT
+		u.NombreUsuario,
+		u.Telefono,
+		c.NombreCargo,
+		r.NombreRol,
+		u.Email,
+		u.Estado
+	FROM Usuario u
+		INNER JOIN Cargo c ON c.IdCargo = u.IdCargo
+		INNER JOIN Rol r ON r.IdRol = u.IdRol
+		WHERE (@Busqueda IS NULL OR NombreUsuario LIKE '%'+@Busqueda+'%' OR Email LIKE '%'+@Busqueda+'%')
+		AND (@Estado IS NULL OR Estado = @Estado)
+END
+
+GO
+CREATE PROC sp_DetalLeUsuario
+@IdUsuario INT
+AS
+BEGIN
+	SELECT
+		u.IdUsuario,
+		u.IdCargo,
+		u.IdRol
+		u.NombreUsuario,
+		u.Documento,
+		u.Telefono,
+		u.FechaRegistro,
+		c.NombreCargo,
+		r.NombreRol,
+		u.Email,
+		u.Sueldo,
+		u.Estado
+	FROM Usuario u
+	INNER JOIN Cargo c ON c.IdCargo = u.IdCargo
+	INNER JOIN Rol r ON r.IdRol = u.IdRol
+	WHERE IdUsuario = @IdUsuario
+END
+
+GO
+CREATE PROC sp_LoginUsuario
+@Email VARCHAR(150),
+@Contraseña VARCHAR(255)
+AS
+BEGIN
+	SELECT
+		u.IdUsuario,
+		u.IdCargo,
+		u.IdRol,
+		u.NombreUsuario,
+		u.Telefono,
+		c.NombreCargo,
+		r.NombreRol,
+		u.Email,
+		u.Estado
+	FROM Usuario u
+		INNER JOIN Cargo c ON c.IdCargo = u.IdCargo
+		INNER JOIN Rol r ON r.IdRol = u.IdRol
+		WHERE u.Email = @Email AND u.Contraseña = @Contraseña
+END
+
+GO
+CREATE PROC sp_CambiarEstadoUsuario
+@IdUsuario INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Usuario
+	SET Estado = CASE WHEN Estado = 1 THEN 0 ELSE 1 END
+	WHERE IdUsuario = @IdUsuario
+END
 ------------------------------------
 --------SP DE Descuento
 ------------------------------------
+GO
+CREATE PROC sp_InsertarDescuento
+@NombreDescuento VARCHAR(150),
+@TipoDescuento VARCHAR(50),
+@PorcentajeDescuento DECIMAL(4,2),
+@FechaInicio DATE NULL,
+@FechaFin DATE NULL,
+@ColorCard VARCHAR(30)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Descuento(NombreDescuento, TipoDescuento, PorcentajeDescuento, FechaInicio, FechaFin, ColorCard)
+	VALUES(@NombreDescuento, @TipoDescuento, @PorcentajeDescuento, @FechaInicio, @FechaFin, @ColorCard)
+END
 
+GO
+CREATE PROC sp_ActualizarDescuento
+@IdDescuento INT,
+@NombreDescuento VARCHAR(150),
+@TipoDescuento VARCHAR(50),
+@PorcentajeDescuento DECIMAL(4,2),
+@FechaInicio DATE NULL,
+@FechaFin DATE NULL,
+@ColorCard VARCHAR(30)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Descuento
+	SET NombreDescuento = @NombreDescuento,
+		TipoDescuento = @TipoDescuento,
+		PorcentajeDescuento = @PorcentajeDescuento,
+		FechaInicio = @FechaInicio,
+		FechaFin = @FechaFin,
+		ColorCard = @ColorCard
+		WHERE IdDescuento = @IdDescuento
+END
+
+GO
+CREATE PROC sp_FiltradoDescuento
+@Busqueda VARCHAR(150),
+@Estado BIT 
+AS
+BEGIN
+	SELECT 
+		de.NombreDescuento,
+		de.TipoDescuento,
+		de.PorcentajeDescuento,
+		de.ColorCard,
+		de.Estado
+	FROM Descuento de
+	WHERE (@Busqueda IS NULL OR de.NombreDescuento LIKE '%'+@Busqueda+'%')
+	AND (@Estado IS NULL OR de.Estado = @Estado)
+END
+
+GO
+CREATE PROC sp_DetalleDescuent
+@IdDescuento INT
+AS
+BEGIN
+	SELECT 
+		de.NombreDescuento,
+		de.TipoDescuento,
+		de.PorcentajeDescuento,
+		ISNULL(de.FechaInicio, 'Sin FechaInicio') AS FechaInicio,
+		ISNULL(de.FechaFin, 'Sin FechaFin') AS FechaFin,
+		de.ColorCard,
+		de.Estado
+	FROM Descuento de
+	WHERE de.IdDescuento = @IdDescuento
+END
+
+GO
+CREATE PROC sp_CambiarEstadoDescuento
+@IdDescuento INT
+AS
+BEGIN	
+	SET NOCOUNT ON;
+	UPDATE Descuento
+	SET Estado = CASE WHEN Estado = 1 THEN  0 ELSE 1 END
+	WHERE IdDescuento = @IdDescuento
+END
 ------------------------------------
 --------SP DE Platillo
 ------------------------------------
+GO
+CREATE PROC sp_InsertarPlatillo
+@NombrePlatillo VARCHAR(150),
+@Fotografia VARCHAR(255),
+@Precio DECIMAL (5,2),
+@IdCategoria INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO Platillo(NombrePlatillo, Fotografia, Precio, IdCategoria)
+	VALUES(@NombrePlatillo, @Fotografia, @Precio, @IdCategoria)
+END
 
+GO
+CREATE PROC sp_ActualizarPlatillo
+@IdPlatillo INT,
+@NombrePlatillo VARCHAR(150),
+@Fotografia VARCHAR(255),
+@Precio DECIMAL (5,2),
+@IdCategoria INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Platillo
+	SET NombrePlatillo = @NombrePlatillo,
+		Fotografia = @Fotografia,
+		Precio = @Precio,
+		IdCategoria = @IdCategoria
+	WHERE IdPlatillo = @IdPlatillo
+END
+
+GO
+CREATE PROC sp_FiltradoPlatillo
+@Busqueda VARCHAR(150) = NULL
+AS
+BEGIN
+	SELECT 
+		p.IdPlatillo,
+		p.IdCategoria,
+		p.NombrePlatillo,
+		p.Fotografia,
+		c.NombreCategoria,
+		p.Precio
+	FROM Platillo p
+	INNER JOIN Categoria c ON c.IdCategoria = p.IdCategoria
+	WHERE (@Busqueda IS NULL OR NombrePlatillo LIKE '%'+@Busqueda+'%' OR c.NombreCategoria LIKE '%'+@Busqueda+'%')
+END
+
+GO
+CREATE PROC sp_DetallePlatillo
+@IdPlatillo INT
+AS
+BEGIN
+	SELECT 
+		p.IdPlatillo,
+		p.IdCategoria,
+		p.NombrePlatillo,
+		p.Fotografia,
+		c.NombreCategoria,
+		p.Precio
+	FROM Platillo p
+	INNER JOIN Categoria c ON c.IdCategoria = p.IdCategoria
+	WHERE IdPlatillo = @IdPlatillo
+END
 ------------------------------------
 --------SP DE Reserva
 ------------------------------------
+GO
 CREATE TYPE TVP_Mesas AS TABLE(
     IdMesa INT
 );
@@ -259,13 +755,21 @@ CREATE PROC sp_CancelarReserva
 AS
 BEGIN
 	SET NOCOUNT ON;
-	UPDATE Reserva
-	SET Estado = 3
-	WHERE Estado = 1 AND IdReserva = @IdReserva
+	BEGIN TRY
+		BEGIN TRAN
+			UPDATE Reserva
+			SET Estado = 3
+			WHERE Estado = 1 AND IdReserva = @IdReserva
 
-	UPDATE Mesa
-	SET Estado = 1
-	WHERE IdMesa IN (SELECT IdMesa FROM @Mesas)
+			UPDATE Mesa
+			SET Estado = 1
+			WHERE IdMesa IN (SELECT IdMesa FROM @Mesas)
+		COMMIT
+	END TRY
+	BEGIN CATCH
+		ROLLBACK;
+		THROW;
+	END CATCH
 END
 
 GO
@@ -314,17 +818,49 @@ END
 
 GO
 CREATE PROC sp_DetalleReserva
+@IdReserva INT
+AS
+BEGIN
+	SELECT 
+		ISNULL(c.Nombres, u.NombreUsuario) AS GeneradoPor,
+		r.TipoReserva,
+		r.FechaReserva,
+		r.HoraReserva,
+		r.CantidadPersonas,
+		r.CostoTotal
+	FROM Reserva r
+	LEFT JOIN Usuario u ON u.IdUsuario = r.IdUsuario
+	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
+	WHERE IdReserva = @IdReserva
 
+	SELECT 
+		m.NumeroMesa
+	FROM Mesa m
+	INNER JOIN DetalleReserva dr ON dr.IdMesa = m.IdMesa
+	WHERE dr.IdReserva = @IdReserva
+END
 
 GO
-CREATE PROC sp_FiltradoVentas
-
-
+CREATE PROC sp_FiltradoReservas
+@Busqueda VARCHAR(150)
+AS
+BEGIN
+	SELECT
+		r.TipoReserva,
+		r.FechaReserva,
+		r.CostoTotal,
+		ISNULL(u.NombreUsuario, c.Nombres) AS GeneradoPor
+	FROM Reserva r
+	LEFT JOIN Usuario u ON u.IdUsuario = r.IdUsuario
+	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
+	WHERE (@Busqueda IS NULL OR r.TipoReserva = @Busqueda
+	OR u.NombreUsuario LIKE '%'+@Busqueda+'%' OR c.Nombres LIKE '%'+@Busqueda+'%')
+END
 GO
 ------------------------------------
 --------SP DE Venta
 ------------------------------------
-GO
+
 CREATE TYPE TVP_DetalleVenta AS TABLE(
 	IdPlatillo INT,
 	Cantidad INT
@@ -428,9 +964,7 @@ CREATE PROC sp_DetalleVenta
 AS
 BEGIN
 	SELECT 
-		ISNULL(v.IdCliente, 'Venta directa') AS IdCliente,
 		ISNULL(c.Nombres+' '+c.Apellidos, v.NombreCliente) AS NombreCompleto,
-		v.NombreCliente,
 		r.TipoReserva,
 		c.Email,
 		r.CantidadPersonas,
@@ -469,8 +1003,7 @@ AS
 BEGIN
 	SELECT
 		v.IdVenta,
-		v.NombreCliente,
-		c.Nombres + ' ' + c.Apellidos AS NombreCompleto,
+		ISNULL(c.Nombres + ' ' + c.Apellidos, v.NombreCliente) AS NombreCompleto,
 		v.FechaVenta,
 		v.MetodoPago,
 		v.Total
