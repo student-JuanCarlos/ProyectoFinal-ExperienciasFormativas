@@ -237,7 +237,7 @@ END
 
 GO
 CREATE PROC sp_ListadoCargo
-@Busqueda VARCHAR(50)
+@Busqueda VARCHAR(50) = NULL
 AS
 BEGIN
 	SELECT
@@ -262,7 +262,7 @@ BEGIN
 END
 
 GO
-CREATE PROC SP_ActualizarMesa
+CREATE PROC sp_ActualizarMesa
 @IdMesa INT,
 @NumeroMesa INT,
 @EspacioOcupable INT
@@ -276,7 +276,7 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_Listado_Detalle_Mesa --Se usara el mismo para detalle y listado
+CREATE PROC sp_ListadoMesa
 AS
 BEGIN
 	SELECT
@@ -285,6 +285,20 @@ BEGIN
 		EspacioOcupable,
 		Estado
 	FROM Mesa
+END
+
+GO
+CREATE PROC sp_DetalleMesa
+@IdMesa INT
+AS
+BEGIN
+	SELECT
+		IdMesa,
+		NumeroMesa,
+		EspacioOcupable,
+		Estado
+	FROM Mesa
+	WHERE IdMesa = @IdMesa
 END
 ------------------------------------
 --------SP DE Categoria
@@ -381,26 +395,30 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_ListadoCliente --Listado para el sistema interno
+CREATE PROC sp_FiltradoCliente --Listado para el sistema interno
 @Busqueda VARCHAR(150)
 AS
 BEGIN	
 	SELECT
-		Nombres+' '+Apellidos AS NombreCompleto,
-		Documento, 
-		Telefono,
-		Email
-	FROM Cliente
+		c.IdCliente,
+		c.Nombres+' '+Apellidos AS NombreCompleto,
+		c.Documento, 
+		c.Telefono,
+		c.Email
+	FROM Cliente c
+	INNER JOIN Reserva r ON r.IdCliente = c.IdCliente
 	WHERE (@Busqueda IS NULL OR Nombres LIKE '%'+ @Busqueda +'%' OR
 	Email LIKE '%'+ @Busqueda +'%' OR Documento LIKE '%'+@Busqueda+'%')
+	AND r.FechaReserva = CAST(GETDATE() AS DATE)
 END
 
 GO
-CREATE PROC sp_DetalleCliente --Para el sistema interno
+CREATE PROC sp_DetalleCliente
 @IdCliente INT
 AS
 BEGIN
 	SELECT
+		IdCliente,
 		Nombres+' '+Apellidos AS NombreCompleto,
 		Fotografia,
 		Documento,
@@ -418,6 +436,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 	SELECT
+		IdCliente,
 		Nombres,
 		Apellidos,
 		Documento,

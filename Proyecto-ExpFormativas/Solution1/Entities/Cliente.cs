@@ -9,6 +9,8 @@ namespace Entities
 
         public int IdCliente { get; set; }
 
+        public string NombreCompleto { get; set; }
+
         public string Nombres { get; set; }
 
         public string Apellidos { get; set; }
