@@ -490,12 +490,13 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_ListadoUsuario
+CREATE PROC sp_FiltradoUsuario
 @Busqueda VARCHAR(150) = NULL,
 @Estado BIT = NULL
 AS
 BEGIN
 	SELECT
+		u.IdUsuario,
 		u.NombreUsuario,
 		u.Telefono,
 		c.NombreCargo,
@@ -517,7 +518,7 @@ BEGIN
 	SELECT
 		u.IdUsuario,
 		u.IdCargo,
-		u.IdRol
+		u.IdRol,
 		u.NombreUsuario,
 		u.Documento,
 		u.Telefono,
@@ -623,7 +624,7 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_DetalleDescuent
+CREATE PROC sp_DetalleDescuento
 @IdDescuento INT
 AS
 BEGIN

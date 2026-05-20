@@ -11,6 +11,6 @@ namespace Entities
 
         public string NombreRol { get; set; }
 
-        public string Descripcion { get; set; }
+        public string? Descripcion { get; set; }
     }
 }
