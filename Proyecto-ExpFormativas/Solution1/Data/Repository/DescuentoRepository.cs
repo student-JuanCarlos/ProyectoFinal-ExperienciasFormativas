@@ -171,7 +171,7 @@ namespace Data.Repository
         #region
         public List<Descuento> Listado(string Busqueda)
         {
-            
+            throw new NotImplementedException();
         }
         #endregion
     }

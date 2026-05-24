@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Entities;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Data.Infraestructure
 {
-    internal interface IRol
+    internal interface IRol: IGeneric<Rol>
     {
     }
 }

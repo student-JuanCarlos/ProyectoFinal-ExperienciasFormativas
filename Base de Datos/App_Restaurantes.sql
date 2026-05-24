@@ -102,7 +102,10 @@ CREATE TABLE Reserva(
 	CantidadPersonas INT NOT NULL,
 	CostoTotal DECIMAL (10,2) DEFAULT 0,
 	Estado INT DEFAULT 1 CHECK(Estado IN (1,2,3)), -- 1 = Pendiente, 2 = Concluido, 3 = Cancelado
-	IdUsuario INT NULL FOREIGN KEY REFERENCES Usuario(IdUsuario)
+	IdUsuario INT NULL FOREIGN KEY REFERENCES Usuario(IdUsuario),
+	CONSTRAINT ValidacionSesion CHECK(
+		IdCliente IS NOT NULL OR IdUsuario IS NOT NULL
+	)
 );
 
 CREATE TABLE DetalleReserva(

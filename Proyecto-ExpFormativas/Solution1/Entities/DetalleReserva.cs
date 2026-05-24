@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Entities
 {
-    internal class DetalleReserva
+    public class DetalleReserva
     {
     }
 }
