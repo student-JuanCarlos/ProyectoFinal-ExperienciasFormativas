@@ -23,11 +23,13 @@ namespace Entities
 
         public bool Estado {  get; set; }
 
-        public int IdUsuario { get; set; }
+        public int? IdUsuario { get; set; }
 
         public Usuario usuario { get; set; }
 
         public Cliente cliente {  get; set; }
+
+        public List<Mesa> DetalleMesa { get; set; }
 
     }
 }

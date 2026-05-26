@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Data.Infraestructure
 {
-    internal interface IMesa:IGeneric<Mesa>
+    public interface IMesa:IGeneric<Mesa>
     {
         public List<Mesa> Listado();
     }

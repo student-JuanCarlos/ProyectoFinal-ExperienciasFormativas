@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Data.Infraestructure
 {
-    internal interface IRol: IGeneric<Rol>
+    public interface IRol: IGeneric<Rol>
     {
     }
 }

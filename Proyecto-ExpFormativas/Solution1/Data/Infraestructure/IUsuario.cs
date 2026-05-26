@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Data.Infraestructure
 {
-    internal interface IUsuario: IGeneric<Usuario>
+    public interface IUsuario: IGeneric<Usuario>
     {
         public Usuario Login(string Email, String Contraseña);
 

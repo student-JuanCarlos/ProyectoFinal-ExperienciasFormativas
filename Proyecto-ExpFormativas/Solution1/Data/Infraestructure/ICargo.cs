@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Data.Infraestructure
 {
-    internal interface ICargo: IGeneric<Cargo>
+    public interface ICargo: IGeneric<Cargo>
     {
     }
 }

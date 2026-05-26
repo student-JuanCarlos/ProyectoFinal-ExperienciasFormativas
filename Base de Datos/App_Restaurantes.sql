@@ -784,6 +784,7 @@ END
 GO
 CREATE PROC sp_ActualizarReserva
 @IdReserva INT,
+@TipoReserva VARCHAR(20),
 @FechaReserva DATE,
 @HoraReserva TIME,
 @CantidadPersonas INT

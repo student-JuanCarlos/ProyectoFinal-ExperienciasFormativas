@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Data.Infraestructure
 {
-    internal interface IPlatillo: IGeneric<Platillo>
+    public interface IPlatillo: IGeneric<Platillo>
     {
     }
 }

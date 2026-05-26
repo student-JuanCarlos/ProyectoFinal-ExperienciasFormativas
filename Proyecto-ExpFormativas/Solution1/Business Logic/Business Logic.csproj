@@ -8,9 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Inyeccion\" />
     <Folder Include="Utilidades\" />
-    <Folder Include="Service\" />
   </ItemGroup>
 
   <ItemGroup>

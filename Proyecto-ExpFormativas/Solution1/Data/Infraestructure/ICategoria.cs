@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Data.Infraestructure
 {
-    internal interface ICategoria: IGeneric<Categoria>
+    public interface ICategoria: IGeneric<Categoria>
     {
     }
 }
