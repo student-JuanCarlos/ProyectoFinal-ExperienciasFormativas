@@ -15,6 +15,34 @@ namespace Business_Logic.Inyeccion
         {
             services.AddScoped<ICargo, CargoRepository>();
             services.AddScoped<CargoService>();
+
+            services.AddScoped<ICategoria, CategoriaRepository>();
+            services.AddScoped<CategoriaService>();
+
+            services.AddScoped<ICliente, ClienteRepository>();
+            services.AddScoped<ClienteService>();
+
+            services.AddScoped<IDescuento, DescuentoRepository>();
+            services.AddScoped<DescuentoService>();
+
+            services.AddScoped<IMesa, MesaRepository>();
+            services.AddScoped<MesaService>();
+
+            services.AddScoped<IPlatillo, PlatilloRepository>();
+            services.AddScoped<PlatilloService>();
+
+            services.AddScoped<IReserva, ReservaRepository>();
+            services.AddScoped<ReservaService>();
+
+            services.AddScoped<IRol, RolRepository>();
+            services.AddScoped<RolService>();
+
+            services.AddScoped<IUsuario, UsuarioRepository>();
+            services.AddScoped<UsuarioService>();
+
+            services.AddScoped<IVenta, VentaRepository>();
+            services.AddScoped<VentaService>();
+
         }
 
     }

@@ -1,4 +1,5 @@
-﻿using Entities;
+﻿using Data.Infraestructure;
+using Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace Data.Repository
 {
-    public class PlatilloRepository
+    public class PlatilloRepository: IPlatillo
     {
         private readonly string cadenaConexion;
 

@@ -1,0 +1,568 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>La Estancia Gourmet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+            :root {
+                --crema: #FAF8F3;
+                --carbon: #2C2C2C;
+                --dorado: #C9A84C;
+                --vino: #6B2D2D;
+                --gris-suave: #EDEBE5;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Lato', sans-serif;
+                background-color: var(--crema);
+                color: var(--carbon);
+            }
+
+            /* ── NAVBAR ── */
+            .navbar-estancia {
+                background-color: var(--crema);
+                border-bottom: 1px solid #ddd;
+                padding: 1.2rem 3rem;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .navbar-logo {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: 1.4rem;
+                font-weight: 400;
+                color: var(--carbon);
+                text-decoration: none;
+                letter-spacing: 0.02em;
+            }
+
+            .navbar-links {
+                display: flex;
+                gap: 2.5rem;
+                list-style: none;
+                margin: 0;
+            }
+
+                .navbar-links a {
+                    font-family: 'Lato', sans-serif;
+                    font-size: 0.72rem;
+                    letter-spacing: 0.15em;
+                    text-transform: uppercase;
+                    color: var(--carbon);
+                    text-decoration: none;
+                    transition: color 0.25s ease;
+                }
+
+                    .navbar-links a:hover {
+                        color: var(--dorado);
+                    }
+
+            .navbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 1.2rem;
+            }
+
+                .navbar-actions .link-cuenta {
+                    font-family: 'Lato', sans-serif;
+                    font-size: 0.72rem;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    color: var(--carbon);
+                    text-decoration: none;
+                    transition: color 0.25s ease;
+                }
+
+                    .navbar-actions .link-cuenta:hover {
+                        color: var(--dorado);
+                    }
+
+            .btn-reservas-nav {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.72rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--carbon);
+                border: 1px solid var(--carbon);
+                border-radius: 50px;
+                padding: 0.5rem 1.4rem;
+                text-decoration: none;
+                background: transparent;
+                transition: background 0.25s ease, color 0.25s ease;
+            }
+
+                .btn-reservas-nav:hover {
+                    background-color: var(--carbon);
+                    color: #fff;
+                }
+
+            /* ── HERO ── */
+            .hero {
+                position: relative;
+                width: 100%;
+                height: 88vh;
+                overflow: hidden;
+            }
+
+                .hero img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                    display: block;
+                }
+
+            .hero-overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.50) 100%);
+            }
+
+            .hero-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #fff;
+                width: 100%;
+                padding: 0 2rem;
+            }
+
+            .hero-eyebrow {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.68rem;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--dorado);
+                margin-bottom: 1rem;
+            }
+
+            .hero-title {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: clamp(3.5rem, 7vw, 6rem);
+                font-weight: 300;
+                line-height: 1.1;
+                color: #fff;
+                text-shadow: 0 2px 24px rgba(0,0,0,0.35);
+                margin-bottom: 1.2rem;
+            }
+
+            .hero-subtitle {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.72rem;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: rgba(255,255,255,0.85);
+            }
+
+            /* ── TRADICION ── */
+            .seccion-tradicion {
+                padding: 8rem 3rem;
+                text-align: center;
+                background-color: var(--crema);
+                border-bottom: 1px solid #e8e4db;
+            }
+
+            .eyebrow {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.65rem;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--dorado);
+                margin-bottom: 1.5rem;
+            }
+
+            .titulo-seccion {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+                font-weight: 400;
+                color: var(--carbon);
+                margin-bottom: 2.5rem;
+            }
+
+            .cita {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: 1.3rem;
+                font-style: italic;
+                font-weight: 300;
+                color: #666;
+                max-width: 680px;
+                margin: 0 auto;
+                line-height: 1.9;
+            }
+
+            /* ── CARTAS ── */
+            .seccion-cartas {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                min-height: 620px;
+                gap: 0;
+            }
+
+            .cartas-info {
+                padding: 6rem 4.5rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                background-color: var(--crema);
+            }
+
+            .cartas-titulo {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: clamp(2rem, 3vw, 3rem);
+                font-weight: 400;
+                color: var(--carbon);
+                letter-spacing: 0.08em;
+                margin-bottom: 1.5rem;
+            }
+
+            .cartas-desc {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.9rem;
+                line-height: 1.9;
+                color: #666;
+                max-width: 380px;
+                margin-bottom: 3rem;
+            }
+
+            .cartas-lista {
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+                .cartas-lista li a {
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 1.3rem;
+                    font-weight: 400;
+                    color: var(--carbon);
+                    text-decoration: none;
+                    padding-bottom: 4px;
+                    border-bottom: 1px solid transparent;
+                    transition: border-color 0.25s ease, color 0.25s ease;
+                    display: inline-block;
+                }
+
+                    .cartas-lista li a:hover {
+                        border-bottom-color: var(--vino);
+                        color: var(--vino);
+                    }
+
+                    .cartas-lista li a.carta-principal {
+                        font-weight: 600;
+                    }
+
+            .cartas-imagen {
+                overflow: hidden;
+            }
+
+                .cartas-imagen img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+            /* ── HORARIOS ── */
+            .seccion-horarios {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                min-height: 580px;
+                background-color: var(--crema);
+                gap: 0;
+                margin-top: 4rem;
+            }
+
+            .horarios-imagen {
+                overflow: hidden;
+            }
+
+                .horarios-imagen img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+
+            .horarios-info {
+                padding: 6rem 5rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .horarios-titulo {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+                font-weight: 400;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--carbon);
+                margin-bottom: 2.5rem;
+            }
+
+            .horarios-subtitulo {
+                font-family: 'Cormorant Garamond', serif;
+                font-style: italic;
+                font-size: 1rem;
+                color: #888;
+                margin-bottom: 1.2rem;
+            }
+
+            .horarios-lista {
+                list-style: none;
+                margin-bottom: 0;
+            }
+
+                .horarios-lista li {
+                    font-family: 'Lato', sans-serif;
+                    font-size: 0.9rem;
+                    color: var(--carbon);
+                    padding: 0.5rem 0;
+                    letter-spacing: 0.03em;
+                }
+
+                    .horarios-lista li strong {
+                        font-weight: 700;
+                    }
+
+            .divisor {
+                width: 50px;
+                border: none;
+                border-top: 1px solid #aaa;
+                margin: 2rem 0;
+            }
+
+            .btn-reservas-seccion {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.72rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--carbon);
+                border: 1px solid var(--carbon);
+                border-radius: 50px;
+                padding: 0.65rem 2rem;
+                text-decoration: none;
+                background: transparent;
+                transition: background 0.25s ease, color 0.25s ease;
+                display: inline-block;
+            }
+
+                .btn-reservas-seccion:hover {
+                    background-color: var(--carbon);
+                    color: #fff;
+                }
+
+            /* ── FOOTER ── */
+            footer {
+                background-color: #1a1a1a;
+                color: #ccc;
+                padding: 5rem 4rem 2.5rem;
+            }
+
+            .footer-grid {
+                display: grid;
+                grid-template-columns: 1.5fr 1fr 1fr;
+                gap: 4rem;
+                margin-bottom: 3.5rem;
+            }
+
+            .footer-logo {
+                font-family: 'Cormorant Garamond', serif;
+                font-size: 1.5rem;
+                font-weight: 400;
+                color: #fff;
+                margin-bottom: 1.2rem;
+            }
+
+            .footer-desc {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.82rem;
+                line-height: 1.9;
+                color: #888;
+                max-width: 280px;
+            }
+
+            .footer-col-titulo {
+                font-family: 'Lato', sans-serif;
+                font-size: 0.65rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: #fff;
+                margin-bottom: 1.5rem;
+            }
+
+            .footer-links {
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+                .footer-links a {
+                    font-family: 'Lato', sans-serif;
+                    font-size: 0.82rem;
+                    color: #888;
+                    text-decoration: none;
+                    transition: color 0.25s ease;
+                }
+
+                    .footer-links a:hover {
+                        color: var(--dorado);
+                    }
+
+            .footer-bottom {
+                border-top: 1px solid #333;
+                padding-top: 1.8rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+                .footer-bottom p {
+                    font-family: 'Lato', sans-serif;
+                    font-size: 0.75rem;
+                    color: #555;
+                }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar-estancia">
+        <a href="/" class="navbar-logo">La Estancia Gourmet</a>
+        <ul class="navbar-links">
+            <li><a href="#historia">Nuestra Historia</a></li>
+            <li><a href="#cartas">Cartas</a></li>
+            <li><a href="#horarios">Horarios</a></li>
+            <li><a href="/Reserva/Index">Reservas</a></li>
+        </ul>
+        <div class="navbar-actions">
+            <a href="/Cliente/MiCuenta" class="link-cuenta">Mi cuenta</a>
+            <a href="/Cliente/Login" class="link-cuenta">Iniciar sesión</a>
+            <a href="/Reserva/Index" class="btn-reservas-nav">Reservas</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=85"
+             alt="Gastronomía peruana La Estancia Gourmet" />
+        <div class="hero-overlay"></div>
+        <div class="hero-text">
+            <p class="hero-eyebrow">Seis años de trayectoria gourmet</p>
+            <h1 class="hero-title">La Estancia Gourmet</h1>
+            <p class="hero-subtitle">Casa de la identidad gastronómica peruana</p>
+        </div>
+    </section>
+
+    <!-- TRADICIÓN -->
+    <section class="seccion-tradicion" id="historia">
+        <p class="eyebrow">Tradición eterna</p>
+        <h2 class="titulo-seccion">Una mirada contemporánea a nuestra sazón</h2>
+        <p class="cita">
+            "Recorremos el Perú a través de sus insumos más puros, devolviendo a la mesa
+            un relato honesto, elegante y profundamente cálido."
+        </p>
+    </section>
+
+    <!-- CARTAS -->
+    <section class="seccion-cartas" id="cartas">
+        <div class="cartas-info">
+            <p class="cartas-titulo">Cartas</p>
+            <p class="cartas-desc">
+                Nuestra propuesta recorre el Perú a través de sus productos, pero también es
+                una experiencia de todo lo aprendido en el camino. Una visión contemporánea
+                de nuestra cocina que agradece su historia y apuesta por la creatividad en
+                todas sus formas.
+            </p>
+            <ul class="cartas-lista">
+                <li><a href="/Carta/Index" class="carta-principal">Carta Principal</a></li>
+                <li><a href="#">Los Postres de la Estancia</a></li>
+                <li><a href="#">Vinos de Autor</a></li>
+                <li><a href="#">Bebidas &amp; Destilados</a></li>
+                <li><a href="#">Menú Degustación</a></li>
+            </ul>
+        </div>
+        <div class="cartas-imagen">
+            <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=900&q=85"
+                 alt="Platos de la carta" />
+        </div>
+    </section>
+
+    <!-- HORARIOS -->
+    <section class="seccion-horarios" id="horarios">
+        <div class="horarios-imagen">
+            <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=85"
+                 alt="Salón La Estancia Gourmet" />
+        </div>
+        <div class="horarios-info">
+            <p class="horarios-titulo">Horario de Atención</p>
+            <p class="horarios-subtitulo">En salón:</p>
+            <ul class="horarios-lista">
+                <li><strong>Lunes:</strong> Cerrado</li>
+                <li><strong>Martes a Sábado:</strong> 1:00 p.m. a 10:30 p.m.</li>
+                <li><strong>Domingo:</strong> 12:00 p.m. a 3:30 p.m.</li>
+            </ul>
+            <hr class="divisor" />
+            <a href="/Reserva/Index" class="btn-reservas-seccion">Reservas</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-grid">
+            <div>
+                <p class="footer-logo">La Estancia Gourmet</p>
+                <p class="footer-desc">
+                    Restaurante de cocina peruana contemporánea con seis años de trayectoria.
+                    Ubicados en el corazón de Lima, comprometidos con la identidad y el sabor auténtico del Perú.
+                </p>
+            </div>
+            <div>
+                <p class="footer-col-titulo">Sobre la marca</p>
+                <ul class="footer-links">
+                    <li><a href="#historia">Nuestra historia</a></li>
+                    <li><a href="#cartas">Nuestras cartas</a></li>
+                    <li><a href="#horarios">Horarios de atención</a></li>
+                    <li><a href="/Reserva/Index">Reservas</a></li>
+                </ul>
+            </div>
+            <div>
+                <p class="footer-col-titulo">Ayuda y legales</p>
+                <ul class="footer-links">
+                    <li><a href="#">Contáctanos</a></li>
+                    <li><a href="#">Política de privacidad</a></li>
+                    <li><a href="#">Términos y condiciones</a></li>
+                    <li><a href="/Cliente/Login">Iniciar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Todos los derechos reservados a "La Estancia Gourmet"</p>
+            <p>RUC: 20509076945 — La Estancia S.A.C.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
