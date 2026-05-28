@@ -1,0 +1,382 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registrarse — La Estancia Gourmet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --crema: #FAF8F3;
+            --carbon: #2C2C2C;
+            --dorado: #C9A84C;
+            --vino: #6B2D2D;
+            --gris-suave: #EDEBE5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--gris-suave);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-estancia {
+            background-color: var(--crema);
+            border-bottom: 1px solid #ddd;
+            padding: 1.2rem 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--carbon);
+            text-decoration: none;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .navbar-links a {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--carbon);
+            text-decoration: none;
+            transition: color 0.25s;
+        }
+
+        .navbar-links a:hover { color: var(--dorado); }
+
+        .btn-nav-outline {
+            border: 1px solid var(--carbon);
+            border-radius: 50px;
+            padding: 0.45rem 1.2rem;
+            transition: background 0.25s, color 0.25s;
+        }
+
+        .btn-nav-outline:hover {
+            background-color: var(--carbon) !important;
+            color: #fff !important;
+        }
+
+        .page-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .card-registro {
+            background-color: var(--crema);
+            border: 1px solid #e0dbd0;
+            border-radius: 4px;
+            padding: 3rem 2.8rem;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .card-eyebrow {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--dorado);
+            text-align: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .card-titulo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--carbon);
+            text-align: center;
+            margin-bottom: 0.4rem;
+        }
+
+        .card-subtitulo {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.82rem;
+            color: #888;
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .campo-grupo { margin-bottom: 1.8rem; }
+
+        .campo-label {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #888;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .campo-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #ccc;
+            background: transparent;
+            padding: 0.4rem 0;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            color: var(--carbon);
+            outline: none;
+            transition: border-color 0.25s;
+        }
+
+        .campo-input:focus { border-bottom-color: var(--carbon); }
+        .campo-input::placeholder { color: #bbb; }
+
+        .campo-fila {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .foto-area {
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            padding: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.25s;
+            margin-bottom: 1.8rem;
+        }
+
+        .foto-area:hover { border-color: var(--carbon); }
+
+        .foto-area p {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.78rem;
+            color: #aaa;
+            margin: 0.4rem 0 0;
+        }
+
+        .foto-area span {
+            font-size: 0.7rem;
+            color: #bbb;
+        }
+
+        .divisor-form {
+            border: none;
+            border-top: 1px solid #e0dbd0;
+            margin: 2rem 0;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--carbon);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.25s;
+            margin-bottom: 1.2rem;
+        }
+
+        .btn-submit:hover { background-color: #444; }
+        .btn-submit:disabled { background-color: #aaa; cursor: not-allowed; }
+
+        .link-login {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.82rem;
+            color: #888;
+            text-align: center;
+            display: block;
+        }
+
+        .link-login a {
+            color: var(--dorado);
+            text-decoration: none;
+        }
+
+        .link-login a:hover { text-decoration: underline; }
+
+        .alerta-error {
+            background-color: #fdf0f0;
+            border-left: 3px solid var(--vino);
+            padding: 0.7rem 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 2px;
+        }
+
+        .alerta-error p {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.82rem;
+            color: var(--vino);
+            margin: 0;
+        }
+
+        footer {
+            background-color: #1a1a1a;
+            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        footer p {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.72rem;
+            color: #555;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar-estancia">
+        <a href="/Cliente/Index" class="navbar-logo">La Estancia Gourmet</a>
+        <div class="navbar-links">
+            <a href="/Cliente/Index">Inicio</a>
+            <a href="/Cliente/Login" class="btn-nav-outline">Iniciar sesión</a>
+        </div>
+    </nav>
+
+    <div class="page-wrapper">
+        <div class="card-registro">
+            <p class="card-eyebrow">La Estancia Gourmet</p>
+            <h1 class="card-titulo">Crear cuenta</h1>
+            <p class="card-subtitulo">Únete y gestiona tus reservas fácilmente</p>
+
+            <div id="alerta-error" class="alerta-error" style="display:none;">
+                <p id="mensaje-error"></p>
+            </div>
+
+            <div class="campo-fila">
+                <div class="campo-grupo">
+                    <label class="campo-label">Nombres</label>
+                    <input type="text" id="Nombres" class="campo-input" placeholder="Juan" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Apellidos</label>
+                    <input type="text" id="Apellidos" class="campo-input" placeholder="Pérez" />
+                </div>
+            </div>
+
+            <div class="campo-fila">
+                <div class="campo-grupo">
+                    <label class="campo-label">Documento</label>
+                    <input type="text" id="Documento" class="campo-input" placeholder="12345678" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Teléfono</label>
+                    <input type="text" id="Telefono" class="campo-input" placeholder="999 888 777" />
+                </div>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Correo electrónico</label>
+                <input type="email" id="Email" class="campo-input" placeholder="correo@ejemplo.com" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Contraseña</label>
+                <input type="password" id="Contrasena" class="campo-input" placeholder="••••••••" />
+            </div>
+
+            <div class="foto-area" onclick="document.getElementById('inputFoto').click()">
+                <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="mostrarFoto(this)" />
+                <img id="preview" src="" alt="preview" style="display:none; width:70px; height:70px; border-radius:50%; object-fit:cover; margin: 0 auto;" />
+                <p id="foto-texto">Subir fotografía de perfil</p>
+                <span>JPG, PNG — máx. 2MB</span>
+            </div>
+
+            <hr class="divisor-form" />
+
+            <button class="btn-submit" id="btnRegistrar" onclick="registrar()">Crear cuenta</button>
+
+            <span class="link-login">
+                ¿Ya tienes cuenta? <a href="/Cliente/Login">Inicia sesión</a>
+            </span>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 La Estancia Gourmet</p>
+        <p>RUC: 20509076945 — La Estancia S.A.C.</p>
+    </footer>
+
+    <script>
+        function mostrarFoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview').src = e.target.result;
+                    document.getElementById('preview').style.display = 'block';
+                    document.getElementById('foto-texto').textContent = input.files[0].name;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function registrar() {
+            const btn = document.getElementById('btnRegistrar');
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+
+            const formData = new FormData();
+            formData.append('IdCliente', '0');
+            formData.append('Nombres', document.getElementById('Nombres').value.trim());
+            formData.append('Apellidos', document.getElementById('Apellidos').value.trim());
+            formData.append('Documento', document.getElementById('Documento').value.trim());
+            formData.append('Telefono', document.getElementById('Telefono').value.trim());
+            formData.append('Email', document.getElementById('Email').value.trim());
+            formData.append('Contraseña', document.getElementById('Contrasena').value);
+
+            const foto = document.getElementById('inputFoto').files[0];
+            if (foto) formData.append('Fotografia', foto);
+
+            fetch('/Cliente/GestionarCliente', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.resultado) {
+                    window.location.href = '/Cliente/Login';
+                } else {
+                    document.getElementById('alerta-error').style.display = 'block';
+                    document.getElementById('mensaje-error').textContent = data.mensaje;
+                    btn.disabled = false;
+                    btn.textContent = 'Crear cuenta';
+                }
+            })
+            .catch(() => {
+                document.getElementById('alerta-error').style.display = 'block';
+                document.getElementById('mensaje-error').textContent = 'Error de conexión, intenta nuevamente.';
+                btn.disabled = false;
+                btn.textContent = 'Crear cuenta';
+            });
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
