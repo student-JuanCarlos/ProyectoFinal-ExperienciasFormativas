@@ -9,6 +9,7 @@ END
 GO
 CREATE DATABASE App_Restaurantes
 
+GO
 USE App_Restaurantes;
 
 GO
@@ -422,7 +423,8 @@ AS
 BEGIN
 	SELECT
 		IdCliente,
-		Nombres+' '+Apellidos AS NombreCompleto,
+		Nombres,
+		Apellidos,
 		Fotografia,
 		Documento,
 		Telefono,
@@ -1071,3 +1073,8 @@ END
 --------INSERCIONES BASICAS
 ------------------------------------
 INSERT INTO ConfiguracionReserva VALUES(1, 10.00);
+
+------------------------------------
+--------INSERCIONES BASICAS
+------------------------------------
+SELECT * FROM Cliente;

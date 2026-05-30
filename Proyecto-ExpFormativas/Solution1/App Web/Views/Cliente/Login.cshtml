@@ -1,0 +1,285 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión — La Estancia Gourmet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --crema: #FAF8F3;
+            --carbon: #2C2C2C;
+            --dorado: #C9A84C;
+            --vino: #6B2D2D;
+            --gris-suave: #EDEBE5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* ── LADO IMAGEN ── */
+        .login-imagen {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-imagen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .login-imagen-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.55));
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 3rem;
+        }
+
+        .login-imagen-texto {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.8rem, 3vw, 2.8rem);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .login-imagen-sub {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--dorado);
+            margin-top: 0.5rem;
+        }
+
+        /* ── LADO FORMULARIO ── */
+        .login-form-side {
+            background-color: var(--crema);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2.5rem 3.5rem;
+            overflow-y: auto;
+        }
+
+        .login-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--carbon);
+            text-decoration: none;
+        }
+
+        .login-nav-link {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--carbon);
+            text-decoration: none;
+            transition: color 0.25s;
+        }
+
+        .login-nav-link:hover { color: var(--dorado); }
+
+        .login-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 360px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .login-eyebrow {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--dorado);
+            margin-bottom: 0.6rem;
+        }
+
+        .login-titulo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2rem;
+            font-weight: 400;
+            color: var(--carbon);
+            margin-bottom: 0.4rem;
+        }
+
+        .login-subtitulo {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.82rem;
+            color: #888;
+            margin-bottom: 2.5rem;
+        }
+
+        .campo-grupo { margin-bottom: 2rem; }
+
+        .campo-label {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #888;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .campo-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #ccc;
+            background: transparent;
+            padding: 0.4rem 0;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            color: var(--carbon);
+            outline: none;
+            transition: border-color 0.25s;
+        }
+
+        .campo-input:focus { border-bottom-color: var(--carbon); }
+        .campo-input::placeholder { color: #bbb; }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--carbon);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.25s;
+            margin-top: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .btn-submit:hover { background-color: #444; }
+        .btn-submit:disabled { background-color: #aaa; cursor: not-allowed; }
+
+        .link-registro {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.82rem;
+            color: #888;
+            text-align: center;
+            display: block;
+        }
+
+        .link-registro a {
+            color: var(--dorado);
+            text-decoration: none;
+        }
+
+        .link-registro a:hover { text-decoration: underline; }
+
+        .alerta-error {
+            background-color: #fdf0f0;
+            border-left: 3px solid var(--vino);
+            padding: 0.7rem 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 2px;
+        }
+
+        .alerta-error p {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.82rem;
+            color: var(--vino);
+            margin: 0;
+        }
+
+        .login-footer {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.72rem;
+            color: #aaa;
+            text-align: center;
+            padding-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LADO IMAGEN -->
+    <div class="login-imagen">
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=85"
+             alt="Gastronomía peruana" />
+        <div class="login-imagen-overlay">
+            <p class="login-imagen-texto">La identidad<br />gastronómica<br />del Perú</p>
+            <p class="login-imagen-sub">Seis años de trayectoria gourmet</p>
+        </div>
+    </div>
+
+    <!-- LADO FORMULARIO -->
+    <div class="login-form-side">
+        <div class="login-nav">
+            <a href="/Cliente/Index" class="login-logo">La Estancia Gourmet</a>
+            <a href="/Cliente/Index" class="login-nav-link">← Volver al inicio</a>
+        </div>
+
+        <div class="login-content">
+            <p class="login-eyebrow">Bienvenido de vuelta</p>
+            <h1 class="login-titulo">Iniciar sesión</h1>
+            <p class="login-subtitulo">Accede a tu cuenta para gestionar tus reservas</p>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alerta-error">
+                    <p>@ViewBag.Error</p>
+                </div>
+            }
+
+            <form method="post" action="/Cliente/Login">
+                @Html.AntiForgeryToken()
+                <div class="campo-grupo">
+                    <label class="campo-label">Correo electrónico</label>
+                    <input type="email" name="Email" class="campo-input" placeholder="correo@ejemplo.com" required />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Contraseña</label>
+                    <input type="password" name="Contraseña" class="campo-input" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="btn-submit">Iniciar sesión</button>
+            </form>
+
+            <span class="link-registro">
+                ¿No tienes cuenta? <a href="/Cliente/Registrarse">Regístrate</a>
+            </span>
+        </div>
+
+        <div class="login-footer">
+            © 2026 La Estancia Gourmet — RUC: 20509076945
+        </div>
+    </div>
+
+</body>
+</html>
+

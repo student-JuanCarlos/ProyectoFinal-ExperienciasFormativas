@@ -32,6 +32,12 @@ namespace App_Web.Controllers
         [HttpGet]
         public IActionResult MiCuenta()
         {
+
+            if (HttpContext.Session.GetString("Cliente") == null)
+            {
+                return RedirectToAction("Login", "Cliente");
+            }
+
             return View();
         }
 
@@ -61,7 +67,7 @@ namespace App_Web.Controllers
                     }
 
                     var nombreRealImagen = Path.GetFileName(model.Fotografia.FileName);
-                    nombreImagen = $"assets/img/productos/{nombreRealImagen}";
+                    nombreImagen = $"assets/img/clientes/{nombreRealImagen}";
                     var pathImagen = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/assets/img/clientes", nombreRealImagen);
 
                     using (var stream = new FileStream(pathImagen, FileMode.Create))

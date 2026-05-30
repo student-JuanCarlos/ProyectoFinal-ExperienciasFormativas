@@ -305,7 +305,6 @@
                 <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="mostrarFoto(this)" />
                 <img id="preview" src="" alt="preview" style="display:none; width:70px; height:70px; border-radius:50%; object-fit:cover; margin: 0 auto;" />
                 <p id="foto-texto">Subir fotografía de perfil</p>
-                <span>JPG, PNG — máx. 2MB</span>
             </div>
 
             <hr class="divisor-form" />
@@ -351,7 +350,11 @@
             formData.append('Contraseña', document.getElementById('Contrasena').value);
 
             const foto = document.getElementById('inputFoto').files[0];
-            if (foto) formData.append('Fotografia', foto);
+            if (foto) {
+                formData.append('Fotografia', foto);
+            } else {
+                formData.append('FotoActual', '');
+            }
 
             fetch('/Cliente/GestionarCliente', {
                 method: 'POST',
@@ -359,13 +362,14 @@
             })
             .then(r => r.json())
             .then(data => {
+                console.log(data);
                 if (data.resultado) {
-                    window.location.href = '/Cliente/Login';
-                } else {
-                    document.getElementById('alerta-error').style.display = 'block';
-                    document.getElementById('mensaje-error').textContent = data.mensaje;
-                    btn.disabled = false;
-                    btn.textContent = 'Crear cuenta';
+                        const idCliente = parseInt(formData.get('IdCliente'));
+                    if (idCliente === 0) {
+                        window.location.href = '/Cliente/Login';
+                    } else {
+                        window.location.href = '/Cliente/MiCuenta';
+                    }
                 }
             })
             .catch(() => {

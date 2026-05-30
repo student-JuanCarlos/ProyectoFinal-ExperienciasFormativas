@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Text;
 
 namespace Data.Repository
@@ -34,7 +35,6 @@ namespace Data.Repository
                     cmd.Parameters.AddWithValue("@Documento", c.Documento);
                     cmd.Parameters.AddWithValue("@Telefono", c.Telefono);
                     cmd.Parameters.AddWithValue("@Email", c.Email);
-                    cmd.Parameters.AddWithValue("@Contraseña", c.Contraseña);
                     cmd.Parameters.AddWithValue("@IdCliente", c.IdCliente);
                     cn.Open();
                     f = cmd.ExecuteNonQuery();
@@ -95,7 +95,8 @@ namespace Data.Repository
                         cliente = new Cliente()
                         {
                             IdCliente = Convert.ToInt32(reader["IdCliente"]),
-                            NombreCompleto = reader["NombreCompleto"].ToString(),
+                            Nombres = reader["Nombres"].ToString(),
+                            Apellidos = reader["Apellidos"].ToString(),
                             Fotografia = reader["Fotografia"].ToString(),
                             Documento = reader["Documento"].ToString(),
                             Telefono = reader["Telefono"].ToString(),
