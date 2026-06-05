@@ -7,5 +7,8 @@ namespace Data.Infraestructure
 {
     public interface ICategoria: IGeneric<Categoria>
     {
+
+        public int Eliminar(int id);
+
     }
 }

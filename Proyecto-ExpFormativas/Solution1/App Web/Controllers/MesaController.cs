@@ -31,18 +31,7 @@ namespace App_Web.Controllers
         [HttpPost]
         public IActionResult GestionarMesa(MesaVM model)
         {
-            bool resultado = true;
-            string mensaje = "";
-
-            try
-            {
-                mesaservice.GestionarMesa(model.ToEntity());
-            }
-            catch (Exception ex)
-            {
-                resultado = false;
-                mensaje = ex.Message;
-            }
+            mesaservice.GestionarMesa(model.ToEntity());
 
             return RedirectToAction("Index", "Mesa");
         }
@@ -58,18 +47,7 @@ namespace App_Web.Controllers
         [HttpPost]
         public IActionResult ActualizarPrecioReserva(decimal precio)
         {
-
-            bool resultado = true;
-            string mensaje = "";
-            try
-            {
-                confireservice.ActualizarPrecioReserva(precio);
-            }
-            catch(Exception ex)
-            {
-                resultado = false;
-                mensaje = ex.Message;
-            }
+            confireservice.ActualizarPrecioReserva(precio);
 
             return RedirectToAction("Index", "Mesa");
         }

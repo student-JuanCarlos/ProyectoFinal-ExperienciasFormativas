@@ -91,7 +91,7 @@ CREATE TABLE Platillo(
 	NombrePlatillo VARCHAR(150) NOT NULL,
 	Fotografia VARCHAR(255) NOT NULL,
 	Precio DECIMAL(5,2) NOT NULL,
-	IdCategoria INT NOT NULL FOREIGN KEY REFERENCES Categoria(IdCategoria)
+	IdCategoria INT NOT FOREIGN KEY REFERENCES Categoria(IdCategoria)
 );
 
 CREATE TABLE Reserva(
@@ -394,6 +394,21 @@ BEGIN
 	WHERE IdCategoria = @IdCategoria
 END
 
+GO
+CREATE PROC sp_EliminarCategoria
+@IdCategoria INT
+AS
+BEGIN
+	SET NOCOUNT ON
+	BEGIN TRAN;
+		UPDATE Platillo
+		SET IdCategoria = NULL
+		WHERE IdCategoria = @IdCategoria
+
+		DELETE FROM Categoria
+		WHERE IdCategoria = @IdCategoria
+	COMMIT;
+END
 ------------------------------------
 --------SP DE Cliente
 ------------------------------------

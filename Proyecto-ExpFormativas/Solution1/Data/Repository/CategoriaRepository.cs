@@ -20,7 +20,7 @@ namespace Data.Repository
         public int Actualizar(Categoria c)
         {
             int f = 0;
-            using (SqlConnection cn = new SqlConnection())
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
             {
                 try
                 {
@@ -45,7 +45,7 @@ namespace Data.Repository
         public int Agregar(Categoria c)
         {
             int f = 0;
-            using (SqlConnection cn = new SqlConnection())
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
             {
                 try
                 {
@@ -101,18 +101,18 @@ namespace Data.Repository
         public List<Categoria> Listado(string Busqueda)
         {
             var listado = new List<Categoria>();
-            using (SqlConnection cn = new SqlConnection())
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
             {
                 try
                 {
                     SqlCommand cmd = new SqlCommand();
                     cmd.Connection = cn;
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_DetalleCategoria";
+                    cmd.CommandText = "sp_FiltradoCategoria";
                     cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
+                    while (reader.Read())
                     {
                         listado.Add(new Categoria()
                         {
@@ -128,6 +128,29 @@ namespace Data.Repository
                 }
             }
             return listado;
+        }
+
+        public int Eliminar(int id)
+        {
+            int f = 0;
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cn;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_EliminarCategoria";
+                    cmd.Parameters.AddWithValue("@IdCategoria", id);
+                    cn.Open();
+                    f = cmd.ExecuteNonQuery();
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            return f;
         }
     }
 }

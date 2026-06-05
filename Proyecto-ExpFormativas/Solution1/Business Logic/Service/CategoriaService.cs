@@ -27,5 +27,15 @@ namespace Business_Logic.Service
         {
             return categoriaDB.Listado(Buaqueda);
         }
+
+        public Categoria Detalle(int id)
+        {
+            return categoriaDB.Detalle(id);
+        }
+
+        public int EliminarCategoria(int id)
+        {
+            return categoriaDB.Eliminar(id);
+        }
     }
 }
