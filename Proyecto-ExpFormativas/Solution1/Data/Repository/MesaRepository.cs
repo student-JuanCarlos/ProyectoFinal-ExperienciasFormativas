@@ -87,7 +87,10 @@ namespace Data.Repository
                             IdMesa = Convert.ToInt32(reader["IdMesa"]),
                             NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
                             EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
-                            Estado = Convert.ToBoolean(reader["Estado"])
+                            Estado = Convert.ToInt32(reader["Estado"]),
+                            OcupadoPor = reader["OcupadoPor"].ToString(),
+                            HoraReserva = reader["HoraReserva"] == (object)DBNull.Value ? null : (TimeSpan)reader["HoraReserva"],
+                            FechaReserva = reader["FechaReserva"] == (object)DBNull.Value ? null : Convert.ToDateTime(reader["FechaReserva"])
                         };
                     }
                 }
@@ -99,7 +102,7 @@ namespace Data.Repository
             return mesa;
         }
 
-        public List<Mesa> Listado()
+        public List<Mesa> Listado(string Busqueda)
         {
             var listado = new List<Mesa>();
             using (SqlConnection cn = new SqlConnection(cadenaConexion))
@@ -109,17 +112,19 @@ namespace Data.Repository
                     SqlCommand cmd = new SqlCommand();
                     cmd.Connection = cn;
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ListadoMesa";
+                    cmd.CommandText = "sp_FiltradoMesa";
+                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
+                    while (reader.Read())
                     {
                         listado.Add(new Mesa()
                         {
                             IdMesa = Convert.ToInt32(reader["IdMesa"]),
                             NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
                             EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
-                            Estado = Convert.ToBoolean(reader["Estado"])
+                            Estado = Convert.ToInt32(reader["Estado"]),
+                            OcupadoPor = reader["OcupadoPor"] == (object)DBNull.Value ? null : reader["OcupadoPor"].ToString()
                         });
                     }
                 }
@@ -130,12 +135,5 @@ namespace Data.Repository
             }
             return listado;
         }
-
-        #region
-        public List<Mesa> Listado(string Busqueda)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
     }
 }

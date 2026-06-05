@@ -12,6 +12,10 @@ namespace Entities
 
         public int EspacioOcupable {  get; set; }
 
-        public bool Estado {  get; set; }
+        public int Estado {  get; set; }
+
+        public string OcupadoPor { get; set; }
+        public TimeSpan? HoraReserva { get; set; }
+        public DateTime? FechaReserva { get; set; }
     }
 }

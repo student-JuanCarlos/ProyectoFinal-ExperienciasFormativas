@@ -1,6 +1,7 @@
 ﻿using Business_Logic.Service;
 using Data.Infraestructure;
 using Data.Repository;
+using Entities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -27,6 +28,9 @@ namespace Business_Logic.Inyeccion
 
             services.AddScoped<IMesa, MesaRepository>();
             services.AddScoped<MesaService>();
+
+            services.AddScoped<IConfigurationReserva, PrecioReservaRepository>();
+            services.AddScoped<ConfiReservaService>();
 
             services.AddScoped<IPlatillo, PlatilloRepository>();
             services.AddScoped<PlatilloService>();

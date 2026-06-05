@@ -1,0 +1,663 @@
+﻿@model IEnumerable<App_Web.Models.VM.MesaVM>
+@{
+    Layout = null;
+    var precio = ViewBag.PrecioReserva as App_Web.Models.VM.ConfiguracionReservaVM;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Mesas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #1C1C1C;
+            --acento:     #C9A84C;
+            --fondo:      #F4F5F7;
+            --card:       #ffffff;
+            --carbon:     #2C2C2C;
+            --borde:      #E5E7EB;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--fondo);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
+        }
+        .sidebar-header {
+            padding: 1.4rem 1.2rem 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .sidebar-logo { font-size: 14px; font-weight: 700; color: var(--acento); }
+        .sidebar-sub  { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+        .sidebar-nav  { flex: 1; padding: 0.8rem 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.6rem 1.2rem; font-size: 13px;
+            color: rgba(255,255,255,0.45); text-decoration: none;
+            border-left: 2px solid transparent; transition: all 0.2s;
+        }
+        .nav-item:hover  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+        .nav-item.active { background: rgba(201,168,76,0.12); color: #fff; border-left-color: var(--acento); }
+        .nav-item i { font-size: 15px; }
+        .sidebar-footer {
+            padding: 1rem 1.2rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--acento);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: var(--sidebar-bg);
+        }
+        .sidebar-user-name { font-size: 12px; color: #fff; }
+        .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+        /* MAIN */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            background: var(--card);
+            border-bottom: 1px solid var(--borde);
+            padding: 0.9rem 1.8rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar-titulo { font-size: 16px; font-weight: 700; color: var(--carbon); }
+        .topbar-sub    { font-size: 12px; color: #9CA3AF; }
+        .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.8rem; }
+
+        /* PRECIO CARD */
+        .precio-card {
+            background: var(--card); border: 1px solid var(--borde);
+            border-radius: 10px; padding: 1rem 1.4rem;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.2rem;
+        }
+        .precio-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #9CA3AF; margin-bottom: 3px; }
+        .precio-valor { font-size: 22px; font-weight: 700; color: var(--carbon); }
+        .precio-sub   { font-size: 12px; font-weight: 400; color: #9CA3AF; }
+
+        /* SALON */
+        .salon-card { background: var(--card); border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
+        .salon-toolbar {
+            padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--borde);
+            display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+        }
+        .salon-toolbar-left  { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        .salon-toolbar-right { display: flex; gap: 0.6rem; align-items: center; flex-shrink: 0; }
+        .leyenda { display: flex; gap: 1rem; align-items: center; }
+        .leyenda-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #6B7280; }
+        .leyenda-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+        .input-busqueda {
+            border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.38rem 0.8rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; outline: none;
+            width: 200px; transition: border-color 0.2s;
+        }
+        .input-busqueda:focus { border-color: var(--carbon); }
+
+        #salon {
+            position: relative; width: 100%; height: 500px;
+            background-image: linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+        .salon-footer {
+            padding: 0.5rem 1.2rem; border-top: 1px solid var(--borde);
+            font-size: 11px; color: #9CA3AF; text-align: right;
+        }
+
+        /* BOTÓN ROTAR — aparece sobre la mesa en modo interactuar */
+        .btn-rotar {
+            position: absolute; top: -10px; right: -10px;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--carbon); color: #fff; border: none;
+            font-size: 11px; cursor: pointer; display: none;
+            align-items: center; justify-content: center;
+            z-index: 5; transition: background 0.2s;
+        }
+        .btn-rotar:hover { background: #555; }
+
+        /* BOTONES GENERALES */
+        .btn-dark {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 6px; padding: 0.42rem 1rem; font-size: 12px;
+            font-family: 'Lato', sans-serif; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; transition: background 0.2s;
+        }
+        .btn-dark:hover { background: #444; }
+        .btn-outline {
+            background: transparent; color: var(--carbon);
+            border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.42rem 1rem; font-size: 12px;
+            font-family: 'Lato', sans-serif; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; transition: all 0.2s;
+        }
+        .btn-outline:hover { border-color: var(--carbon); }
+        .btn-outline.active { background: var(--carbon); color: #fff; border-color: var(--carbon); }
+
+        /* MODALES */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--card); border-radius: 12px; padding: 1.8rem;
+            width: 100%; max-width: 380px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+        }
+        .modal-titulo { font-size: 15px; font-weight: 700; color: var(--carbon); margin-bottom: 1.4rem; }
+        .campo-grupo  { margin-bottom: 1.1rem; }
+        .campo-label  {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #9CA3AF; display: block; margin-bottom: 5px;
+        }
+        .campo-input {
+            width: 100%; border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.5rem 0.8rem; font-family: 'Lato', sans-serif;
+            font-size: 14px; color: var(--carbon); outline: none; transition: border-color 0.2s;
+        }
+        .campo-input:focus { border-color: var(--carbon); }
+        .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.4rem; }
+        .btn-cancel {
+            background: transparent; border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.45rem 1.1rem; font-size: 13px; font-family: 'Lato', sans-serif;
+            cursor: pointer; color: #6B7280;
+        }
+        .btn-save {
+            background: var(--carbon); color: #fff; border: none; border-radius: 6px;
+            padding: 0.45rem 1.3rem; font-size: 13px; font-family: 'Lato', sans-serif;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-save:hover { background: #444; }
+        .alerta {
+            background: #FEF2F2; border-left: 3px solid #FC4C28;
+            padding: 0.6rem 0.9rem; border-radius: 4px;
+            font-size: 12px; color: #FC4C28; margin-bottom: 1rem; display: none;
+        }
+
+        /* BADGES */
+        .badge-estado {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+        }
+        .badge-libre     { background: rgba(40,252,100,0.15); color: #16a34a; }
+        .badge-pendiente { background: rgba(255,221,0,0.2);   color: #92400e; }
+        .badge-ocupado   { background: rgba(252,76,40,0.15);  color: #dc2626; }
+
+        .dato-row { margin-bottom: 0.9rem; }
+        .dato-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #9CA3AF; margin-bottom: 3px; }
+        .dato-val { font-size: 14px; color: var(--carbon); font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">La Estancia</div>
+        <div class="sidebar-sub">Sistema interno</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a class="nav-item" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a class="nav-item active" href="/Mesa/Index"><i class="bi bi-grid-1x2"></i> Mesas</a>
+        <a class="nav-item" href="#"><i class="bi bi-calendar-check"></i> Reservas</a>
+        <a class="nav-item" href="#"><i class="bi bi-receipt"></i> Ventas</a>
+        <a class="nav-item" href="#"><i class="bi bi-egg-fried"></i> Platillos</a>
+        <a class="nav-item" href="#"><i class="bi bi-people"></i> Usuarios</a>
+        <a class="nav-item" href="#"><i class="bi bi-gear"></i> Configuración</a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="avatar">AD</div>
+        <div>
+            <div class="sidebar-user-name">Administrador</div>
+            <div class="sidebar-user-role">Sistema</div>
+        </div>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <div>
+            <div class="topbar-titulo">Gestión de Mesas</div>
+            <div class="topbar-sub">Vista del salón en tiempo real</div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- PRECIO -->
+        <div class="precio-card">
+            <div>
+                <div class="precio-label">Costo por reserva</div>
+                <div class="precio-valor">
+                    S/ @(precio?.PrecioReserva.ToString("0.00") ?? "0.00")
+                    <span class="precio-sub">/ persona</span>
+                </div>
+            </div>
+            <form method="post" action="/Mesa/ActualizarPrecioReserva"
+                  style="display:flex; align-items:center; gap:0.6rem;">
+                <input type="number" name="precio" step="0.01" min="0"
+                       value="@(precio?.PrecioReserva.ToString("0.00") ?? "0.00")"
+                       class="campo-input" style="width:110px;" />
+                <button type="submit" class="btn-dark">
+                    <i class="bi bi-check-lg"></i> Guardar
+                </button>
+            </form>
+        </div>
+
+        <!-- SALÓN -->
+        <div class="salon-card">
+            <div class="salon-toolbar">
+                <div class="salon-toolbar-left">
+                    <div class="leyenda">
+                        <div class="leyenda-item"><div class="leyenda-dot" style="background:#28FC64;"></div> Libre</div>
+                        <div class="leyenda-item"><div class="leyenda-dot" style="background:#FFDD00;"></div> Pendiente</div>
+                        <div class="leyenda-item"><div class="leyenda-dot" style="background:#FC4C28;"></div> Ocupada</div>
+                    </div>
+                    <input type="text" id="inputBusqueda" class="input-busqueda"
+                           placeholder="Buscar cliente..." oninput="filtrarMesas(this.value)" />
+                </div>
+                <div class="salon-toolbar-right">
+                    <button class="btn-outline" id="btnInteractuar" onclick="toggleInteract()">
+                        <i class="bi bi-arrows-move"></i> Interactuar
+                    </button>
+                    <button class="btn-dark" onclick="abrirModalMesa()">
+                        <i class="bi bi-plus-lg"></i> Nueva Mesa
+                    </button>
+                </div>
+            </div>
+            <div id="salon"></div>
+            <div class="salon-footer" id="salonFooter">Modo vista — haz click en una mesa para ver su detalle</div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL MESA -->
+<div class="modal-overlay" id="modalMesa">
+    <div class="modal-box">
+        <div class="modal-titulo" id="modalMesaTitulo">Nueva Mesa</div>
+        <div class="alerta" id="alertaMesa"></div>
+        <form id="formMesa" method="post" action="/Mesa/GestionarMesa">
+            <input type="hidden" name="IdMesa" id="mIdMesa" value="0" />
+            <div class="campo-grupo">
+                <label class="campo-label">Número de Mesa</label>
+                <input type="number" name="NumeroMesa" id="mNumeroMesa" class="campo-input" placeholder="Ej: 1" min="1" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Capacidad (personas)</label>
+                <input type="number" name="EspacioOcupable" id="mEspacioOcupable" class="campo-input" placeholder="Ej: 4" min="1" />
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModalMesa()">Cancelar</button>
+                <button type="button" class="btn-save" onclick="guardarMesa()">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modalDetalle">
+    <div class="modal-box">
+        <div class="modal-titulo">Detalle de Mesa</div>
+        <div class="dato-row">
+            <div class="dato-lbl">Número</div>
+            <div class="dato-val" id="dNumero"></div>
+        </div>
+        <div class="dato-row">
+            <div class="dato-lbl">Capacidad</div>
+            <div class="dato-val" id="dEspacio"></div>
+        </div>
+        <div class="dato-row">
+            <div class="dato-lbl">Estado</div>
+            <div id="dEstado"></div>
+        </div>
+        <div class="dato-row" id="dRowOcupadoPor" style="display:none;">
+            <div class="dato-lbl">Reservado por</div>
+            <div class="dato-val" id="dOcupadoPor"></div>
+        </div>
+        <div class="dato-row" id="dRowFecha" style="display:none;">
+            <div class="dato-lbl">Fecha reserva</div>
+            <div class="dato-val" id="dFecha"></div>
+        </div>
+        <div class="dato-row" id="dRowHora" style="display:none;">
+            <div class="dato-lbl">Hora reserva</div>
+            <div class="dato-val" id="dHora"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="cerrarDetalle()">Cerrar</button>
+            <button class="btn-save" onclick="editarDesdeDetalle()">Editar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const mesasData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model,
+        new Newtonsoft.Json.JsonSerializerSettings {
+            ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+        }
+    ));
+
+    let mesasFiltradas  = [...mesasData];
+    let interactMode    = false;
+    let dragging        = null, offX = 0, offY = 0;
+    let posiciones      = {};
+    let mesaDetalleActual = null;
+
+    try {
+        const saved = localStorage.getItem('salon_posiciones');
+        if (saved) posiciones = JSON.parse(saved);
+    } catch(e) {}
+
+    function colorBorde(estado) {
+        if (estado === 1) return '#16a34a';
+        if (estado === 2) return '#b45309';
+        if (estado === 3) return '#dc2626';
+        return '#9CA3AF';
+    }
+    function colorSilla(estado) {
+        if (estado === 1) return '#28FC64';
+        if (estado === 2) return '#FFDD00';
+        if (estado === 3) return '#FC4C28';
+        return '#B4B2A9';
+    }
+
+    function mesaSize(personas) {
+        if (personas <= 2) return { w: 60,  h: 34 };
+        if (personas <= 4) return { w: 80,  h: 44 };
+        if (personas <= 6) return { w: 100, h: 54 };
+        if (personas <= 8) return { w: 120, h: 62 };
+        return                    { w: 145, h: 70 };
+    }
+
+    function crearSVG(m, vertical) {
+        const { w, h } = mesaSize(m.espacioOcupable);
+        const CH = 9, CG = 4;
+        const cols = Math.ceil(m.espacioOcupable / 2);
+        const cw   = Math.max(10, Math.floor(w / (cols + 1)) - 3);
+        const sp   = w / (cols + 1);
+        const ox   = CG, oy = CH + CG;
+        const totalW = w + CG * 2;
+        const totalH = h + (CH + CG) * 2;
+        const borde  = colorBorde(m.estado);
+        const silla  = colorSilla(m.estado);
+
+        let chairs = '';
+        for (let i = 0; i < cols; i++) {
+            const cx = ox + sp * (i + 1) - cw / 2;
+            chairs += `<rect x="${cx.toFixed(1)}" y="${oy - CH - 3}" width="${cw}" height="${CH}" rx="2" fill="${silla}" opacity="0.85"/>`;
+            if (i * 2 + 1 < m.espacioOcupable)
+                chairs += `<rect x="${cx.toFixed(1)}" y="${oy + h + 3}" width="${cw}" height="${CH}" rx="2" fill="${silla}" opacity="0.85"/>`;
+        }
+
+        const svgW = vertical ? totalH : totalW;
+        const svgH = vertical ? totalW : totalH;
+        const transform = vertical ? `rotate(90) translate(0, -${totalW})` : '';
+
+        return `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+            <g transform="${transform}">
+                ${chairs}
+                <rect x="${ox}" y="${oy}" width="${w}" height="${h}" rx="5"
+                    fill="white" stroke="${borde}" stroke-width="2"/>
+                <text x="${ox + w/2}" y="${oy + h/2 + 4}" text-anchor="middle"
+                    font-family="Lato,sans-serif" font-size="13" font-weight="700" fill="#2C2C2C">${m.numeroMesa}</text>
+                <text x="${ox + w/2}" y="${oy + h/2 + 17}" text-anchor="middle"
+                    font-family="Lato,sans-serif" font-size="10" fill="#9CA3AF">${m.espacioOcupable} personas</text>
+            </g>
+        </svg>`;
+    }
+
+    function renderSalon() {
+        const salon = document.getElementById('salon');
+        salon.innerHTML = '';
+        let autoX = 30, autoY = 30;
+
+        mesasFiltradas.forEach(m => {
+            const { w, h } = mesaSize(m.espacioOcupable);
+            const CH = 9, CG = 4;
+            const totalW = w + CG * 2;
+            const totalH = h + (CH + CG) * 2;
+            const pos = posiciones[m.idMesa] || { x: autoX, y: autoY, vertical: false };
+
+            if (!posiciones[m.idMesa]) {
+                posiciones[m.idMesa] = { ...pos };
+                autoX += totalW + 30;
+                if (autoX + totalW > 800) { autoX = 30; autoY += totalH + 30; }
+            }
+
+            const wrap = document.createElement('div');
+            wrap.id = 'mesa-' + m.idMesa;
+            wrap.style.cssText = `position:absolute; left:${pos.x}px; top:${pos.y}px; cursor:default; user-select:none;`;
+
+            const svgWrap = document.createElement('div');
+            svgWrap.style.cssText = 'position:relative; display:inline-block;';
+            svgWrap.innerHTML = crearSVG(m, pos.vertical);
+
+            const btnRotar = document.createElement('button');
+            btnRotar.className = 'btn-rotar';
+            btnRotar.title = 'Rotar mesa';
+            btnRotar.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
+            btnRotar.addEventListener('click', e => {
+                e.stopPropagation();
+                posiciones[m.idMesa].vertical = !posiciones[m.idMesa].vertical;
+                svgWrap.innerHTML = crearSVG(m, posiciones[m.idMesa].vertical);
+                svgWrap.appendChild(btnRotar);
+                guardarPosiciones();
+            });
+            svgWrap.appendChild(btnRotar);
+            wrap.appendChild(svgWrap);
+
+            wrap.addEventListener('click', () => { if (!interactMode) abrirDetalle(m.idMesa); });
+
+            wrap.addEventListener('mousedown', e => {
+                if (!interactMode) return;
+                if (e.target === btnRotar || btnRotar.contains(e.target)) return;
+                const r = wrap.getBoundingClientRect();
+                dragging = { m, div: wrap };
+                offX = e.clientX - r.left;
+                offY = e.clientY - r.top;
+                wrap.style.cursor = 'grabbing';
+                wrap.style.zIndex = 10;
+                e.preventDefault();
+            });
+
+            salon.appendChild(wrap);
+        });
+
+        actualizarBotonesRotar();
+    }
+
+    function actualizarBotonesRotar() {
+        document.querySelectorAll('.btn-rotar').forEach(btn => {
+            btn.style.display = interactMode ? 'flex' : 'none';
+        });
+    }
+
+    document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const sr = document.getElementById('salon').getBoundingClientRect();
+        let nx = e.clientX - sr.left - offX;
+        let ny = e.clientY - sr.top  - offY;
+        nx = Math.max(0, Math.min(nx, sr.width  - 160));
+        ny = Math.max(0, Math.min(ny, sr.height - 100));
+        dragging.div.style.left = nx + 'px';
+        dragging.div.style.top  = ny + 'px';
+        posiciones[dragging.m.idMesa].x = nx;
+        posiciones[dragging.m.idMesa].y = ny;
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (dragging) {
+            dragging.div.style.cursor = 'grab';
+            dragging.div.style.zIndex = '';
+            guardarPosiciones();
+            dragging = null;
+        }
+    });
+
+    function guardarPosiciones() {
+        localStorage.setItem('salon_posiciones', JSON.stringify(posiciones));
+    }
+
+    function toggleInteract() {
+        interactMode = !interactMode;
+        const btn    = document.getElementById('btnInteractuar');
+        const footer = document.getElementById('salonFooter');
+        btn.classList.toggle('active', interactMode);
+        footer.textContent = interactMode
+            ? 'Modo interactivo — arrastra las mesas · Botón ↻ para rotar'
+            : 'Modo vista — haz click en una mesa para ver su detalle';
+        document.querySelectorAll('#salon > div').forEach(d => {
+            d.style.cursor = interactMode ? 'grab' : 'default';
+        });
+        actualizarBotonesRotar();
+    }
+
+
+    function filtrarMesas(busqueda) {
+        if (!busqueda || busqueda.trim() === '') {
+            mesasFiltradas = [...mesasData];
+            renderSalon();
+            return;
+        }
+        fetch(`/Mesa/Index?Busqueda=${encodeURIComponent(busqueda)}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => { mesasFiltradas = data; renderSalon(); });
+    }
+
+    function abrirModalMesa(id = null) {
+        document.getElementById('mIdMesa').value        = 0;
+        document.getElementById('mNumeroMesa').value    = '';
+        document.getElementById('mEspacioOcupable').value = '';
+        document.getElementById('modalMesaTitulo').textContent = 'Nueva Mesa';
+        document.getElementById('alertaMesa').style.display    = 'none';
+
+        if (id) {
+            fetch(`/Mesa/DetalleMesa?id=${id}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (!d) return;
+                    document.getElementById('mIdMesa').value           = d.idMesa;
+                    document.getElementById('mNumeroMesa').value       = d.numeroMesa;
+                    document.getElementById('mEspacioOcupable').value  = d.espacioOcupable;
+                    document.getElementById('modalMesaTitulo').textContent = 'Editar Mesa ' + d.numeroMesa;
+                });
+        }
+        document.getElementById('modalMesa').classList.add('show');
+    }
+
+    function cerrarModalMesa() { document.getElementById('modalMesa').classList.remove('show'); }
+
+    function guardarMesa() {
+        const alerta = document.getElementById('alertaMesa');
+        const numeroMesa    = document.getElementById('mNumeroMesa').value;
+        const espacioOcupable = document.getElementById('mEspacioOcupable').value;
+
+        if (!numeroMesa || !espacioOcupable) {
+            alerta.textContent   = 'Completa todos los campos.';
+            alerta.style.display = 'block';
+            return;
+        }
+
+        const formData = new FormData(document.getElementById('formMesa'));
+
+        fetch('/Mesa/GestionarMesa', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.resultado) {
+                cerrarModalMesa();
+                location.reload();
+            } else {
+                alerta.textContent   = data.mensaje;
+                alerta.style.display = 'block';
+            }
+        });
+    }
+
+    function abrirDetalle(idMesa) {
+        fetch(`/Mesa/DetalleMesa?id=${idMesa}`)
+            .then(r => r.json())
+            .then(d => {
+                if (!d) return;
+                mesaDetalleActual = d;
+
+                document.getElementById('dNumero').textContent  = 'Mesa ' + d.numeroMesa;
+                document.getElementById('dEspacio').textContent = d.espacioOcupable + ' personas';
+
+                const estadoMap = {
+                    1: ['Libre',     'badge-libre'],
+                    2: ['Pendiente', 'badge-pendiente'],
+                    3: ['Ocupada',   'badge-ocupado']
+                };
+                const [txt, cls] = estadoMap[d.estado] || ['Sin estado', ''];
+                document.getElementById('dEstado').innerHTML =
+                    `<span class="badge-estado ${cls}">${txt}</span>`;
+
+                const rowOcupado = document.getElementById('dRowOcupadoPor');
+                if (d.ocupadoPor && d.ocupadoPor.trim() !== '') {
+                    document.getElementById('dOcupadoPor').textContent = d.ocupadoPor;
+                    rowOcupado.style.display = 'block';
+                } else {
+                    rowOcupado.style.display = 'none';
+                }
+
+                const rowFecha = document.getElementById('dRowFecha');
+                if (d.fechaReserva) {
+                    const fecha = new Date(d.fechaReserva);
+                    document.getElementById('dFecha').textContent =
+                        fecha.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    rowFecha.style.display = 'block';
+                } else {
+                    rowFecha.style.display = 'none';
+                }
+
+                const rowHora = document.getElementById('dRowHora');
+                if (d.horaReserva) {
+                    document.getElementById('dHora').textContent = d.horaReserva;
+                    rowHora.style.display = 'block';
+                } else {
+                    rowHora.style.display = 'none';
+                }
+
+                document.getElementById('modalDetalle').classList.add('show');
+            });
+    }
+
+    function cerrarDetalle() { document.getElementById('modalDetalle').classList.remove('show'); }
+
+    function editarDesdeDetalle() {
+        cerrarDetalle();
+        if (mesaDetalleActual) abrirModalMesa(mesaDetalleActual.idMesa);
+    }
+
+    renderSalon();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

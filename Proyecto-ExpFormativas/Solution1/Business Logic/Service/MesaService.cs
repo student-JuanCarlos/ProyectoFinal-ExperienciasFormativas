@@ -2,6 +2,7 @@
 using Entities;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Business_Logic.Service
@@ -10,9 +11,9 @@ namespace Business_Logic.Service
     {
         private readonly IMesa mesaDB;
 
-        public MesaService(IMesa service)
+        public MesaService(IMesa mesa)
         {
-            mesaDB = service;
+            mesaDB = mesa;
         }
 
         public int GestionarMesa(Mesa m)
@@ -23,9 +24,9 @@ namespace Business_Logic.Service
                 return mesaDB.Actualizar(m);
         }
 
-        public List<Mesa> ListadoMesa()
+        public List<Mesa> ListadoMesa(string Busqueda)
         {
-            return mesaDB.Listado();
+            return mesaDB.Listado(Busqueda);
         }
 
         public Mesa Detalle(int id)
