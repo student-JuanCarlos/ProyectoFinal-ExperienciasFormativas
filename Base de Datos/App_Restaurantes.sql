@@ -91,7 +91,7 @@ CREATE TABLE Platillo(
 	NombrePlatillo VARCHAR(150) NOT NULL,
 	Fotografia VARCHAR(255) NOT NULL,
 	Precio DECIMAL(5,2) NOT NULL,
-	IdCategoria INT NOT FOREIGN KEY REFERENCES Categoria(IdCategoria)
+	IdCategoria INT NULL FOREIGN KEY REFERENCES Categoria(IdCategoria)
 );
 
 CREATE TABLE Reserva(
@@ -670,6 +670,7 @@ CREATE PROC sp_FiltradoDescuento
 AS
 BEGIN
 	SELECT 
+		de.IdDescuento,
 		de.NombreDescuento,
 		de.TipoDescuento,
 		de.PorcentajeDescuento,
@@ -689,8 +690,8 @@ BEGIN
 		de.NombreDescuento,
 		de.TipoDescuento,
 		de.PorcentajeDescuento,
-		ISNULL(de.FechaInicio, 'Sin FechaInicio') AS FechaInicio,
-		ISNULL(de.FechaFin, 'Sin FechaFin') AS FechaFin,
+		de.FechaInicio,
+		de.FechaFin,
 		de.ColorCard,
 		de.Estado
 	FROM Descuento de
@@ -1106,7 +1107,8 @@ INSERT INTO ConfiguracionReserva VALUES(1, 10.00);
 ------------------------------------
 SELECT * FROM Cliente;
 SELECT * FROM Mesa;
-SELECT * FROM ConfiguracionReserva
+SELECT * FROM ConfiguracionReserva;
+SELECT * FROM Descuento;
 
 ------------------------------------
 --------Control interno del sistema

@@ -2,6 +2,7 @@
 using App_Web.Models.VM;
 using Business_Logic.Service;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
 
 namespace App_Web.Controllers
 {
@@ -22,7 +23,7 @@ namespace App_Web.Controllers
 
             var listado = platilloservice.ListadoPlatillo(Busqueda).Select(p => p.ToViewModel()).ToList();
 
-            int registrosPorPagina = 10;
+            int registrosPorPagina = 6;
             int totalPlatillos = listado.Count;
             int cantidadPaginas = Convert.ToInt32(Math.Ceiling((double)totalPlatillos / registrosPorPagina));
 
@@ -42,6 +43,30 @@ namespace App_Web.Controllers
 
             try
             {
+
+                string nombreImagen = platillo.FotoActual ?? "";
+
+                if (platillo.Fotografia != null)
+                {
+                    if (platillo.IdPlatillo != 0 && !string.IsNullOrEmpty(platillo.FotoActual))
+                    {
+                        var fotoAnterior = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", platillo.FotoActual);
+                        if (System.IO.File.Exists(fotoAnterior))
+                            System.IO.File.Delete(fotoAnterior);
+                    }
+
+                    var nombreRealImagen = Path.GetFileName(platillo.Fotografia.FileName);
+                    nombreImagen = $"assets/img/platillos/{nombreRealImagen}";
+                    var pathImagen = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/assets/img/platillos", nombreRealImagen);
+
+                    using (var stream = new FileStream(pathImagen, FileMode.Create))
+                    {
+                        platillo.Fotografia.CopyTo(stream);
+                    }
+                }
+
+                platillo.FotoActual = $"{nombreImagen}";
+
                 platilloservice.GestionarPlatillo(platillo.ToEntity());
             }
             catch (Exception ex)

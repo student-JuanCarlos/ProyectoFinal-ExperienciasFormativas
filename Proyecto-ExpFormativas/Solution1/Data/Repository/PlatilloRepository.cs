@@ -89,7 +89,7 @@ namespace Data.Repository
                     {
                         Categoria categoria = new Categoria()
                         {
-                            NombreCategoria = reader["NombreCategoria"].ToString()
+                            NombreCategoria = reader["NombreCategoria"] == DBNull.Value ? null : reader["NombreCategoria"].ToString()
                         };
 
                         listado.Add(new Platillo()
@@ -98,7 +98,7 @@ namespace Data.Repository
                             NombrePlatillo = reader["NombrePlatillo"].ToString(),
                             Fotografia = reader["Fotografia"].ToString(),
                             Precio = Convert.ToDecimal(reader["Precio"]),
-                            categoria = categoria
+                            categoria = (Categoria)(categoria == null ? (object)DBNull.Value : categoria)
                         });
                     }
                 }
@@ -128,18 +128,18 @@ namespace Data.Repository
                     {
                         Categoria categoria = new Categoria()
                         {
-                            IdCategoria = Convert.ToInt32(reader["IdCategoria"]),
-                            NombreCategoria = reader["NombreCategoria"].ToString()
+                            IdCategoria = reader["IdCategoria"] == DBNull.Value ? 0 : Convert.ToInt32(reader["IdCategoria"]),
+                            NombreCategoria = reader["NombreCategoria"] == DBNull.Value ? null : reader["NombreCategoria"].ToString()
                         };
 
                         platillo = new Platillo()
                         {
                             IdPlatillo = Convert.ToInt32(reader["IdPlatillo"]),
                             NombrePlatillo = reader["NombrePlatillo"].ToString(),
-                            IdCategoria = Convert.ToInt32(reader["IdCategoria"]),
+                            IdCategoria = reader["IdCategoria"] == DBNull.Value ? 0 : Convert.ToInt32(reader["IdCategoria"]),
                             Fotografia = reader["Fotografia"].ToString(),
                             Precio = Convert.ToDecimal(reader["Precio"]),
-                            categoria = categoria
+                            categoria = categoria == null ? new Categoria() : categoria
                         };
                     }
                 }

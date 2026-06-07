@@ -108,7 +108,7 @@ namespace Data.Repository
                     cmd.Connection = cn;
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.CommandText = "sp_DetalleDescuento";
-                    cmd.Parameters.AddWithValue("@IdBusqueda", id);
+                    cmd.Parameters.AddWithValue("@IdDescuento", id);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -133,7 +133,7 @@ namespace Data.Repository
             return descuento;
         }
 
-        public List<Descuento> Listado(string Busqueda, bool Estado)
+        public List<Descuento> Listado(string Busqueda, bool? Estado)
         {
             var listado = new List<Descuento>();
             using (SqlConnection cn = new SqlConnection(cadenaConexion))
@@ -152,6 +152,7 @@ namespace Data.Repository
                     {
                         listado.Add(new Descuento()
                         {
+                            IdDescuento = Convert.ToInt32(reader["IdDescuento"]),
                             NombreDescuento = reader["NombreDescuento"].ToString(),
                             TipoDescuento = reader["TipoDescuento"].ToString(),
                             PorcentajeDescuento = Convert.ToDecimal(reader["PorcentajeDescuento"]),

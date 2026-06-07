@@ -33,7 +33,7 @@ namespace Business_Logic.Service
             return descuentoDB.Detalle(id);
         }
 
-        public List<Descuento> ListadoDescuento(string Busqueda, bool Estado)
+        public List<Descuento> ListadoDescuento(string Busqueda, bool? Estado)
         {
             return descuentoDB.Listado(Busqueda, Estado);
         }

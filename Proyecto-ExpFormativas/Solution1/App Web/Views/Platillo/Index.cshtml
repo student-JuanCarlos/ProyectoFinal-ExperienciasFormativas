@@ -1,0 +1,602 @@
+﻿@model IEnumerable<App_Web.Models.VM.PlatilloVM>
+@{
+    Layout = null;
+    var categorias = ViewBag.Categorias as List<App_Web.Models.VM.CategoriaVM>;
+    int paginas      = ViewBag.Paginas;
+    int paginaActual = ViewBag.PaginaActual;
+    string busqueda  = Context.Request.Query["Busqueda"];
+    string catFiltro = Context.Request.Query["IdCategoria"];
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Platillos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #1C1C1C;
+            --acento:     #C9A84C;
+            --fondo:      #F4F5F7;
+            --card:       #ffffff;
+            --carbon:     #2C2C2C;
+            --borde:      #E5E7EB;
+            --rojo:       #EF4444;
+            --verde:      #22C55E;
+            --azul:       #3B82F6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--fondo);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px; background: var(--sidebar-bg);
+            display: flex; flex-direction: column;
+            flex-shrink: 0; height: 100vh;
+        }
+        .sidebar-header {
+            padding: 1.4rem 1.2rem 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .sidebar-logo { font-size: 14px; font-weight: 700; color: var(--acento); }
+        .sidebar-sub  { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+        .sidebar-nav  { flex: 1; padding: 0.8rem 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.6rem 1.2rem; font-size: 13px;
+            color: rgba(255,255,255,0.45); text-decoration: none;
+            border-left: 2px solid transparent; transition: all 0.2s;
+        }
+        .nav-item:hover  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+        .nav-item.active { background: rgba(201,168,76,0.12); color: #fff; border-left-color: var(--acento); }
+        .nav-item i { font-size: 15px; }
+        .sidebar-footer {
+            padding: 1rem 1.2rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--acento);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: var(--sidebar-bg);
+        }
+        .sidebar-user-name { font-size: 12px; color: #fff; }
+        .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+        /* MAIN */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            background: var(--card); border-bottom: 1px solid var(--borde);
+            padding: 0.9rem 1.8rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar-titulo { font-size: 16px; font-weight: 700; color: var(--carbon); }
+        .topbar-sub    { font-size: 12px; color: #9CA3AF; }
+        .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.8rem; }
+
+        /* TOOLBAR */
+        .toolbar {
+            background: var(--card); border: 1px solid var(--borde);
+            border-radius: 10px; padding: 0.9rem 1.2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap;
+        }
+        .toolbar-filtros { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+
+        .input-filtro {
+            border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.4rem 0.8rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; outline: none;
+            width: 190px; transition: border-color 0.2s;
+        }
+        .input-filtro:focus { border-color: var(--carbon); }
+
+        .select-filtro {
+            border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.4rem 0.8rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; outline: none;
+            background: #fff; color: var(--carbon);
+            cursor: pointer; transition: border-color 0.2s;
+        }
+        .select-filtro:focus { border-color: var(--carbon); }
+
+        .btn-buscar {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 6px; padding: 0.4rem 0.9rem;
+            font-size: 13px; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .btn-buscar:hover { background: #444; }
+
+        .btn-limpiar {
+            background: transparent; border: 1px solid var(--borde);
+            border-radius: 6px; padding: 0.4rem 0.8rem;
+            font-size: 13px; color: #6B7280; cursor: pointer;
+            text-decoration: none; display: flex; align-items: center; gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-limpiar:hover { border-color: var(--carbon); color: var(--carbon); }
+
+        .btn-nuevo {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 6px; padding: 0.4rem 1rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .btn-nuevo:hover { background: #444; }
+
+        /* GRILLA CARDS */
+        .grilla {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .platillo-card {
+            background: var(--card); border: 1px solid var(--borde);
+            border-radius: 12px; overflow: hidden;
+            display: flex; flex-direction: column;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .platillo-card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        /* FOTO */
+        .card-foto {
+            position: relative; width: 100%; height: 160px;
+            background: #F3F4F6; overflow: hidden;
+        }
+        .card-foto img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .card-foto-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; color: #D1D5DB;
+        }
+        .card-badge-cat {
+            position: absolute; top: 8px; left: 8px;
+            background: var(--acento); color: #fff;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 8px; border-radius: 20px;
+            letter-spacing: 0.05em;
+            max-width: 120px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .card-badge-sin-cat {
+            position: absolute; top: 8px; left: 8px;
+            background: #9CA3AF; color: #fff;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 8px; border-radius: 20px;
+        }
+
+        /* BODY CARD */
+        .card-body {
+            padding: 0.9rem 1rem; flex: 1;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .card-nombre {
+            font-size: 14px; font-weight: 700; color: var(--carbon);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .card-precio {
+            font-size: 16px; font-weight: 700; color: var(--acento);
+        }
+        .card-precio span { font-size: 11px; font-weight: 400; color: #9CA3AF; }
+
+        /* FOOTER CARD */
+        .card-footer {
+            padding: 0.6rem 1rem;
+            border-top: 1px solid var(--borde);
+            display: flex; justify-content: flex-end; gap: 0.4rem;
+        }
+        .btn-icono {
+            width: 30px; height: 30px; border-radius: 6px; border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-editar       { background: rgba(59,130,246,0.1);  color: var(--azul); }
+        .btn-editar:hover { background: var(--azul); color: #fff; }
+
+        /* VACÍO */
+        .vacio {
+            grid-column: 1 / -1; text-align: center;
+            padding: 3rem; color: #9CA3AF; font-size: 14px;
+        }
+        .vacio i { font-size: 40px; display: block; margin-bottom: 0.8rem; color: #D1D5DB; }
+
+        /* PAGINACIÓN */
+        .paginacion {
+            display: flex; justify-content: center; gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+        .pag-btn {
+            width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--borde);
+            background: var(--card); color: var(--carbon); font-size: 13px;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; transition: all 0.2s; font-family: 'Lato', sans-serif;
+        }
+        .pag-btn:hover   { border-color: var(--carbon); color: var(--carbon); }
+        .pag-btn.activo  { background: var(--carbon); color: #fff; border-color: var(--carbon); }
+        .pag-btn.disabled { opacity: 0.4; pointer-events: none; }
+
+        /* MODALES */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--card); border-radius: 12px; padding: 1.8rem;
+            width: 100%; max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-titulo { font-size: 15px; font-weight: 700; color: var(--carbon); margin-bottom: 1.4rem; }
+        .campo-grupo  { margin-bottom: 1rem; }
+        .campo-label  {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #9CA3AF; display: block; margin-bottom: 5px;
+        }
+        .campo-input {
+            width: 100%; border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.5rem 0.8rem; font-family: 'Lato', sans-serif;
+            font-size: 14px; color: var(--carbon); outline: none;
+            transition: border-color 0.2s;
+        }
+        .campo-input:focus { border-color: var(--carbon); }
+        .campo-select {
+            width: 100%; border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.5rem 0.8rem; font-family: 'Lato', sans-serif;
+            font-size: 14px; color: var(--carbon); outline: none;
+            background: #fff; transition: border-color 0.2s;
+        }
+        .campo-select:focus { border-color: var(--carbon); }
+
+        /* Preview foto */
+        .foto-preview {
+            width: 100%; height: 140px; border-radius: 8px;
+            background: #F3F4F6; border: 1px dashed var(--borde);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; margin-bottom: 0.5rem;
+        }
+        .foto-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        .foto-preview i   { font-size: 32px; color: #D1D5DB; }
+
+        .alerta {
+            background: #FEF2F2; border-left: 3px solid var(--rojo);
+            padding: 0.6rem 0.9rem; border-radius: 4px;
+            font-size: 12px; color: var(--rojo); margin-bottom: 1rem; display: none;
+        }
+        .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.4rem; }
+        .btn-cancel {
+            background: transparent; border: 1px solid var(--borde);
+            border-radius: 6px; padding: 0.45rem 1.1rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; cursor: pointer; color: #6B7280;
+        }
+        .btn-save {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 6px; padding: 0.45rem 1.3rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .btn-save:hover { background: #444; }
+        .btn-save.editar { background: var(--azul); }
+        .btn-save.editar:hover { background: #2563EB; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">La Estancia</div>
+        <div class="sidebar-sub">Sistema interno</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a class="nav-item" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a class="nav-item" href="/Mesa/Index"><i class="bi bi-grid-1x2"></i> Mesas</a>
+        <a class="nav-item" href="#"><i class="bi bi-calendar-check"></i> Reservas</a>
+        <a class="nav-item" href="#"><i class="bi bi-receipt"></i> Ventas</a>
+        <a class="nav-item active" href="/Platillo/Index"><i class="bi bi-egg-fried"></i> Platillos</a>
+        <a class="nav-item" href="#"><i class="bi bi-people"></i> Usuarios</a>
+        <a class="nav-item" href="#"><i class="bi bi-gear"></i> Configuración</a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="avatar">AD</div>
+        <div>
+            <div class="sidebar-user-name">Administrador</div>
+            <div class="sidebar-user-role">Sistema</div>
+        </div>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <div>
+            <div class="topbar-titulo">Platillos</div>
+            <div class="topbar-sub">Gestiona el menú del restaurante</div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- TOOLBAR — filtros + nuevo -->
+        <div class="toolbar">
+            <form method="get" action="/Platillo/Index" class="toolbar-filtros" onsubmit="prepararBusqueda()">
+                <input type="text" id="inputNombre" class="input-filtro"
+                    placeholder="Buscar platillo..." value="@busqueda" />
+                <select id="selectCategoria" class="select-filtro">
+                    <option value="">Todas las categorías</option>
+                    @foreach (var cat in categorias)
+                    {
+                        if (busqueda == cat.NombreCategoria)
+                        {
+                            <option value="@cat.NombreCategoria" selected>@cat.NombreCategoria</option>
+                        }
+                        else
+                        {
+                            <option value="@cat.NombreCategoria">@cat.NombreCategoria</option>
+                        }
+                    }
+                </select>
+                <input type="hidden" name="Busqueda" id="inputBusqueda" value="@busqueda" />
+                <button type="submit" class="btn-buscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                @if (!string.IsNullOrEmpty(busqueda))
+                {
+                    <a href="/Platillo/Index" class="btn-limpiar">
+                        <i class="bi bi-x"></i> Limpiar
+                    </a>
+                }
+            </form>
+            <button class="btn-nuevo" onclick="abrirModalNuevo()">
+                <i class="bi bi-plus-lg"></i> Nuevo Platillo
+            </button>
+        </div>
+
+        <!-- GRILLA -->
+        <div class="grilla">
+            @if (!Model.Any())
+            {
+                <div class="vacio">
+                    <i class="bi bi-egg-fried"></i>
+                    No hay platillos registrados aún.
+                </div>
+            }
+            else
+            {
+                foreach (var p in Model)
+                {
+                    <div class="platillo-card">
+                        <div class="card-foto">
+                            @if (!string.IsNullOrEmpty(p.FotoActual))
+                            {
+                                <img src="/@p.FotoActual" alt="@p.NombrePlatillo"
+                                     onerror="this.parentElement.innerHTML='<div class=\'card-foto-placeholder\'><i class=\'bi bi-image\'></i></div>'" />
+                            }
+                            else
+                            {
+                                <div class="card-foto-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            }
+                            @if (p.categoria != null && !string.IsNullOrEmpty(p.categoria.NombreCategoria))
+                            {
+                                <span class="card-badge-cat">@p.categoria.NombreCategoria</span>
+                            }
+                            else
+                            {
+                                <span class="card-badge-sin-cat">Sin categoría</span>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <div class="card-nombre">@p.NombrePlatillo</div>
+                            <div class="card-precio">
+                                S/ @p.Precio.ToString("0.00")
+                                <span>/ unidad</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-icono btn-editar" title="Editar"
+                                    onclick="abrirModalEditar(@p.IdPlatillo)">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- PAGINACIÓN -->
+        @if (paginas > 1)
+        {
+            <div class="paginacion">
+                <a class="pag-btn @(paginaActual == 1 ? "disabled" : "")"
+                   href="/Platillo/Index?page=@(paginaActual - 1)&Busqueda=@busqueda&IdCategoria=@catFiltro">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                @for (int i = 1; i <= paginas; i++)
+                {
+                    <a class="pag-btn @(i == paginaActual ? "activo" : "")"
+                       href="/Platillo/Index?page=@i&Busqueda=@busqueda&IdCategoria=@catFiltro">
+                        @i
+                    </a>
+                }
+                <a class="pag-btn @(paginaActual == paginas ? "disabled" : "")"
+                   href="/Platillo/Index?page=@(paginaActual + 1)&Busqueda=@busqueda&IdCategoria=@catFiltro">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        }
+
+    </div>
+</main>
+
+<!-- MODAL NUEVO / EDITAR -->
+<div class="modal-overlay" id="modalPlatillo">
+    <div class="modal-box">
+        <div class="modal-titulo" id="modalTitulo">Nuevo Platillo</div>
+        <div class="alerta" id="alertaModal"></div>
+        <form id="formPlatillo" method="post" action="/Platillo/GestionarPlatillo"
+              enctype="multipart/form-data">
+            <input type="hidden" name="IdPlatillo" id="fIdPlatillo" value="0" />
+            <input type="hidden" name="FotoActual" id="fFotoActual" value="" />
+
+            <!-- Preview foto -->
+            <div class="campo-grupo">
+                <label class="campo-label">Fotografía</label>
+                <div class="foto-preview" id="fotoPreview">
+                    <i class="bi bi-image"></i>
+                </div>
+                <input type="file" name="Fotografia" id="fFotografia"
+                       class="campo-input" accept="image/*"
+                       onchange="previsualizarFoto(this)" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Nombre <span style="color:#EF4444;">*</span></label>
+                <input type="text" name="NombrePlatillo" id="fNombre"
+                       class="campo-input" placeholder="Ej: Lomo Saltado" maxlength="150" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Precio (S/) <span style="color:#EF4444;">*</span></label>
+                <input type="number" name="Precio" id="fPrecio"
+                       class="campo-input" placeholder="Ej: 35.00"
+                       step="0.01" min="0" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Categoría <span style="color:#EF4444;">*</span></label>
+                <select name="IdCategoria" id="fCategoria" class="campo-select">
+                    <option value="">Selecciona una categoría</option>
+                    @foreach (var cat in categorias)
+                    {
+                        <option value="@cat.IdCategoria">@cat.NombreCategoria</option>
+                    }
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+                <button type="button" class="btn-save" id="btnGuardar" onclick="guardarPlatillo()">
+                    <i class="bi bi-check-lg"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+
+    function prepararBusqueda() {
+        const cat    = document.getElementById('selectCategoria').value;
+        const nombre = document.getElementById('inputNombre').value.trim();
+        document.getElementById('inputBusqueda').value = cat !== '' ? cat : nombre;
+    }
+
+    function abrirModalNuevo() {
+        document.getElementById('fIdPlatillo').value  = 0;
+        document.getElementById('fFotoActual').value  = '';
+        document.getElementById('fNombre').value      = '';
+        document.getElementById('fPrecio').value      = '';
+        document.getElementById('fCategoria').value   = '';
+        document.getElementById('fFotografia').value  = '';
+        document.getElementById('fotoPreview').innerHTML = '<i class="bi bi-image"></i>';
+        document.getElementById('modalTitulo').textContent = 'Nuevo Platillo';
+        document.getElementById('btnGuardar').className   = 'btn-save';
+        document.getElementById('btnGuardar').innerHTML   = '<i class="bi bi-check-lg"></i> Guardar';
+        document.getElementById('alertaModal').style.display = 'none';
+        document.getElementById('modalPlatillo').classList.add('show');
+    }
+
+    function abrirModalEditar(id) {
+        fetch(`/Platillo/Detalle?id=${id}`)
+            .then(r => r.json())
+            .then(d => {
+                if (!d) return;
+                document.getElementById('fIdPlatillo').value = d.idPlatillo;
+                document.getElementById('fFotoActual').value = d.fotoActual ?? '';
+                document.getElementById('fNombre').value     = d.nombrePlatillo;
+                document.getElementById('fPrecio').value     = d.precio;
+                document.getElementById('fCategoria').value  = d.idCategoria;
+                document.getElementById('fFotografia').value = '';
+
+                const preview = document.getElementById('fotoPreview');
+                if (d.fotoActual) {
+                    preview.innerHTML = `<img src="/${d.fotoActual}" alt="foto" />`;
+                } else {
+                    preview.innerHTML = '<i class="bi bi-image"></i>';
+                }
+
+                document.getElementById('modalTitulo').textContent = 'Editar Platillo';
+                document.getElementById('btnGuardar').className    = 'btn-save editar';
+                document.getElementById('btnGuardar').innerHTML    = '<i class="bi bi-pencil"></i> Actualizar';
+                document.getElementById('alertaModal').style.display = 'none';
+                document.getElementById('modalPlatillo').classList.add('show');
+            });
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalPlatillo').classList.remove('show');
+    }
+
+    function previsualizarFoto(input) {
+        const preview = document.getElementById('fotoPreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.innerHTML = `<img src="${e.target.result}" alt="preview" />`;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function guardarPlatillo() {
+        const alerta    = document.getElementById('alertaModal');
+        const nombre    = document.getElementById('fNombre').value.trim();
+        const precio    = document.getElementById('fPrecio').value;
+        const categoria = document.getElementById('fCategoria').value;
+
+        if (!nombre) {
+            alerta.textContent   = 'El nombre del platillo es obligatorio.';
+            alerta.style.display = 'block';
+            return;
+        }
+        if (!precio || parseFloat(precio) <= 0) {
+            alerta.textContent   = 'Ingresa un precio válido.';
+            alerta.style.display = 'block';
+            return;
+        }
+        if (!categoria) {
+            alerta.textContent   = 'Selecciona una categoría.';
+            alerta.style.display = 'block';
+            return;
+        }
+
+        document.getElementById('formPlatillo').submit();
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

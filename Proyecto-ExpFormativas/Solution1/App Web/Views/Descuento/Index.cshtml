@@ -1,0 +1,619 @@
+﻿@model IEnumerable<App_Web.Models.VM.DescuentoVM>
+@{
+    Layout = null;
+    int paginas      = ViewBag.Paginas;
+    int paginaActual = ViewBag.PaginaActual;
+    string busqueda  = Context.Request.Query["Busqueda"];
+    string estadoQ   = Context.Request.Query["Estado"];
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Descuentos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #131316;
+            --acento:     #C9A84C;
+            --fondo:      #EAEAEA; 
+            --card:       #ffffff;
+            --carbon:     #1A1A1E;
+            --borde:      #E2E8F0;
+            --verde:      #10B981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--fondo);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px; background: var(--sidebar-bg);
+            display: flex; flex-direction: column;
+            flex-shrink: 0; height: 100vh;
+        }
+        .sidebar-header {
+            padding: 1.4rem 1.2rem 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .sidebar-logo { font-size: 14px; font-weight: 700; color: var(--acento); }
+        .sidebar-sub  { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+        .sidebar-nav  { flex: 1; padding: 0.8rem 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.6rem 1.2rem; font-size: 13px;
+            color: rgba(255,255,255,0.45); text-decoration: none;
+            border-left: 2px solid transparent; transition: all 0.2s;
+        }
+        .nav-item:hover  { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.85); }
+        .nav-item.active { background: rgba(201,168,76,0.1); color: #fff; border-left-color: var(--acento); }
+        .sidebar-footer {
+            padding: 1rem 1.2rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--acento); display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: var(--sidebar-bg);
+        }
+        .sidebar-user-name { font-size: 12px; color: #fff; }
+        .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+        /* MAIN */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            background: var(--card); border-bottom: 1px solid var(--borde);
+            padding: 0.9rem 1.8rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar-titulo { font-size: 16px; font-weight: 700; color: var(--carbon); }
+        .topbar-sub    { font-size: 12px; color: #94A3B8; }
+        .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.8rem; }
+
+        /* TOOLBAR */
+        .toolbar {
+            background: var(--card); border: 1px solid var(--borde);
+            border-radius: 16px; padding: 0.9rem 1.2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+        }
+        .toolbar-filtros { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+        .input-filtro {
+            border: 1px solid var(--borde); border-radius: 8px;
+            padding: 0.45rem 0.8rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; outline: none;
+            width: 190px; transition: border-color 0.2s;
+        }
+        .input-filtro:focus { border-color: var(--carbon); }
+        .select-filtro {
+            border: 1px solid var(--borde); border-radius: 8px;
+            padding: 0.45rem 0.8rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; outline: none;
+            background: #fff; color: var(--carbon); cursor: pointer;
+        }
+        .btn-buscar {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 8px; padding: 0.45rem 0.9rem; font-size: 13px;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+        }
+        .btn-limpiar {
+            background: transparent; border: 1px solid var(--borde);
+            border-radius: 8px; padding: 0.45rem 0.8rem; font-size: 13px;
+            color: #64748B; text-decoration: none;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .btn-nuevo {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 8px; padding: 0.45rem 1rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; font-weight: 700;
+        }
+
+        /* GRILLA FORMATO CAPTURA 1 */
+        .grilla {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* CARD ACTUALIZADA: COLOR COMPLETO EN EL CENTRO */
+        .descuento-card {
+            /* El background se inyecta dinámicamente vía Razor inline styles */
+            border-radius: 28px;
+            padding: 2.2rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border: none;
+            overflow: hidden;
+        }
+        /* Efecto sutil de oscurecimiento de fondo al fondo de la card */
+        .descuento-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.15) 100%);
+            z-index: 1; pointer-events: none;
+        }
+        .descuento-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Forzamos a que todo el contenido interno se posicione sobre el pseudo-elemento */
+        .descuento-card > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Textos e iconos adaptados en blanco para legibilidad sobre color */
+        .card-titulo-uiverse {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 2px;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .card-sub-uiverse {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 400;
+        }
+
+        .card-porcentaje-uiverse {
+            font-size: 54px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+            margin-bottom: 1.8rem;
+            letter-spacing: -0.04em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .card-porcentaje-uiverse span {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 700;
+            margin-left: 3px;
+        }
+
+        /* Botón de acción principal invertido (Blanco premium con texto oscuro) */
+        .btn-action-uiverse {
+            background: #ffffff;
+            color: var(--carbon);
+            border: none;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            margin-bottom: 0.8rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .btn-action-uiverse:hover {
+            background: #f8fafc;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .btn-action-uiverse:active {
+            transform: scale(0.97);
+        }
+
+        .card-footer-uiverse {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* SWITCH TOGGLE ADAPTADO A CARDS DE COLOR */
+        .toggle-wrap { display: flex; align-items: center; }
+        .toggle { position: relative; width: 34px; height: 18px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; inset: 0; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.3); cursor: pointer; transition: background 0.2s;
+        }
+        .toggle-slider:before {
+            content: ''; position: absolute;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #fff; left: 3px; top: 3px;
+            transition: transform 0.2s;
+        }
+        .toggle input:checked + .toggle-slider { background: var(--verde); }
+        .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+        .btn-edit-uiverse {
+            background: none; border: none; color: rgba(255, 255, 255, 0.75);
+            font-size: 14px; cursor: pointer; padding: 2px 6px; transition: color 0.2s, transform 0.2s;
+        }
+        .btn-edit-uiverse:hover { color: #ffffff; transform: scale(1.1); }
+
+        /* PALETA INTERACTIVA ANIMADA ("Captura de pantalla 2026-06-07 003529.png") */
+        .palette-container {
+            background: #FFFFFF;
+            border: 2px solid #1A1A1E;
+            box-shadow: 3px 3px 0px #1A1A1E;
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            gap: 6px;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        .palette-color-block {
+            flex: 1; height: 32px; border-radius: 6px; cursor: pointer;
+            border: 2px solid #1A1A1E;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
+            position: relative;
+        }
+        .palette-color-block:hover {
+            transform: translateY(-4px); box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .palette-color-block.selected {
+            transform: translateY(-2px) scale(1.05); box-shadow: 2px 2px 0px #1A1A1E;
+        }
+        .palette-color-block.selected::after {
+            content: '\b1'; font-family: 'bootstrap-icons'; position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center; color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6); font-size: 11px;
+        }
+
+        /* VACÍO Y PAGINACIÓN */
+        .vacio {
+            grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: #94A3B8;
+            background: var(--card); border: 1px dashed var(--borde); border-radius: 28px;
+        }
+        .vacio i { font-size: 40px; display: block; margin-bottom: 0.5rem; }
+        .paginacion { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 1rem; }
+        .pag-btn {
+            width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--borde);
+            background: var(--card); color: var(--carbon); font-size: 13px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+        }
+        .pag-btn.activo { background: var(--carbon); color: #fff; border-color: var(--carbon); }
+        .pag-btn.disabled { opacity: 0.3; pointer-events: none; }
+
+        /* MODAL RESPONSIVO */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--card); border-radius: 24px; padding: 1.8rem;
+            width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        .modal-titulo { font-size: 16px; font-weight: 700; color: var(--carbon); margin-bottom: 1.2rem; }
+        .campo-grupo { margin-bottom: 0.9rem; }
+        .campo-label { font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 4px; text-transform: uppercase;}
+        .campo-input, .campo-select {
+            width: 100%; border: 1px solid var(--borde); border-radius: 8px;
+            padding: 0.5rem 0.8rem; font-family: 'Lato', sans-serif; font-size: 14px; outline: none;
+        }
+        .fechas-grupo { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .alerta { background: #FEF2F2; border-left: 3px solid #EF4444; padding: 0.5rem; font-size: 12px; color: #EF4444; margin-bottom: 1rem; display: none; }
+        .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.2rem; }
+        .btn-cancel { background: transparent; border: 1px solid var(--borde); border-radius: 8px; padding: 0.45rem 1rem; font-size: 13px; cursor: pointer; }
+        .btn-save { background: var(--carbon); color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.2rem; font-size: 13px; cursor: pointer; }
+
+        #formEstado { display: none; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">La Estancia</div>
+        <div class="sidebar-sub">Sistema interno</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a class="nav-item" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a class="nav-item" href="/Mesa/Index"><i class="bi bi-grid-1x2"></i> Mesas</a>
+        <a class="nav-item" href="#"><i class="bi bi-calendar-check"></i> Reservas</a>
+        <a class="nav-item" href="#"><i class="bi bi-receipt"></i> Ventas</a>
+        <a class="nav-item" href="/Platillo/Index"><i class="bi bi-egg-fried"></i> Platillos</a>
+        <a class="nav-item" href="#"><i class="bi bi-people"></i> Usuarios</a>
+        <a class="nav-item active" href="/Descuento/Index"><i class="bi bi-percent"></i> Descuentos</a>
+        <a class="nav-item" href="#"><i class="bi bi-gear"></i> Configuración</a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="avatar">AD</div>
+        <div>
+            <div class="sidebar-user-name">Administrador</div>
+            <div class="sidebar-user-role">Sistema</div>
+        </div>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <div>
+            <div class="topbar-titulo">Descuentos</div>
+            <div class="topbar-sub">Gestiona los beneficios y promociones comerciales</div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <form method="get" action="/Descuento/Index" class="toolbar-filtros">
+                <input type="text" name="Busqueda" class="input-filtro" placeholder="Buscar descuento..." value="@busqueda" />
+                <select name="Estado" class="select-filtro">
+                    <option value="">Todos</option>
+                    @if (estadoQ == "true") { <option value="true" selected>Activo</option><option value="false">Inactivo</option> }
+                    else if (estadoQ == "false") { <option value="true">Activo</option><option value="false" selected>Inactivo</option> }
+                    else { <option value="true">Activo</option><option value="false">Inactivo</option> }
+                </select>
+                <button type="submit" class="btn-buscar"><i class="bi bi-search"></i></button>
+                @if (!string.IsNullOrEmpty(busqueda) || !string.IsNullOrEmpty(estadoQ))
+                {
+                    <a href="/Descuento/Index" class="btn-limpiar"><i class="bi bi-x-lg"></i></a>
+                }
+            </form>
+            <button class="btn-nuevo" onclick="abrirModalNuevo()">
+                <i class="bi bi-plus-lg"></i> Nuevo Registro
+            </button>
+        </div>
+
+        <div class="grilla">
+            @if (!Model.Any())
+            {
+                <div class="vacio"><i class="bi bi-chat-square-quote"></i>No se encontraron registros de descuentos activos.</div>
+            }
+            else
+            {
+                foreach (var d in Model)
+                {
+                    var colorElemento = string.IsNullOrEmpty(d.ColorCard) ? "#1A1A1E" : d.ColorCard;
+                    
+                    <div class="descuento-card" style="background-color: @colorElemento;">
+
+                        <div class="card-titulo-uiverse">@d.NombreDescuento</div>
+                        
+                        <div class="card-sub-uiverse">
+                            @if (d.TipoDescuento == "Con Fecha") { <i class="bi bi-calendar3"></i> }
+                            else { <i class="bi bi-infinity"></i> }
+                            @d.TipoDescuento
+                        </div>
+
+                        <div class="card-porcentaje-uiverse">
+                            @d.PorcentajeDescuento.ToString("0")<span>% OFF</span>
+                        </div>
+
+                        <button class="btn-action-uiverse" onclick="abrirModalEditar(@d.IdDescuento)">
+                            Ver detalles
+                        </button>
+
+                        <div class="card-footer-uiverse">
+                            <div class="toggle-wrap">
+                                <label class="toggle">
+                                    <input type="checkbox" @(d.Estado ? "checked" : "") onchange="cambiarEstado(@d.IdDescuento)" />
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <button class="btn-edit-uiverse" onclick="abrirModalEditar(@d.IdDescuento)" title="Ajustes Avanzados">
+                                <i class="bi bi-sliders2"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- PAGINACIÓN -->
+        @if (paginas > 1)
+        {
+            <div class="paginacion">
+                <a class="pag-btn @(paginaActual == 1 ? "disabled" : "")" href="/Descuento/Index?page=@(paginaActual - 1)&Busqueda=@busqueda&Estado=@estadoQ"><i class="bi bi-chevron-left"></i></a>
+                @for (int i = 1; i <= paginas; i++)
+                {
+                    <a class="pag-btn @(i == paginaActual ? "activo" : "")" href="/Descuento/Index?page=@i&Busqueda=@busqueda&Estado=@estadoQ">@i</a>
+                }
+                <a class="pag-btn @(paginaActual == paginas ? "disabled" : "")" href="/Descuento/Index?page=@(paginaActual + 1)&Busqueda=@busqueda&Estado=@estadoQ"><i class="bi bi-chevron-right"></i></a>
+            </div>
+        }
+
+    </div>
+</main>
+
+<form id="formEstado" method="post" action="/Descuento/CambiarEstadoDescuento">
+    <input type="hidden" name="id" id="estadoId" value="0" />
+</form>
+
+<!-- MODAL GESTIÓN -->
+<div class="modal-overlay" id="modalDescuento">
+    <div class="modal-box">
+        <div class="modal-titulo" id="modalTitulo">Nuevo Descuento</div>
+        <div class="alerta" id="alertaModal"></div>
+        <form id="formDescuento" method="post" action="/Descuento/GestionarDescuento">
+            <input type="hidden" name="IdDescuento" id="fId" value="0" />
+            <input type="hidden" name="Estado" id="fEstado" value="true" />
+
+            <div class="campo-grupo">
+                <label class="campo-label">Nombre del Descuento</label>
+                <input type="text" name="NombreDescuento" id="fNombre" class="campo-input" placeholder="Ej: Black Friday" maxlength="150" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Porcentaje de Deducción</label>
+                <input type="number" name="PorcentajeDescuento" id="fPorcentaje" class="campo-input" placeholder="0.00" step="0.01" min="0.01" max="99.99" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Tipo de Aplicación</label>
+                <select name="TipoDescuento" id="fTipo" class="campo-select" onchange="toggleFechas(this.value)">
+                    <option value="">Seleccione opción</option>
+                    <option value="Sin Fecha">Permanente (Sin Fecha)</option>
+                    <option value="Con Fecha">Temporal (Con Fecha)</option>
+                </select>
+            </div>
+
+            <div class="campo-grupo" id="grupoFechas" style="display:none;">
+                <div class="fechas-grupo">
+                    <div>
+                        <label class="campo-label">Inicio</label>
+                        <input type="date" name="FechaInicio" id="fFechaInicio" class="campo-input" />
+                    </div>
+                    <div>
+                        <label class="campo-label">Finalización</label>
+                        <input type="date" name="FechaFin" id="fFechaFin" class="campo-input" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Identificador Visual (Color)</label>
+                <input type="hidden" name="ColorCard" id="fColor" value="#1A1A1E" />
+                
+                <div class="palette-container">
+                    <div class="palette-color-block" style="background: #EF4444;" onclick="seleccionarColorBloque('#EF4444', this)"></div>
+                    <div class="palette-color-block" style="background: #EC4899;" onclick="seleccionarColorBloque('#EC4899', this)"></div>
+                    <div class="palette-color-block" style="background: #F97316;" onclick="seleccionarColorBloque('#F97316', this)"></div>
+                    <div class="palette-color-block" style="background: #EAB308;" onclick="seleccionarColorBloque('#EAB308', this)"></div>
+                    <div class="palette-color-block" style="background: #22C55E;" onclick="seleccionarColorBloque('#22C55E', this)"></div>
+                    <div class="palette-color-block" style="background: #06B6D4;" onclick="seleccionarColorBloque('#06B6D4', this)"></div>
+                    <div class="palette-color-block" style="background: #3B82F6;" onclick="seleccionarColorBloque('#3B82F6', this)"></div>
+                    <div class="palette-color-block" style="background: #6366F1;" onclick="seleccionarColorBloque('#6366F1', this)"></div>
+                    <div class="palette-color-block" style="background: #A855F7;" onclick="seleccionarColorBloque('#A855F7', this)"></div>
+                    <div class="palette-color-block" style="background: #1A1A1E;" onclick="seleccionarColorBloque('#1A1A1E', this)"></div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModal()">Cerrar</button>
+                <button type="button" class="btn-save" id="btnGuardar" onclick="guardarDescuento()">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function seleccionarColorBloque(hex, elemento) {
+        document.getElementById('fColor').value = hex;
+        document.querySelectorAll('.palette-color-block').forEach(b => b.classList.remove('selected'));
+        elemento.classList.add('selected');
+    }
+
+    function toggleFechas(tipo) {
+        const grupo = document.getElementById('grupoFechas');
+        if (tipo === 'Con Fecha') { grupo.style.display = 'block'; } 
+        else { grupo.style.display = 'none'; document.getElementById('fFechaInicio').value = ''; document.getElementById('fFechaFin').value = ''; }
+    }
+
+    function abrirModalNuevo() {
+        document.getElementById('fId').value = 0;
+        document.getElementById('fNombre').value = '';
+        document.getElementById('fPorcentaje').value = '';
+        document.getElementById('fTipo').value = '';
+        document.getElementById('fFechaInicio').value = '';
+        document.getElementById('fFechaFin').value = '';
+        document.getElementById('fEstado').value = 'true';
+        document.getElementById('grupoFechas').style.display = 'none';
+        document.getElementById('modalTitulo').textContent = 'Crear Descuento';
+        document.getElementById('alertaModal').style.display = 'none';
+        
+        const porDefecto = document.querySelector(".palette-color-block[style*='#1A1A1E']");
+        if(porDefecto) seleccionarColorBloque('#1A1A1E', porDefecto);
+
+        document.getElementById('modalDescuento').classList.add('show');
+    }
+
+    function abrirModalEditar(id) {
+        fetch(`/Descuento/Detalle?id=${id}`)
+            .then(r => r.json())
+            .then(d => {
+                if (!d) return;
+                document.getElementById('fId').value = id;
+                document.getElementById('fNombre').value = d.nombreDescuento;
+                document.getElementById('fPorcentaje').value = d.porcentajeDescuento;
+                document.getElementById('fTipo').value = d.tipoDescuento;
+                document.getElementById('fEstado').value = d.estado;
+
+                const colorBase = d.colorCard || '#1A1A1E';
+                const bloques = document.querySelectorAll('.palette-color-block');
+                let encontrado = false;
+                bloques.forEach(b => {
+                    if (b.style.background.toUpperCase().includes(colorBase.toUpperCase())) {
+                        seleccionarColorBloque(colorBase, b);
+                        encontrado = true;
+                    }
+                });
+                if(!encontrado) {
+                    const deRespaldo = document.querySelector(".palette-color-block[style*='#1A1A1E']");
+                    if(deRespaldo) seleccionarColorBloque('#1A1A1E', deRespaldo);
+                }
+
+                toggleFechas(d.tipoDescuento);
+                if (d.tipoDescuento === 'Con Fecha') {
+                    document.getElementById('fFechaInicio').value = d.fechaInicio ? d.fechaInicio.split('T')[0] : '';
+                    document.getElementById('fFechaFin').value = d.fechaFin ? d.fechaFin.split('T')[0] : '';
+                }
+
+                document.getElementById('alertaModal').style.display = 'none';
+                document.getElementById('modalTitulo').textContent = 'Modificar Parámetros';
+                document.getElementById('modalDescuento').classList.add('show');
+            });
+    }
+
+    function cerrarModal() { document.getElementById('modalDescuento').classList.remove('show'); }
+
+    function guardarDescuento() {
+        const alerta = document.getElementById('alertaModal');
+        const nombre = document.getElementById('fNombre').value.trim();
+        const porcentaje = parseFloat(document.getElementById('fPorcentaje').value);
+        const tipo = document.getElementById('fTipo').value;
+
+        if (!nombre || !porcentaje || porcentaje <= 0 || porcentaje >= 100 || !tipo) {
+            alerta.textContent = 'Por favor, rellene todos los campos con valores válidos.';
+            alerta.style.display = 'block';
+            return;
+        }
+        if (tipo === 'Con Fecha') {
+            const fi = document.getElementById('fFechaInicio').value;
+            const ff = document.getElementById('fFechaFin').value;
+            if (!fi || !ff || new Date(fi) > new Date(ff)) {
+                alerta.textContent = 'Fechas de vigencia inconsistentes.';
+                alerta.style.display = 'block';
+                return;
+            }
+        }
+        document.getElementById('formDescuento').submit();
+    }
+
+    function cambiarEstado(id) {
+        document.getElementById('estadoId').value = id;
+        document.getElementById('formEstado').submit();
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

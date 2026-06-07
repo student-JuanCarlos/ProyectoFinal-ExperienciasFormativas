@@ -9,6 +9,6 @@ namespace Data.Infraestructure
     {
         public int CambiarEstado(int id);
 
-        public List<Descuento> Listado(string Busqueda, bool Estado);
+        public List<Descuento> Listado(string Busqueda, bool? Estado);
     }
 }
