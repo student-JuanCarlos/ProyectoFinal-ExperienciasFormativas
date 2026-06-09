@@ -33,7 +33,6 @@ namespace Data.Repository
                     cmd.Parameters.AddWithValue("@Documento", u.Documento);
                     cmd.Parameters.AddWithValue("@Telefono", u.Telefono);
                     cmd.Parameters.AddWithValue("@Email", u.Email);
-                    cmd.Parameters.AddWithValue("@Contraseña", u.Contraseña);
                     cmd.Parameters.AddWithValue("@Sueldo", u.Sueldo);
                     cmd.Parameters.AddWithValue("@IdCargo", u.IdCargo);
                     cmd.Parameters.AddWithValue("@IdRol", u.IdRol);
@@ -155,7 +154,7 @@ namespace Data.Repository
             return usuario;
         }
 
-        public List<Usuario> Listado(string Busqueda, bool Estado)
+        public List<Usuario> Listado(string Busqueda, bool? Estado)
         {
             var listado = new List<Usuario>();
             using (SqlConnection cn = new SqlConnection(cadenaConexion))

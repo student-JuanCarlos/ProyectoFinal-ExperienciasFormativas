@@ -69,7 +69,7 @@ namespace Data.Repository
         public Cargo Detalle(int id)
         {
             var cargo = new Cargo();
-            using (SqlConnection cn = new SqlConnection())
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
             {
                 try
                 {
@@ -108,8 +108,8 @@ namespace Data.Repository
                     SqlCommand cmd = new SqlCommand();
                     cmd.Connection = cn;
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_FiltradoCargo";
-                    cmd.Parameters.AddWithValue("@Busquda", Busqueda == null ? (object)DBNull.Value : Busqueda);
+                    cmd.CommandText = "sp_ListadoCargo";
+                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())

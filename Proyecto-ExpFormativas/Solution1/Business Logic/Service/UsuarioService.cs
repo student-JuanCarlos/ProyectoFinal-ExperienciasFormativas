@@ -23,7 +23,7 @@ namespace Business_Logic.Service
                 return usuarioDB.Actualizar(u);
         }
 
-        public List<Usuario> ListadoUsuario(string Busqueda, bool Estado)
+        public List<Usuario> ListadoUsuario(string Busqueda, bool? Estado)
         {
             return usuarioDB.Listado(Busqueda, Estado);
         }

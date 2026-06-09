@@ -512,7 +512,7 @@ CREATE PROC sp_RegistrarUsuario
 @Telefono VARCHAR(50),
 @Email VARCHAR(150),
 @Contraseña VARCHAR(255),
-@Sueldo DECIMAL(5,2),
+@Sueldo DECIMAL(6,2),
 @IdCargo INT,
 @IdRol INT
 AS
@@ -1101,6 +1101,8 @@ END
 --------INSERCIONES BASICAS
 ------------------------------------
 INSERT INTO ConfiguracionReserva VALUES(1, 10.00);
+INSERT INTO Rol (NombreRol) VALUES('Administrador');
+INSERT INTO Rol (NombreRol)VALUES('Trabajador');
 
 ------------------------------------
 --------INSERCIONES BASICAS
@@ -1109,6 +1111,7 @@ SELECT * FROM Cliente;
 SELECT * FROM Mesa;
 SELECT * FROM ConfiguracionReserva;
 SELECT * FROM Descuento;
+SELECT * FROM Rol;
 
 ------------------------------------
 --------Control interno del sistema
@@ -1127,20 +1130,34 @@ GO
 CREATE PROC sp_ActualizarEstadoMesasHoy
 AS
 BEGIN
-    -- Libera mesas con reservas de días anteriores que quedaron pendientes
-    UPDATE Mesa SET Estado = 1
-    WHERE IdMesa IN (
-        SELECT dm.IdMesa FROM DetalleReserva dm
-        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
-        WHERE r.FechaReserva < CAST(GETDATE() AS DATE)
-        AND r.Estado = 1
+    SET NOCOUNT ON;
+
+    UPDATE Mesa 
+    SET Estado = 1 -- Libre
+    WHERE Estado = 2 
+    AND IdMesa IN (    
+        SELECT dm.IdMesa 
+        FROM DetalleReserva dm    
+        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva    
+        WHERE r.FechaReserva < CAST(GETDATE() AS DATE)    
+        AND r.Estado = 1  
     )
-    -- Pone pendiente las mesas con reserva hoy
-    UPDATE Mesa SET Estado = 2
-    WHERE IdMesa IN (
-        SELECT dm.IdMesa FROM DetalleReserva dm
-        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
-        WHERE r.FechaReserva = CAST(GETDATE() AS DATE)
-        AND r.Estado = 1
-    )
+    AND IdMesa NOT IN (
+        SELECT dm2.IdMesa 
+        FROM DetalleReserva dm2    
+        INNER JOIN Reserva r2 ON r2.IdReserva = dm2.IdReserva    
+        WHERE r2.FechaReserva = CAST(GETDATE() AS DATE)    
+        AND r2.Estado = 1
+    );
+
+    UPDATE Mesa 
+    SET Estado = 2 -- Pendiente
+    WHERE Estado = 1 
+    AND IdMesa IN (    
+        SELECT dm.IdMesa 
+        FROM DetalleReserva dm    
+        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva    
+        WHERE r.FechaReserva = CAST(GETDATE() AS DATE)    
+        AND r.Estado = 1  
+    );
 END

@@ -1,0 +1,760 @@
+﻿@model IEnumerable<App_Web.Models.VM.UsuarioVM>
+@{
+    Layout = null;
+    var roles  = ViewBag.Rol   as List<App_Web.Models.VM.RolVM>;
+    var cargos = ViewBag.Cargo as List<App_Web.Models.VM.CargoVM>;
+    string busqueda = Context.Request.Query["Busqueda"];
+    string estadoQ  = Context.Request.Query["Estado"];
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #1C1C1C;
+            --acento:     #C9A84C;
+            --fondo:      #F4F5F7;
+            --card:       #ffffff;
+            --carbon:     #2C2C2C;
+            --borde:      #E5E7EB;
+            --rojo:       #EF4444;
+            --verde:      #22C55E;
+            --azul:       #3B82F6;
+            --amarillo:   #F59E0B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--fondo);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px; background: var(--sidebar-bg);
+            display: flex; flex-direction: column;
+            flex-shrink: 0; height: 100vh;
+        }
+        .sidebar-header {
+            padding: 1.4rem 1.2rem 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .sidebar-logo { font-size: 14px; font-weight: 700; color: var(--acento); }
+        .sidebar-sub  { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+        .sidebar-nav  { flex: 1; padding: 0.8rem 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.6rem 1.2rem; font-size: 13px;
+            color: rgba(255,255,255,0.45); text-decoration: none;
+            border-left: 2px solid transparent; transition: all 0.2s;
+        }
+        .nav-item:hover  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+        .nav-item.active { background: rgba(201,168,76,0.12); color: #fff; border-left-color: var(--acento); }
+        .nav-item i { font-size: 15px; }
+        .sidebar-footer {
+            padding: 1rem 1.2rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .avatar-sidebar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--acento);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: var(--sidebar-bg);
+        }
+        .sidebar-user-name { font-size: 12px; color: #fff; }
+        .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+        /* MAIN */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            background: var(--card); border-bottom: 1px solid var(--borde);
+            padding: 0.9rem 1.8rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar-titulo { font-size: 16px; font-weight: 700; color: var(--carbon); }
+        .topbar-sub    { font-size: 12px; color: #9CA3AF; }
+        .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.8rem; }
+
+        /* TOOLBAR */
+        .toolbar {
+            background: var(--card); border: 1px solid var(--borde);
+            border-radius: 10px; padding: 0.9rem 1.2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap;
+        }
+        .toolbar-filtros { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+        .input-filtro {
+            border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.4rem 0.8rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; outline: none;
+            width: 190px; transition: border-color 0.2s;
+        }
+        .input-filtro:focus { border-color: var(--carbon); }
+        .select-filtro {
+            border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.4rem 0.8rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; outline: none;
+            background: #fff; color: var(--carbon); cursor: pointer;
+        }
+        .btn-buscar {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 6px; padding: 0.4rem 0.9rem; font-size: 13px;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+            transition: background 0.2s;
+        }
+        .btn-buscar:hover { background: #444; }
+        .btn-limpiar {
+            background: transparent; border: 1px solid var(--borde);
+            border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 13px;
+            color: #6B7280; text-decoration: none;
+            display: flex; align-items: center; gap: 4px; transition: all 0.2s;
+        }
+        .btn-limpiar:hover { border-color: var(--carbon); color: var(--carbon); }
+        .btn-nuevo {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 6px; padding: 0.4rem 1rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: background 0.2s; white-space: nowrap;
+        }
+        .btn-nuevo:hover { background: #444; }
+
+        /* GRILLA CARDS */
+        .grilla {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        /* CARD USUARIO */
+        .usuario-card {
+            background: var(--card); border: 1px solid var(--borde);
+            border-radius: 12px; overflow: hidden;
+            display: flex; flex-direction: column;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .usuario-card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        /* HEADER CARD — franja con avatar */
+        .card-header-usr {
+            padding: 1.2rem 1rem 0.8rem;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 0.6rem;
+            border-bottom: 1px solid var(--borde);
+            position: relative;
+        }
+
+        /* Indicador estado — bolita arriba derecha */
+        .estado-indicator {
+            position: absolute; top: 10px; right: 10px;
+            width: 10px; height: 10px; border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        .estado-indicator.activo   { background: var(--verde); }
+        .estado-indicator.inactivo { background: var(--rojo); }
+
+        /* Avatar con iniciales */
+        .avatar-usr {
+            width: 52px; height: 52px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 700; color: #fff;
+            flex-shrink: 0;
+        }
+
+        .card-nombre {
+            font-size: 13px; font-weight: 700; color: var(--carbon);
+            text-align: center; line-height: 1.3;
+        }
+
+        /* Badges cargo y rol */
+        .card-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+        .badge-cargo {
+            font-size: 10px; font-weight: 600;
+            background: rgba(201,168,76,0.12); color: #92400e;
+            padding: 2px 8px; border-radius: 20px;
+        }
+        .badge-rol {
+            font-size: 10px; font-weight: 600;
+            background: rgba(59,130,246,0.1); color: var(--azul);
+            padding: 2px 8px; border-radius: 20px;
+        }
+
+        /* BODY CARD */
+        .card-body-usr {
+            padding: 0.8rem 1rem;
+            display: flex; flex-direction: column; gap: 5px;
+            flex: 1;
+        }
+        .card-dato {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; color: #6B7280;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .card-dato i { font-size: 12px; flex-shrink: 0; color: #9CA3AF; }
+
+        /* FOOTER CARD */
+        .card-footer-usr {
+            padding: 0.6rem 1rem;
+            border-top: 1px solid var(--borde);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-icono {
+            width: 28px; height: 28px; border-radius: 6px; border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-editar         { background: rgba(59,130,246,0.1);  color: var(--azul); }
+        .btn-editar:hover   { background: var(--azul);  color: #fff; }
+        .btn-estado         { background: rgba(245,158,11,0.1);  color: var(--amarillo); }
+        .btn-estado:hover   { background: var(--amarillo); color: #fff; }
+        .btn-detalle        { background: rgba(44,44,44,0.07); color: var(--carbon); }
+        .btn-detalle:hover  { background: var(--carbon); color: #fff; }
+
+        /* VACÍO */
+        .vacio {
+            grid-column: 1 / -1; text-align: center;
+            padding: 3rem; color: #9CA3AF; font-size: 14px;
+        }
+        .vacio i { font-size: 40px; display: block; margin-bottom: 0.8rem; color: #D1D5DB; }
+
+        /* MODAL DETALLE */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--card); border-radius: 12px; padding: 1.8rem;
+            width: 100%; max-width: 440px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-titulo { font-size: 15px; font-weight: 700; color: var(--carbon); margin-bottom: 1.4rem; }
+
+        /* Header del modal detalle */
+        .detalle-header {
+            display: flex; align-items: center; gap: 1rem;
+            padding-bottom: 1.2rem; margin-bottom: 1.2rem;
+            border-bottom: 1px solid var(--borde);
+        }
+        .detalle-avatar {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .detalle-nombre { font-size: 15px; font-weight: 700; color: var(--carbon); }
+        .detalle-cargo  { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+
+        .detalle-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 0.9rem; margin-bottom: 1.2rem;
+        }
+        .detalle-item { display: flex; flex-direction: column; gap: 2px; }
+        .detalle-lbl  { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #9CA3AF; }
+        .detalle-val  { font-size: 13px; font-weight: 600; color: var(--carbon); }
+
+        .badge-estado-det {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+        }
+        .badge-activo   { background: rgba(34,197,94,0.12); color: #16a34a; }
+        .badge-inactivo { background: rgba(239,68,68,0.12); color: var(--rojo); }
+
+        .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1rem; }
+        .btn-cancel {
+            background: transparent; border: 1px solid var(--borde);
+            border-radius: 6px; padding: 0.45rem 1.1rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; cursor: pointer; color: #6B7280;
+        }
+
+        /* MODAL GESTIONAR */
+        .campo-grupo { margin-bottom: 1rem; }
+        .campo-label {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #9CA3AF; display: block; margin-bottom: 5px;
+        }
+        .campo-input {
+            width: 100%; border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.5rem 0.8rem; font-family: 'Lato', sans-serif;
+            font-size: 14px; color: var(--carbon); outline: none;
+            transition: border-color 0.2s;
+        }
+        .campo-input:focus { border-color: var(--carbon); }
+        .campo-select {
+            width: 100%; border: 1px solid var(--borde); border-radius: 6px;
+            padding: 0.5rem 0.8rem; font-family: 'Lato', sans-serif;
+            font-size: 14px; color: var(--carbon); outline: none;
+            background: #fff; transition: border-color 0.2s;
+        }
+        .campo-select:focus { border-color: var(--carbon); }
+        .campo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+        .campo-input-wrap { position: relative; }
+        .btn-ojo {
+            position: absolute; right: 0.8rem; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: #9CA3AF; font-size: 14px; padding: 0; transition: color 0.2s;
+        }
+        .btn-ojo:hover { color: var(--carbon); }
+        .alerta {
+            background: #FEF2F2; border-left: 3px solid var(--rojo);
+            padding: 0.6rem 0.9rem; border-radius: 4px;
+            font-size: 12px; color: var(--rojo); margin-bottom: 1rem; display: none;
+        }
+        .btn-save {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 6px; padding: 0.45rem 1.3rem; font-size: 13px;
+            font-family: 'Lato', sans-serif; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; transition: background 0.2s;
+        }
+        .btn-save:hover { background: #444; }
+        .btn-save.editar { background: var(--azul); }
+        .btn-save.editar:hover { background: #2563EB; }
+
+        /* Colores avatar por inicial */
+        .av-0 { background: #C9A84C; }
+        .av-1 { background: #3B82F6; }
+        .av-2 { background: #22C55E; }
+        .av-3 { background: #EF4444; }
+        .av-4 { background: #A855F7; }
+        .av-5 { background: #F97316; }
+        .av-6 { background: #06B6D4; }
+        .av-7 { background: #EC4899; }
+
+        #formEstado { display: none; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">La Estancia</div>
+        <div class="sidebar-sub">Sistema interno</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a class="nav-item" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a class="nav-item" href="/Mesa/Index"><i class="bi bi-grid-1x2"></i> Mesas</a>
+        <a class="nav-item" href="#"><i class="bi bi-calendar-check"></i> Reservas</a>
+        <a class="nav-item" href="#"><i class="bi bi-receipt"></i> Ventas</a>
+        <a class="nav-item" href="/Platillo/Index"><i class="bi bi-egg-fried"></i> Platillos</a>
+        <a class="nav-item active" href="/Usuario/Index"><i class="bi bi-people"></i> Usuarios</a>
+        <a class="nav-item" href="/Descuento/Index"><i class="bi bi-percent"></i> Descuentos</a>
+        <a class="nav-item" href="#"><i class="bi bi-gear"></i> Configuración</a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="avatar-sidebar">AD</div>
+        <div>
+            <div class="sidebar-user-name">Administrador</div>
+            <div class="sidebar-user-role">Sistema</div>
+        </div>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <div>
+            <div class="topbar-titulo">Usuarios</div>
+            <div class="topbar-sub">Gestiona el personal del restaurante</div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <form method="get" action="/Usuario/Index" class="toolbar-filtros">
+                <input type="text" name="Busqueda" class="input-filtro"
+                       placeholder="Buscar usuario..." value="@busqueda" />
+                <select name="Estado" class="select-filtro">
+                    <option value="">Todos</option>
+                    @if (estadoQ == "true")
+                    {
+                        <option value="true" selected>Activo</option>
+                        <option value="false">Inactivo</option>
+                    }
+                    else if (estadoQ == "false")
+                    {
+                        <option value="true">Activo</option>
+                        <option value="false" selected>Inactivo</option>
+                    }
+                    else
+                    {
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    }
+                </select>
+                <button type="submit" class="btn-buscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                @if (!string.IsNullOrEmpty(busqueda) || !string.IsNullOrEmpty(estadoQ))
+                {
+                    <a href="/Usuario/Index" class="btn-limpiar">
+                        <i class="bi bi-x"></i> Limpiar
+                    </a>
+                }
+            </form>
+            <button class="btn-nuevo" onclick="abrirModalNuevo()">
+                <i class="bi bi-plus-lg"></i> Nuevo Usuario
+            </button>
+        </div>
+
+        <!-- GRILLA -->
+        <div class="grilla">
+            @if (!Model.Any())
+            {
+                <div class="vacio">
+                    <i class="bi bi-people"></i>
+                    No hay usuarios registrados aún.
+                </div>
+            }
+            else
+            {
+                var coloresAv = new[] { "av-0","av-1","av-2","av-3","av-4","av-5","av-6","av-7" };
+                int idx = 0;
+                foreach (var u in Model)
+                {
+                    var iniciales = string.Join("", u.NombreUsuario.Split(' ')
+                                        .Take(2).Select(p => p[0].ToString().ToUpper()));
+                    var avColor = coloresAv[idx % coloresAv.Length];
+                    <div class="usuario-card">
+                        <div class="card-header-usr">
+                            <div class="estado-indicator @(u.Estado ? "activo" : "inactivo")"></div>
+                            <div class="avatar-usr @avColor">@iniciales</div>
+                            <div class="card-nombre">@u.NombreUsuario</div>
+                            <div class="card-badges">
+                                @if (u.cargo != null)
+                                {
+                                    <span class="badge-cargo">@u.cargo.NombreCargo</span>
+                                }
+                                @if (u.rol != null)
+                                {
+                                    <span class="badge-rol">@u.rol.NombreRol</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-body-usr">
+                            <div class="card-dato">
+                                <i class="bi bi-telephone"></i>
+                                <span>@u.Telefono</span>
+                            </div>
+                            <div class="card-dato">
+                                <i class="bi bi-envelope"></i>
+                                <span>@u.Email</span>
+                            </div>
+                        </div>
+                        <div class="card-footer-usr">
+                            <div style="display:flex; gap:4px;">
+                                <button class="btn-icono btn-estado" title="Cambiar estado"
+                                        onclick="cambiarEstado(@u.IdUsuario)">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </button>
+                                <button class="btn-icono btn-detalle" title="Ver detalle"
+                                        onclick="abrirDetalle(@u.IdUsuario)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <button class="btn-icono btn-editar" title="Editar"
+                                    onclick="abrirModalEditar(@u.IdUsuario)">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
+                    </div>
+                    idx++;
+                }
+            }
+        </div>
+
+    </div>
+</main>
+
+<form id="formEstado" method="post" action="/Usuario/CambiarEstadoUsuario">
+    <input type="hidden" name="id" id="estadoId" value="0" />
+</form>
+
+<div class="modal-overlay" id="modalDetalle">
+    <div class="modal-box">
+        <div class="detalle-header">
+            <div class="detalle-avatar" id="dAvatar"></div>
+            <div>
+                <div class="detalle-nombre" id="dNombre"></div>
+                <div class="detalle-cargo"  id="dCargo"></div>
+            </div>
+        </div>
+        <div class="detalle-grid">
+            <div class="detalle-item">
+                <div class="detalle-lbl">Documento</div>
+                <div class="detalle-val" id="dDocumento"></div>
+            </div>
+            <div class="detalle-item">
+                <div class="detalle-lbl">Teléfono</div>
+                <div class="detalle-val" id="dTelefono"></div>
+            </div>
+            <div class="detalle-item">
+                <div class="detalle-lbl">Email</div>
+                <div class="detalle-val" id="dEmail" style="font-size:12px;"></div>
+            </div>
+            <div class="detalle-item">
+                <div class="detalle-lbl">Sueldo</div>
+                <div class="detalle-val" id="dSueldo"></div>
+            </div>
+            <div class="detalle-item">
+                <div class="detalle-lbl">Fecha registro</div>
+                <div class="detalle-val" id="dFecha"></div>
+            </div>
+            <div class="detalle-item">
+                <div class="detalle-lbl">Rol</div>
+                <div class="detalle-val" id="dRol"></div>
+            </div>
+            <div class="detalle-item">
+                <div class="detalle-lbl">Estado</div>
+                <div id="dEstado"></div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="cerrarDetalle()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalUsuario">
+    <div class="modal-box">
+        <div class="modal-titulo" id="modalTitulo">Nuevo Usuario</div>
+        <div class="alerta" id="alertaModal"></div>
+        <form id="formUsuario" method="post" action="/Usuario/GestionarUsuario">
+            <input type="hidden" name="IdUsuario" id="fId" value="0" />
+            <input type="hidden" name="Estado"    id="fEstado" value="true" />
+
+            <div class="campo-grupo">
+                <label class="campo-label">Nombre completo <span style="color:#EF4444;">*</span></label>
+                <input type="text" name="NombreUsuario" id="fNombre"
+                       class="campo-input" placeholder="Ej: Juan Pérez" maxlength="100" />
+            </div>
+
+            <div class="campo-grid">
+                <div class="campo-grupo">
+                    <label class="campo-label">Documento <span style="color:#EF4444;">*</span></label>
+                    <input type="text" name="Documento" id="fDocumento"
+                           class="campo-input" placeholder="12345678" maxlength="50" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Teléfono <span style="color:#EF4444;">*</span></label>
+                    <input type="text" name="Telefono" id="fTelefono"
+                           class="campo-input" placeholder="987654321" maxlength="50" />
+                </div>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Email <span style="color:#EF4444;">*</span></label>
+                <input type="email" name="Email" id="fEmail"
+                       class="campo-input" placeholder="correo@ejemplo.com" maxlength="150" />
+            </div>
+
+            <div class="campo-grupo" id="campoPassword">
+                <label class="campo-label">Contraseña <span style="color:#EF4444;">*</span></label>
+                <div class="campo-input-wrap">
+                    <input type="password" name="Contraseña" id="fPassword"
+                        class="campo-input" style="padding-right:2.8rem;"
+                        placeholder="••••••••" />
+                    <button type="button" class="btn-ojo" onclick="togglePassword()">
+                        <i class="bi bi-eye" id="iconOjo"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="campo-grid">
+                <div class="campo-grupo">
+                    <label class="campo-label">Sueldo (S/) <span style="color:#EF4444;">*</span></label>
+                    <input type="number" name="Sueldo" id="fSueldo"
+                           class="campo-input" placeholder="1200.00"
+                           step="0.01" min="0" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Cargo <span style="color:#EF4444;">*</span></label>
+                    <select name="IdCargo" id="fCargo" class="campo-select">
+                        <option value="">Selecciona</option>
+                        @foreach (var c in cargos)
+                        {
+                            <option value="@c.IdCargo">@c.NombreCargo</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Rol <span style="color:#EF4444;">*</span></label>
+                <select name="IdRol" id="fRol" class="campo-select">
+                    <option value="">Selecciona</option>
+                    @foreach (var r in roles)
+                    {
+                        <option value="@r.IdRol">@r.NombreRol</option>
+                    }
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+                <button type="button" class="btn-save" id="btnGuardar" onclick="guardarUsuario()">
+                    <i class="bi bi-check-lg"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const coloresAv = ['#C9A84C','#3B82F6','#22C55E','#EF4444','#A855F7','#F97316','#06B6D4','#EC4899'];
+
+    function getIniciales(nombre) {
+        return nombre.split(' ').slice(0,2).map(p => p[0].toUpperCase()).join('');
+    }
+
+    function getColor(idx) {
+        return coloresAv[idx % coloresAv.length];
+    }
+
+    function cambiarEstado(id) {
+        document.getElementById('estadoId').value = id;
+        document.getElementById('formEstado').submit();
+    }
+
+    function abrirDetalle(id) {
+        fetch(`/Usuario/Detalle?id=${id}`)
+            .then(r => r.json())
+            .then(d => {
+                if (!d) return;
+
+                const iniciales = getIniciales(d.nombreUsuario);
+                const color     = getColor(d.idUsuario % coloresAv.length);
+
+                document.getElementById('dAvatar').textContent          = iniciales;
+                document.getElementById('dAvatar').style.background     = color;
+                document.getElementById('dNombre').textContent          = d.nombreUsuario;
+                document.getElementById('dCargo').textContent           = d.cargo?.nombreCargo ?? '—';
+                document.getElementById('dDocumento').textContent       = d.documento;
+                document.getElementById('dTelefono').textContent        = d.telefono;
+                document.getElementById('dEmail').textContent           = d.email;
+                document.getElementById('dSueldo').textContent          = 'S/ ' + parseFloat(d.sueldo).toFixed(2);
+                document.getElementById('dRol').textContent             = d.rol?.nombreRol ?? '—';
+
+                const fecha = new Date(d.fechaRegistro);
+                document.getElementById('dFecha').textContent =
+                    fecha.toLocaleDateString('es-PE', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+                document.getElementById('dEstado').innerHTML = d.estado
+                    ? '<span class="badge-estado-det badge-activo">● Activo</span>'
+                    : '<span class="badge-estado-det badge-inactivo">● Inactivo</span>';
+
+                document.getElementById('modalDetalle').classList.add('show');
+            });
+    }
+
+    function cerrarDetalle() {
+        document.getElementById('modalDetalle').classList.remove('show');
+    }
+
+    function abrirModalNuevo() {
+        document.getElementById('fId').value       = 0;
+        document.getElementById('fNombre').value   = '';
+        document.getElementById('fDocumento').value = '';
+        document.getElementById('fTelefono').value = '';
+        document.getElementById('fEmail').value    = '';
+        document.getElementById('fPassword').value = '';
+        document.getElementById('fSueldo').value   = '';
+        document.getElementById('fCargo').value    = '';
+        document.getElementById('fRol').value      = '';
+        document.getElementById('fEstado').value   = 'true';
+        document.getElementById('modalTitulo').textContent   = 'Nuevo Usuario';
+        document.getElementById('btnGuardar').className      = 'btn-save';
+        document.getElementById('btnGuardar').innerHTML      = '<i class="bi bi-check-lg"></i> Guardar';
+        document.getElementById('alertaModal').style.display = 'none';
+        document.getElementById('modalUsuario').classList.add('show');
+        document.getElementById('campoPassword').style.display = 'block';
+    }
+
+    function abrirModalEditar(id) {
+        fetch(`/Usuario/Detalle?id=${id}`)
+            .then(r => r.json())
+            .then(d => {
+                if (!d) return;
+                document.getElementById('fId').value        = d.idUsuario;
+                document.getElementById('fNombre').value    = d.nombreUsuario;
+                document.getElementById('fDocumento').value = d.documento;
+                document.getElementById('fTelefono').value  = d.telefono;
+                document.getElementById('fEmail').value     = d.email;
+                document.getElementById('fPassword').value  = '';
+                document.getElementById('fSueldo').value    = d.sueldo;
+                document.getElementById('fCargo').value     = d.idCargo;
+                document.getElementById('fRol').value       = d.idRol;
+                document.getElementById('fEstado').value    = d.estado;
+                document.getElementById('campoPassword').style.display = 'none';
+                document.getElementById('alertaModal').style.display = 'none';
+                document.getElementById('modalTitulo').textContent   = 'Editar Usuario';
+                document.getElementById('btnGuardar').className      = 'btn-save editar';
+                document.getElementById('btnGuardar').innerHTML      = '<i class="bi bi-pencil"></i> Actualizar';
+                document.getElementById('modalUsuario').classList.add('show');
+            });
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalUsuario').classList.remove('show');
+    }
+
+    // ── TOGGLE CONTRASEÑA ─────────────────────────────
+    function togglePassword() {
+        const input = document.getElementById('fPassword');
+        const icono = document.getElementById('iconOjo');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icono.className = 'bi bi-eye-slash';
+        } else {
+            input.type = 'password';
+            icono.className = 'bi bi-eye';
+        }
+    }
+
+    function guardarUsuario() {
+        const alerta   = document.getElementById('alertaModal');
+        const nombre   = document.getElementById('fNombre').value.trim();
+        const doc      = document.getElementById('fDocumento').value.trim();
+        const tel      = document.getElementById('fTelefono').value.trim();
+        const email    = document.getElementById('fEmail').value.trim();
+        const pass     = document.getElementById('fPassword').value;
+        const sueldo   = document.getElementById('fSueldo').value;
+        const cargo    = document.getElementById('fCargo').value;
+        const rol      = document.getElementById('fRol').value;
+        const esNuevo  = document.getElementById('fId').value === '0';
+
+        if (!nombre || !doc || !tel || !email || !sueldo || !cargo || !rol) {
+            alerta.textContent   = 'Completa todos los campos obligatorios.';
+            alerta.style.display = 'block'; return;
+        }
+        if (esNuevo && !pass) {
+            alerta.textContent   = 'La contraseña es obligatoria para nuevos usuarios.';
+            alerta.style.display = 'block'; return;
+        }
+
+        document.getElementById('formUsuario').submit();
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

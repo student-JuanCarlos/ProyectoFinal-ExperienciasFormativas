@@ -42,6 +42,26 @@ namespace Data.Repository
             return f;
         }
 
+        public void ActualizarEstadoMesasHoy()
+        {
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cn;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_ActualizarEstadoMesasHoy";
+                    cn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
         public int Agregar(Mesa m)
         {
             int f = 0;

@@ -19,7 +19,7 @@ namespace Entities
 
         public DateTime FechaVenta { get; set; }
 
-        public String MetodoPago { get; set; }
+        public string MetodoPago { get; set; }
 
         public decimal Total {  get; set; }
 

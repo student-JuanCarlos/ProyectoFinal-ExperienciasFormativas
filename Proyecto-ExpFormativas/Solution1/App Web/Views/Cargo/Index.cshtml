@@ -1,0 +1,403 @@
+﻿@model IEnumerable<App_Web.Models.VM.CargoVM>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cargos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+            :root {
+                --sidebar-bg: #1C1C1C;
+                --acento:     #C9A84C;
+                --fondo:      #F4F5F7;
+                --card:       #ffffff;
+                --carbon:     #2C2C2C;
+                --borde:      #E5E7EB;
+                --rojo:       #EF4444;
+                --verde:      #22C55E;
+                --azul:       #3B82F6;
+            }
+
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+
+            body {
+                font-family: 'Lato', sans-serif;
+                background: var(--fondo);
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            /* SIDEBAR */
+            .sidebar {
+                width: 220px; background: var(--sidebar-bg);
+                display: flex; flex-direction: column;
+                flex-shrink: 0; height: 100vh;
+            }
+            .sidebar-header {
+                padding: 1.4rem 1.2rem 1.2rem;
+                border-bottom: 1px solid rgba(255,255,255,0.07);
+            }
+            .sidebar-logo { font-size: 14px; font-weight: 700; color: var(--acento); }
+            .sidebar-sub  { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+            .sidebar-nav  { flex: 1; padding: 0.8rem 0; }
+            .nav-item {
+                display: flex; align-items: center; gap: 10px;
+                padding: 0.6rem 1.2rem; font-size: 13px;
+                color: rgba(255,255,255,0.45); text-decoration: none;
+                border-left: 2px solid transparent; transition: all 0.2s;
+            }
+            .nav-item:hover  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+            .nav-item.active { background: rgba(201,168,76,0.12); color: #fff; border-left-color: var(--acento); }
+            .nav-item i { font-size: 15px; }
+            .sidebar-footer {
+                padding: 1rem 1.2rem;
+                border-top: 1px solid rgba(255,255,255,0.07);
+                display: flex; align-items: center; gap: 10px;
+            }
+            .avatar {
+                width: 30px; height: 30px; border-radius: 50%;
+                background: var(--acento);
+                display: flex; align-items: center; justify-content: center;
+                font-size: 11px; font-weight: 700; color: var(--sidebar-bg);
+            }
+            .sidebar-user-name { font-size: 12px; color: #fff; }
+            .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+            /* MAIN */
+            .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .topbar {
+                background: var(--card); border-bottom: 1px solid var(--borde);
+                padding: 0.9rem 1.8rem;
+                display: flex; justify-content: space-between; align-items: center;
+            }
+            .topbar-titulo { font-size: 16px; font-weight: 700; color: var(--carbon); }
+            .topbar-sub    { font-size: 12px; color: #9CA3AF; }
+            .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.8rem; }
+
+            /* LAYOUT DOS COLUMNAS */
+            .layout {
+                display: grid;
+                grid-template-columns: 1fr 320px;
+                gap: 1.2rem;
+                align-items: start;
+            }
+
+            /* PANEL LISTADO */
+            .panel-card {
+                background: var(--card); border: 1px solid var(--borde);
+                border-radius: 10px; overflow: hidden;
+            }
+            .panel-header {
+                padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--borde);
+                display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+            }
+            .panel-titulo { font-size: 14px; font-weight: 700; color: var(--carbon); }
+            .panel-titulo span { font-size: 12px; font-weight: 400; color: #9CA3AF; }
+
+            .form-busqueda { display: flex; gap: 0.4rem; }
+            .input-busqueda {
+                border: 1px solid var(--borde); border-radius: 6px;
+                padding: 0.38rem 0.8rem; font-size: 13px;
+                font-family: 'Lato', sans-serif; outline: none;
+                width: 180px; transition: border-color 0.2s;
+            }
+            .input-busqueda:focus { border-color: var(--carbon); }
+            .btn-buscar {
+                background: var(--carbon); color: #fff; border: none;
+                border-radius: 6px; padding: 0.38rem 0.7rem;
+                font-size: 13px; cursor: pointer; transition: background 0.2s;
+            }
+            .btn-buscar:hover { background: #444; }
+            .btn-limpiar {
+                background: transparent; border: 1px solid var(--borde);
+                border-radius: 6px; padding: 0.38rem 0.7rem;
+                font-size: 13px; color: #6B7280; cursor: pointer; transition: all 0.2s;
+                text-decoration: none; display: flex; align-items: center;
+            }
+            .btn-limpiar:hover { border-color: var(--carbon); color: var(--carbon); }
+
+            /* ITEMS */
+            .cargo-item {
+                display: flex; align-items: center;
+                padding: 0.85rem 1.2rem;
+                border-bottom: 1px solid var(--borde);
+                gap: 1rem; transition: background 0.15s;
+            }
+            .cargo-item:last-child { border-bottom: none; }
+            .cargo-item:hover { background: #FAFAFA; }
+            .cargo-item.activo { background: rgba(201,168,76,0.06); border-left: 3px solid var(--acento); }
+
+            .cargo-info { flex: 1; min-width: 0; }
+            .cargo-nombre {
+                font-size: 14px; font-weight: 700; color: var(--carbon);
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .cargo-desc {
+                font-size: 12px; color: #9CA3AF; margin-top: 2px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .badge-null {
+                display: inline-block; font-size: 10px; font-weight: 600;
+                background: #F3F4F6; color: #9CA3AF;
+                padding: 2px 7px; border-radius: 10px;
+            }
+
+            .cargo-acciones { display: flex; gap: 0.4rem; flex-shrink: 0; }
+            .btn-icono {
+                width: 30px; height: 30px; border-radius: 6px; border: none;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 13px; cursor: pointer; transition: all 0.2s;
+            }
+            .btn-editar       { background: rgba(59,130,246,0.1);  color: var(--azul); }
+            .btn-editar:hover { background: var(--azul); color: #fff; }
+
+            .lista-vacia {
+                padding: 2.5rem 1.2rem; text-align: center;
+                font-size: 13px; color: #9CA3AF;
+            }
+            .lista-vacia i { font-size: 28px; display: block; margin-bottom: 0.5rem; color: #D1D5DB; }
+
+            /* PANEL FORM */
+            .form-card {
+                background: var(--card); border: 1px solid var(--borde);
+                border-radius: 10px; overflow: hidden;
+                position: sticky; top: 0;
+            }
+            .form-header {
+                padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--borde);
+                display: flex; align-items: center; gap: 0.6rem;
+            }
+            .form-dot {
+                width: 8px; height: 8px; border-radius: 50%;
+                background: var(--acento); flex-shrink: 0; transition: background 0.2s;
+            }
+            .form-titulo { font-size: 14px; font-weight: 700; color: var(--carbon); }
+            .form-body { padding: 1.2rem; }
+
+            .campo-grupo { margin-bottom: 1rem; }
+            .campo-label {
+                font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+                color: #9CA3AF; display: block; margin-bottom: 5px;
+            }
+            .campo-input {
+                width: 100%; border: 1px solid var(--borde); border-radius: 6px;
+                padding: 0.5rem 0.8rem; font-family: 'Lato', sans-serif;
+                font-size: 14px; color: var(--carbon); outline: none;
+                transition: border-color 0.2s; resize: none;
+            }
+            .campo-input:focus { border-color: var(--carbon); }
+
+            .alerta {
+                background: #FEF2F2; border-left: 3px solid var(--rojo);
+                padding: 0.6rem 0.9rem; border-radius: 4px;
+                font-size: 12px; color: var(--rojo); margin-bottom: 1rem; display: none;
+            }
+
+            .form-acciones { display: flex; gap: 0.6rem; margin-top: 1.2rem; }
+            .btn-guardar {
+                flex: 1; background: var(--carbon); color: #fff; border: none;
+                border-radius: 6px; padding: 0.5rem 1rem; font-size: 13px;
+                font-family: 'Lato', sans-serif; cursor: pointer;
+                display: flex; align-items: center; justify-content: center; gap: 5px;
+                transition: background 0.2s;
+            }
+            .btn-guardar:hover { background: #444; }
+            .btn-guardar.editar { background: var(--azul); }
+            .btn-guardar.editar:hover { background: #2563EB; }
+            .btn-cancelar {
+                background: transparent; border: 1px solid var(--borde);
+                border-radius: 6px; padding: 0.5rem 1rem; font-size: 13px;
+                font-family: 'Lato', sans-serif; cursor: pointer; color: #6B7280;
+                display: none; transition: border-color 0.2s;
+            }
+            .btn-cancelar:hover { border-color: var(--carbon); }
+            .btn-cancelar.visible { display: block; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">La Estancia</div>
+            <div class="sidebar-sub">Sistema interno</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a class="nav-item" href="/Mesa/Index"><i class="bi bi-grid-1x2"></i> Mesas</a>
+            <a class="nav-item" href="#"><i class="bi bi-calendar-check"></i> Reservas</a>
+            <a class="nav-item" href="#"><i class="bi bi-receipt"></i> Ventas</a>
+            <a class="nav-item" href="/Platillo/Index"><i class="bi bi-egg-fried"></i> Platillos</a>
+            <a class="nav-item active" href="/Cargo/Index"><i class="bi bi-person-badge"></i> Usuarios</a>
+            <a class="nav-item" href="/Descuento/Index"><i class="bi bi-percent"></i> Descuentos</a>
+            <a class="nav-item" href="#"><i class="bi bi-gear"></i> Configuración</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="avatar">AD</div>
+            <div>
+                <div class="sidebar-user-name">Administrador</div>
+                <div class="sidebar-user-role">Sistema</div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <div class="topbar-titulo">Cargos</div>
+                <div class="topbar-sub">Administra los cargos del personal</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="layout">
+
+                <!-- LISTADO -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div class="panel-titulo">
+                            Cargos <span>(@Model.Count() registros)</span>
+                        </div>
+                        <form method="get" action="/Cargo/Index" class="form-busqueda">
+                            <input type="text" name="Busqueda" class="input-busqueda"
+                                   placeholder="Buscar..."
+                                   value="@Context.Request.Query["Busqueda"]" />
+                            <button type="submit" class="btn-buscar">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            @if (!string.IsNullOrEmpty(Context.Request.Query["Busqueda"]))
+                            {
+                                <a href="/Cargo/Index" class="btn-limpiar">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            }
+                        </form>
+                    </div>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="lista-vacia">
+                            <i class="bi bi-person-badge"></i>
+                            No hay cargos registrados aún.
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var c in Model)
+                        {
+                            <div class="cargo-item" id="fila-@c.IdCargo">
+                                <div class="cargo-info">
+                                    <div class="cargo-nombre">@c.NombreCargo</div>
+                                    <div class="cargo-desc">
+                                        @if (string.IsNullOrEmpty(c.Descripcion))
+                                        {
+                                            <span class="badge-null">Sin descripción</span>
+                                        }
+                                        else
+                                        {
+                                            @c.Descripcion
+                                        }
+                                    </div>
+                                </div>
+                                <div class="cargo-acciones">
+                                    <button class="btn-icono btn-editar" title="Editar"
+                                            onclick="cargarEditar(@c.IdCargo, '@Html.Raw(c.NombreCargo)', '@Html.Raw(c.Descripcion ?? "")')">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- PANEL FORM -->
+                <div class="form-card">
+                    <div class="form-header">
+                        <div class="form-dot" id="formDot"></div>
+                        <div class="form-titulo" id="formTitulo">Nuevo Cargo</div>
+                    </div>
+                    <div class="form-body">
+                        <div class="alerta" id="alertaForm"></div>
+                        <form id="formCargo" method="post" action="/Cargo/GestionarCargo">
+                            <input type="hidden" name="IdCargo" id="fIdCargo" value="0" />
+                            <div class="campo-grupo">
+                                <label class="campo-label">Nombre <span style="color:#EF4444;">*</span></label>
+                                <input type="text" name="NombreCargo" id="fNombre"
+                                       class="campo-input" placeholder="Ej: Administrador" maxlength="100" />
+                            </div>
+                            <div class="campo-grupo">
+                                <label class="campo-label">Descripción <span style="color:#D1D5DB;">(opcional)</span></label>
+                                <textarea name="Descripcion" id="fDescripcion"
+                                          class="campo-input" rows="3"
+                                          placeholder="Describe brevemente este cargo..."></textarea>
+                            </div>
+                            <div class="form-acciones">
+                                <button type="button" class="btn-cancelar" id="btnCancelar" onclick="resetForm()">
+                                    Cancelar
+                                </button>
+                                <button type="button" class="btn-guardar" id="btnGuardar" onclick="guardarCargo()">
+                                    <i class="bi bi-check-lg"></i> Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+            function cargarEditar(id, nombre, descripcion) {
+                document.getElementById('fIdCargo').value    = id;
+                document.getElementById('fNombre').value     = nombre;
+                document.getElementById('fDescripcion').value = descripcion;
+
+                document.getElementById('formTitulo').textContent    = 'Editar Cargo';
+                document.getElementById('formDot').style.background  = 'var(--azul)';
+                document.getElementById('btnGuardar').className      = 'btn-guardar editar';
+                document.getElementById('btnGuardar').innerHTML      = '<i class="bi bi-pencil"></i> Actualizar';
+                document.getElementById('btnCancelar').classList.add('visible');
+                document.getElementById('alertaForm').style.display  = 'none';
+
+                document.querySelectorAll('.cargo-item').forEach(f => f.classList.remove('activo'));
+                document.getElementById('fila-' + id)?.classList.add('activo');
+                document.getElementById('fNombre').focus();
+            }
+
+            function resetForm() {
+                document.getElementById('fIdCargo').value        = 0;
+                document.getElementById('fNombre').value         = '';
+                document.getElementById('fDescripcion').value    = '';
+                document.getElementById('formTitulo').textContent = 'Nuevo Cargo';
+                document.getElementById('formDot').style.background = 'var(--acento)';
+                document.getElementById('btnGuardar').className  = 'btn-guardar';
+                document.getElementById('btnGuardar').innerHTML  = '<i class="bi bi-check-lg"></i> Guardar';
+                document.getElementById('btnCancelar').classList.remove('visible');
+                document.getElementById('alertaForm').style.display = 'none';
+                document.querySelectorAll('.cargo-item').forEach(f => f.classList.remove('activo'));
+            }
+
+            function guardarCargo() {
+                const alerta = document.getElementById('alertaForm');
+                const nombre = document.getElementById('fNombre').value.trim();
+                if (!nombre) {
+                    alerta.textContent   = 'El nombre del cargo es obligatorio.';
+                    alerta.style.display = 'block';
+                    return;
+                }
+                document.getElementById('formCargo').submit();
+            }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

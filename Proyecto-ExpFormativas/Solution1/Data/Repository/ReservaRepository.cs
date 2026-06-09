@@ -140,9 +140,14 @@ namespace Data.Repository
                         reader.NextResult();
                         if (reader.Read())
                         {
-                            reserva.DetalleMesa.Add(new Mesa
+                            Mesa mesa = new Mesa()
                             {
                                 NumeroMesa = Convert.ToInt32(reader["NumeroMesa"])
+                            };
+
+                            reserva.DetalleMesa.Add(new DetalleReserva()
+                            {
+                                mesa = mesa
                             });
                         }
                     }

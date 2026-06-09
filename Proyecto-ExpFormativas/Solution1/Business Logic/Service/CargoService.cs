@@ -15,7 +15,7 @@ namespace Business_Logic.Service
             cargoDB = service;
         }
 
-        public int GestionarCategoria(Cargo c)
+        public int GestionarCargo(Cargo c)
         {
             if (c.IdCargo == 0)
                 return cargoDB.Agregar(c);

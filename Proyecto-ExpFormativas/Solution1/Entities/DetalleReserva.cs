@@ -12,5 +12,9 @@ namespace Entities
 
         public int IdMesa { get; set; }
 
+        public Reserva reserva { get; set; }
+
+        public Mesa mesa { get; set; }
+
     }
 }

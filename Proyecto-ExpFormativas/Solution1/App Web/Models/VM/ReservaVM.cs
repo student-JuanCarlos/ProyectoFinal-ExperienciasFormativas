@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Entities;
 
-namespace Entities
+namespace App_Web.Models.VM
 {
-    public class Reserva
+    public class ReservaVM
     {
 
         public int IdReserva { get; set; }
 
-        public int? IdCliente {  get; set; }
+        public int? IdCliente { get; set; }
 
         public string TipoReserva { get; set; }
 
@@ -21,15 +19,15 @@ namespace Entities
 
         public decimal CostoTotal { get; set; }
 
-        public bool Estado {  get; set; }
+        public bool Estado { get; set; }
 
         public int? IdUsuario { get; set; }
 
-        public Usuario usuario { get; set; }
+        public UsuarioVM usuario { get; set; }
 
-        public Cliente cliente {  get; set; }
+        public ClienteVM cliente { get; set; }
 
-        public List<DetalleReserva> DetalleMesa { get; set; }
+        public List<DetalleReservaVM> DetalleMesa { get; set; }
 
     }
 }

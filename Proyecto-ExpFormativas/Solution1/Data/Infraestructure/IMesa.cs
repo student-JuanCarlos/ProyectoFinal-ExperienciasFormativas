@@ -8,5 +8,7 @@ namespace Data.Infraestructure
     public interface IMesa:IGeneric<Mesa>
     {
         public List<Mesa> Listado(string Busqueda);
+
+        public void ActualizarEstadoMesasHoy();
     }
 }

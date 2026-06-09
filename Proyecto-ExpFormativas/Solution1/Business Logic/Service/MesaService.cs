@@ -34,5 +34,10 @@ namespace Business_Logic.Service
             return mesaDB.Detalle(id);
         }
 
+        public void ActualizarEstadoMesasHoy()
+        {
+
+        }
+
     }
 }

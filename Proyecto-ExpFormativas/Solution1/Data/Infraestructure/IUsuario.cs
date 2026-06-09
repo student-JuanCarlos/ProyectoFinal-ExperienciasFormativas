@@ -11,6 +11,6 @@ namespace Data.Infraestructure
 
         public int CambiarEstado(int id);
 
-        public List<Usuario> Listado(string Busqueda, bool estado);
+        public List<Usuario> Listado(string Busqueda, bool? estado);
     }
 }
