@@ -26,9 +26,9 @@ namespace Business_Logic.Service
             return reservaDB.ActualizarReserva(r);
         }
 
-        public List<Reserva> ListadoReserva(string Busqueda)
+        public List<Reserva> ListadoReserva(string Busqueda, int? Estado)
         {
-            return reservaDB.Listado(Busqueda);
+            return reservaDB.Listado(Busqueda, Estado);
         }
 
         public Reserva Detalle(int id)

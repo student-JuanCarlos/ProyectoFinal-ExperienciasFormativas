@@ -98,6 +98,8 @@ CREATE TABLE Reserva(
 	IdReserva INT IDENTITY(1,1) PRIMARY KEY,
 	IdCliente INT NULL FOREIGN KEY REFERENCES Cliente(IdCliente),				-- Al manejar 2 webs distintas (una para clientes y otra interna del sistema) 
 	TipoReserva VARCHAR(20) NOT NULL CHECK(TipoReserva IN ('Directa', 'Web')),	--un cliente puede hacer su misma reserva mediante la web, si va directo, el trabajador se encarga de registrar la reserva
+	NombreCliente VARCHAR(100) NULL,
+	TelefonoCliente VARCHAR(100) NULL,
 	FechaReserva DATE NOT NULL,
 	HoraReserva TIME NOT NULL,
 	CantidadPersonas INT NOT NULL,
@@ -106,7 +108,11 @@ CREATE TABLE Reserva(
 	IdUsuario INT NULL FOREIGN KEY REFERENCES Usuario(IdUsuario),
 	CONSTRAINT ValidacionSesion CHECK(
 		IdCliente IS NOT NULL OR IdUsuario IS NOT NULL
-	)
+	),
+	CONSTRAINT DF_Reserva_HoraReserva 
+		DEFAULT CAST(GETDATE() AS TIME) FOR HoraReserva,
+	CONSTRAINT DF_Reserva_FechaReserva 
+		DEFAULT GETDATE() FOR FechaReserva
 );
 
 CREATE TABLE DetalleReserva(
@@ -775,6 +781,7 @@ BEGIN
 	INNER JOIN Categoria c ON c.IdCategoria = p.IdCategoria
 	WHERE IdPlatillo = @IdPlatillo
 END
+
 ------------------------------------
 --------SP DE Reserva
 ------------------------------------
@@ -786,8 +793,10 @@ GO
 CREATE PROC sp_InsertarReserva
 @IdCliente        INT NULL,
 @TipoReserva      VARCHAR(20),
-@FechaReserva     DATE,
-@HoraReserva      TIME,
+@NombreCliente	  VARCHAR(100) = NULL,
+@TelefonoCliente  VARCHAR(100) = NULL,
+@FechaReserva     DATE = NULL,
+@HoraReserva      TIME = NULL, --Solo para que tome la hora exacta al momento del registro
 @CantidadPersonas INT,
 @IdUsuario        INT NULL,
 @Mesas            TVP_Mesas READONLY
@@ -816,8 +825,8 @@ BEGIN
             SET @CostoTotal = @Precio * @CantidadPersonas;
         END
 
-        INSERT INTO Reserva(IdCliente, TipoReserva, FechaReserva, HoraReserva, CantidadPersonas, CostoTotal, IdUsuario)
-        VALUES(@IdCliente, @TipoReserva, @FechaReserva, @HoraReserva, @CantidadPersonas, @CostoTotal, @IdUsuario);
+        INSERT INTO Reserva(IdCliente, TipoReserva, NombreCliente, TelefonoCliente, FechaReserva, HoraReserva, CantidadPersonas, CostoTotal, IdUsuario)
+        VALUES(@IdCliente, @TipoReserva, @NombreCliente, @TelefonoCliente, @FechaReserva, @HoraReserva, @CantidadPersonas, @CostoTotal, @IdUsuario);
         SET @IdReserva = SCOPE_IDENTITY();
 
         INSERT INTO DetalleReserva(IdReserva, IdMesa)
@@ -839,18 +848,17 @@ BEGIN
 END
 
 GO
-CREATE PROC sp_ActualizarReserva
+CREATE PROC sp_ActualizarReserva 
 @IdReserva INT,
-@TipoReserva VARCHAR(20),
-@FechaReserva DATE,
-@HoraReserva TIME,
+@NombreCliente VARCHAR(100),
+@TelefonoCliente VARCHAR(100),
 @CantidadPersonas INT
 AS
 BEGIN
 	SET NOCOUNT ON;
 	UPDATE Reserva
-	SET FechaReserva = @FechaReserva,
-		HoraReserva = @HoraReserva,
+	SET NombreCliente = @NombreCliente,
+		TelefonoCliente = @TelefonoCliente,
 		CantidadPersonas = @CantidadPersonas,
 		CostoTotal = CASE
 						WHEN TipoReserva = 'Web'
@@ -951,25 +959,42 @@ BEGIN
 	FROM Mesa m
 	INNER JOIN DetalleReserva dr ON dr.IdMesa = m.IdMesa
 	WHERE dr.IdReserva = @IdReserva
+
+	SELECT 
+		c.IdCliente,
+		c.Nombres+' '+c.Apellidos AS NombreCompleto,
+		c.Fotografia,
+		c.Telefono,
+		c.Email,
+		c.Documento
+	FROM Cliente c
+	LEFT JOIN Reserva r ON r.IdCliente = c.IdCliente
+	LEFT JOIN DetalleReserva dr ON dr.IdReserva = r.IdReserva
+	WHERE r.IdReserva = @IdReserva
 END
 
 GO
 CREATE PROC sp_FiltradoReservas
-@Busqueda VARCHAR(150)
+@Busqueda VARCHAR(150),
+@Estado INT
 AS
 BEGIN
 	SELECT
+		r.IdReserva,
 		r.TipoReserva,
+		ISNULL(r.NombreCliente, c.Nombres+' '+c.Apellidos) AS Cliente,
 		r.FechaReserva,
+		r.HoraReserva,
+		r.CantidadPersonas,
 		r.CostoTotal,
-		ISNULL(u.NombreUsuario, c.Nombres) AS GeneradoPor
+		r.Estado
 	FROM Reserva r
-	LEFT JOIN Usuario u ON u.IdUsuario = r.IdUsuario
 	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
 	WHERE (@Busqueda IS NULL OR r.TipoReserva = @Busqueda
-	OR u.NombreUsuario LIKE '%'+@Busqueda+'%' OR c.Nombres LIKE '%'+@Busqueda+'%')
+	OR c.Nombres+' '+c.Apellidos LIKE '%'+@Busqueda+'%') AND 
+	(@Estado IS NULL OR r.Estado = @Estado)
 END
-GO
+GO 
 ------------------------------------
 --------SP DE Venta
 ------------------------------------
@@ -1112,6 +1137,7 @@ SELECT * FROM Mesa;
 SELECT * FROM ConfiguracionReserva;
 SELECT * FROM Descuento;
 SELECT * FROM Rol;
+SELECT * FROM Reserva;
 
 ------------------------------------
 --------Control interno del sistema

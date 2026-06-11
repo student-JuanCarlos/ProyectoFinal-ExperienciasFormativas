@@ -11,7 +11,7 @@ namespace Data.Infraestructure
 
         public int InsertarReserva(Reserva r, List<DetalleReserva> d);
 
-        public List<Reserva> Listado(string Busqueda);
+        public List<Reserva> Listado(string Busqueda, int? Estado);
 
         public Reserva Detalle(int id);
 

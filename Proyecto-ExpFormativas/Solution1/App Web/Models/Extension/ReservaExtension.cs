@@ -15,6 +15,8 @@ namespace App_Web.Models.Extension
                 IdCliente = reserva.IdCliente,
                 IdUsuario = reserva.IdUsuario,
                 TipoReserva = reserva.TipoReserva,
+                NombreCliente = reserva.NombreCliente == null ? null : reserva.NombreCliente,
+                TelefonoCliente = reserva.TelefonoCliente == null ? null : reserva.TelefonoCliente,
                 FechaReserva = reserva.FechaReserva,
                 HoraReserva = reserva.HoraReserva,
                 CantidadPersonas = reserva.CantidadPersonas,
@@ -22,7 +24,12 @@ namespace App_Web.Models.Extension
                 Estado = reserva.Estado,
                 cliente = reserva.cliente != null ? new ClienteVM()
                 {
-                    Nombres = reserva.cliente.Nombres
+                    IdCliente = reserva.cliente.IdCliente,
+                    Nombres = reserva.cliente.Nombres,
+                    FotoActual = reserva.cliente.Fotografia,
+                    Telefono = reserva.cliente.Telefono,
+                    Email = reserva.cliente.Email,
+                    Documento = reserva.cliente.Documento
                 } : null,
                 usuario = reserva.usuario != null ? new UsuarioVM()
                 {
@@ -48,6 +55,8 @@ namespace App_Web.Models.Extension
                 TipoReserva = model.TipoReserva,
                 FechaReserva = model.FechaReserva,
                 HoraReserva = model.HoraReserva,
+                NombreCliente = model.NombreCliente,
+                TelefonoCliente = model.TelefonoCliente,
                 CantidadPersonas = model.CantidadPersonas,
                 CostoTotal = model.CostoTotal,
                 Estado = model.Estado

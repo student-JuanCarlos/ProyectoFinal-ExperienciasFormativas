@@ -2,6 +2,7 @@
 using Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -57,17 +58,14 @@ namespace Data.Repository
                     cmd.Connection = cn;
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.CommandText = "sp_ActualizarReserva";
-                    cmd.Parameters.AddWithValue("@TipoReserva", r.TipoReserva);
-                    cmd.Parameters.AddWithValue("@FechaReserva", r.FechaReserva);
-                    cmd.Parameters.AddWithValue("@HoraReserva", r.HoraReserva);
+                    cmd.Parameters.AddWithValue("@IdReserva", r.IdReserva);
+                    cmd.Parameters.AddWithValue("@NombreCliente", r.NombreCliente);
+                    cmd.Parameters.AddWithValue("@TelefonoCliente", r.TelefonoCliente);
                     cmd.Parameters.AddWithValue("@CantidadPersonas", r.CantidadPersonas);
                     cn.Open();
                     f = cmd.ExecuteNonQuery();
                 }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                catch (Exception ex) { throw new Exception(ex.Message); }
             }
             return f;
         }
@@ -86,7 +84,7 @@ namespace Data.Repository
                     cmd.Parameters.AddWithValue("@IdReserva", IdReserva);
 
                     SqlParameter tvp = cmd.Parameters.Add("@Mesas", SqlDbType.Structured);
-                    tvp.TypeName = "TVP_,Mesas";
+                    tvp.TypeName = "TVP_Mesas";
                     tvp.Value = mesas;
 
                     cn.Open();
@@ -114,18 +112,9 @@ namespace Data.Repository
                     cmd.Parameters.AddWithValue("@IdReserva", id);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
+
                     if (reader.Read())
                     {
-                        Usuario usuario = new Usuario()
-                        {
-                            NombreUsuario = reader["GeneradoPor"].ToString()
-                        };
-
-                        Cliente cliente = new Cliente()
-                        {
-                            Nombres = reader["GeneradoPor"].ToString()
-                        };
-
                         reserva = new Reserva()
                         {
                             TipoReserva = reader["TipoReserva"].ToString(),
@@ -133,29 +122,35 @@ namespace Data.Repository
                             HoraReserva = (TimeSpan)reader["HoraReserva"],
                             CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
                             CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
-                            usuario = usuario,
-                            cliente = cliente
+                            DetalleMesa = new List<DetalleReserva>(),
+                            usuario = new Usuario { NombreUsuario = reader["GeneradoPor"].ToString() }
                         };
+                    }
 
-                        reader.NextResult();
-                        if (reader.Read())
+                    reader.NextResult();
+                    while (reader.Read())
+                    {
+                        reserva.DetalleMesa.Add(new DetalleReserva()
                         {
-                            Mesa mesa = new Mesa()
-                            {
-                                NumeroMesa = Convert.ToInt32(reader["NumeroMesa"])
-                            };
+                            mesa = new Mesa { NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]) }
+                        });
+                    }
 
-                            reserva.DetalleMesa.Add(new DetalleReserva()
-                            {
-                                mesa = mesa
-                            });
-                        }
+                    reader.NextResult();
+                    if (reader.Read())
+                    {
+                        reserva.cliente = new Cliente()
+                        {
+                            IdCliente = Convert.ToInt32(reader["IdCliente"]),
+                            Nombres = reader["NombreCompleto"].ToString(),
+                            Fotografia = reader["Fotografia"] == DBNull.Value ? null : reader["Fotografia"].ToString(),
+                            Telefono = reader["Telefono"].ToString(),
+                            Email = reader["Email"].ToString(),
+                            Documento = reader["Documento"].ToString()
+                        };
                     }
                 }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                catch (Exception ex) { throw new Exception(ex.Message); }
             }
             return reserva;
         }
@@ -181,16 +176,19 @@ namespace Data.Repository
                     cmd.CommandText = "sp_InsertarReserva";
                     cmd.Parameters.AddWithValue("@IdCliente", r.IdCliente == null ? (object)DBNull.Value : r.IdCliente);
                     cmd.Parameters.AddWithValue("@TipoReserva", r.TipoReserva);
-                    cmd.Parameters.AddWithValue("@FechaReserva", r.FechaReserva);
-                    cmd.Parameters.AddWithValue("@HoraReserva", r.HoraReserva);
+                    cmd.Parameters.AddWithValue("@NombreCliente", r.NombreCliente == null ? (object)DBNull.Value : r.NombreCliente);
+                    cmd.Parameters.AddWithValue("@TelefonoCliente", r.TelefonoCliente == null ? (object)DBNull.Value : r.TelefonoCliente);
+                    cmd.Parameters.AddWithValue("@FechaReserva", r.FechaReserva == null ? (object)DBNull.Value : r.FechaReserva);
+                    cmd.Parameters.AddWithValue("@HoraReserva", r.HoraReserva == null ? (object)DBNull.Value : r.HoraReserva);
                     cmd.Parameters.AddWithValue("@CantidadPersonas", r.CantidadPersonas);
                     cmd.Parameters.AddWithValue("@IdUsuario", r.IdUsuario == null ? (object)DBNull.Value : r.IdUsuario);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
 
-                    SqlParameter tvp = cmd.Parameters.AddWithValue("@Mesas", detalle);
+                    SqlParameter tvp = cmd.Parameters.AddWithValue("@Mesas", dt);
                     tvp.SqlDbType = SqlDbType.Structured;
                     tvp.TypeName = "TVP_Mesas";
+
+                    cn.Open();
+                    f = cmd.ExecuteNonQuery();
                 }
                 catch(Exception ex)
                 {
@@ -200,7 +198,7 @@ namespace Data.Repository
             return f;
         }
 
-        public List<Reserva> Listado(string Busqueda)
+        public List<Reserva> Listado(string Busqueda, int? Estado)
         {
             var listado = new List<Reserva>();
             using (SqlConnection cn = new SqlConnection(cadenaConexion))
@@ -212,26 +210,27 @@ namespace Data.Repository
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.CommandText = "sp_FiltradoReservas";
                     cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
+                    cmd.Parameters.AddWithValue("@Estado", Estado == null ? (object)DBNull.Value : Estado);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        Usuario usuario = new Usuario()
-                        {
-                            NombreUsuario = reader["GeneradoPor"].ToString()
-                        };
 
                         Cliente cliente = new Cliente()
                         {
-                            Nombres = reader["GeneradoPor"].ToString()
+                            NombreCompleto = reader["Cliente"].ToString()
                         };
 
                         listado.Add(new Reserva
                         {
+                            IdReserva = Convert.ToInt32(reader["IdReserva"]),
                             TipoReserva = reader["TipoReserva"].ToString(),
+                            NombreCliente = reader["Cliente"] == DBNull.Value ? null : reader["Cliente"].ToString(),
                             FechaReserva = Convert.ToDateTime(reader["FechaReserva"]),
+                            HoraReserva = (TimeSpan)reader["HoraReserva"],
+                            CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
                             CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
-                            usuario = usuario,
+                            Estado = Convert.ToInt32(reader["Estado"]),
                             cliente = cliente
                         });
                     }

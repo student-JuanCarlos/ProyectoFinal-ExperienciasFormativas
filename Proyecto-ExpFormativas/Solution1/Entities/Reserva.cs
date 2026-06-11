@@ -13,6 +13,10 @@ namespace Entities
 
         public string TipoReserva { get; set; }
 
+        public string NombreCliente { get; set; }
+
+        public string TelefonoCliente { get; set; }
+
         public DateTime FechaReserva { get; set; }
 
         public TimeSpan HoraReserva { get; set; }
@@ -21,7 +25,7 @@ namespace Entities
 
         public decimal CostoTotal { get; set; }
 
-        public bool Estado {  get; set; }
+        public int Estado {  get; set; }
 
         public int? IdUsuario { get; set; }
 
