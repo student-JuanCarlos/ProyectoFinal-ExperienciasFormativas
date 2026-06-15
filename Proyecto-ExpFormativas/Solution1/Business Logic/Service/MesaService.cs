@@ -39,5 +39,10 @@ namespace Business_Logic.Service
 
         }
 
+        public List<Mesa> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva)
+        {
+            return mesaDB.FiltradoMesas_Cliente(FechaReserva, HoraReserva);
+        }
+
     }
 }

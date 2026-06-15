@@ -46,5 +46,20 @@ namespace Business_Logic.Service
             return reservaDB.ActualizarMesas(IdReserva, mesas);
         }
 
+        public List<Reserva> ListadoReserva_Cliente(int IdCliente)
+        {
+            return reservaDB.ListadoReserva_Cliente(IdCliente);
+        }
+
+        public Reserva DetalleReserva_Cliente(int id)
+        {
+            return reservaDB.DetalleReserva_Cliente(id);
+        }
+
+        public int ActualizarReserva_Cliente(Reserva r)
+        {
+            return reservaDB.ActualizarReserva_Cliente(r);
+        }
+
     }
 }

@@ -15,6 +15,7 @@ namespace App_Web.Models.Extension
                 IdReserva = dr.IdReserva,
                 mesa = dr.mesa != null ? new MesaVM()
                 {
+                    IdMesa = dr.mesa.IdMesa,
                     NumeroMesa = dr.mesa.NumeroMesa
                 } : null
             };

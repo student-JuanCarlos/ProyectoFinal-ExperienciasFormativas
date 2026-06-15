@@ -21,5 +21,11 @@ namespace Data.Infraestructure
 
         public int ActualizarReserva(Reserva r);
 
+        public List<Reserva> ListadoReserva_Cliente(int IdCliente);
+
+        public Reserva DetalleReserva_Cliente(int id);
+
+        public int ActualizarReserva_Cliente(Reserva r);
+
     }
 }

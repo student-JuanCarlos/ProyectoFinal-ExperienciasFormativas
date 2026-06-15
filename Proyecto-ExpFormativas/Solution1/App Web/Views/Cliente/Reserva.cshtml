@@ -1,0 +1,905 @@
+﻿@{
+    Layout = null;
+    var cliente = ViewBag.Usuario as App_Web.Models.VM.ClienteVM;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>La Estancia — Reservar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --acento:  #C9A84C;
+            --carbon:  #2C2C2C;
+            --oscuro:  #1C1C1C;
+            --borde:   #E5E7EB;
+            --fondo:   #F4F5F7;
+            --rojo:    #EF4444;
+            --verde:   #25D366;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            min-height: 100vh;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-foto {
+            position: fixed; inset: 0;
+            background: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80') center/cover no-repeat;
+            filter: brightness(0.35);
+            z-index: 0;
+        }
+
+        .reserva-card {
+            position: relative; z-index: 1;
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 480px;
+            margin: 2rem;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+        }
+
+        .card-header {
+            padding: 1.2rem 1.8rem;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--borde);
+        }
+        .header-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px; color: var(--carbon);
+            letter-spacing: 0.02em;
+        }
+        .header-logo span { color: var(--acento); }
+
+        .breadcrumb {
+            padding: 0.7rem 1.8rem;
+            display: flex; align-items: center; gap: 6px;
+            border-bottom: 1px solid var(--borde);
+            min-height: 40px;
+            flex-wrap: wrap;
+        }
+        .bc-item {
+            font-size: 12px; color: #9CA3AF;
+            display: flex; align-items: center; gap: 4px;
+            background: #F3F4F6; border-radius: 20px;
+            padding: 3px 10px;
+        }
+        .bc-item.activo { background: var(--carbon); color: #fff; }
+        .bc-sep { font-size: 10px; color: #D1D5DB; }
+
+        .progreso-wrap {
+            padding: 0 1.8rem 0;
+            height: 3px; background: #F3F4F6;
+        }
+        .progreso-barra {
+            height: 3px; background: var(--acento);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .card-body-res {
+            padding: 2rem 1.8rem;
+            min-height: 340px;
+            display: flex; flex-direction: column;
+        }
+
+        .paso { display: none; flex-direction: column; flex: 1; }
+        .paso.activo { display: flex; }
+
+        .paso-titulo {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px; color: var(--carbon);
+            margin-bottom: 0.4rem; line-height: 1.2;
+        }
+        .paso-sub {
+            font-size: 13px; color: #9CA3AF;
+            margin-bottom: 1.6rem;
+        }
+
+        .bienvenida-nombre {
+            font-size: 20px; font-weight: 700; color: var(--carbon);
+            margin-bottom: 0.3rem;
+        }
+        .bienvenida-link {
+            font-size: 12px; color: var(--acento);
+            text-decoration: none; font-weight: 600;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
+        .bienvenida-link:hover { text-decoration: underline; }
+        .btn-reservar {
+            margin-top: auto;
+            width: 100%; background: var(--carbon); color: #fff;
+            border: none; border-radius: 10px; padding: 1rem;
+            font-size: 15px; font-weight: 700; font-family: 'Lato', sans-serif;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: background 0.2s;
+        }
+        .btn-reservar:hover { background: #444; }
+
+        .comensales-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 0.6rem; margin-bottom: 1.2rem;
+        }
+        .btn-comensal {
+            border: 2px solid var(--borde); border-radius: 10px;
+            padding: 0.8rem 0.4rem; background: #fff;
+            cursor: pointer; transition: all 0.2s; text-align: center;
+            font-family: 'Lato', sans-serif;
+        }
+        .btn-comensal:hover { border-color: var(--carbon); }
+        .btn-comensal.sel   { border-color: var(--carbon); background: var(--carbon); color: #fff; }
+        .btn-comensal .num  { font-size: 22px; font-weight: 700; display: block; line-height: 1; }
+        .btn-comensal .lbl  { font-size: 10px; color: #9CA3AF; margin-top: 3px; display: block; }
+        .btn-comensal.sel .lbl { color: rgba(255,255,255,0.6); }
+
+        .personalizado-wrap {
+            border: 1px solid var(--borde); border-radius: 10px;
+            padding: 0.8rem 1rem; margin-bottom: 1.2rem;
+        }
+        .personalizado-lbl { font-size: 11px; color: #9CA3AF; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; }
+        .personalizado-ctrl { display: flex; align-items: center; gap: 0.6rem; }
+        .btn-ctrl {
+            width: 36px; height: 36px; border-radius: 8px;
+            border: 1px solid var(--borde); background: #fff;
+            font-size: 18px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+            transition: all 0.2s; color: var(--carbon);
+        }
+        .btn-ctrl:hover { border-color: var(--carbon); background: var(--carbon); color: #fff; }
+        .personalizado-num {
+            flex: 1; text-align: center; font-size: 18px;
+            font-weight: 700; color: var(--carbon);
+            background: var(--carbon); color: #fff;
+            border-radius: 8px; padding: 0.4rem; line-height: 1.4;
+        }
+        .personalizado-sub { font-size: 10px; color: rgba(255,255,255,0.6); display: block; }
+
+        .btn-whatsapp {
+            width: 100%; background: var(--verde); color: #fff;
+            border: none; border-radius: 10px; padding: 0.9rem;
+            font-size: 14px; font-weight: 700; font-family: 'Lato', sans-serif;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: background 0.2s;
+            text-decoration: none; margin-top: auto;
+        }
+        .btn-whatsapp:hover { background: #1ebe57; color: #fff; }
+
+        .cal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .cal-mes {
+            font-size: 15px; font-weight: 700; color: var(--acento);
+            text-transform: capitalize;
+        }
+        .btn-mes {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1px solid var(--borde); background: #fff;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 13px; color: var(--carbon); transition: all 0.2s;
+        }
+        .btn-mes:hover { background: var(--carbon); color: #fff; border-color: var(--carbon); }
+        .btn-mes:disabled { opacity: 0.3; cursor: not-allowed; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-dia-nombre {
+            text-align: center; font-size: 11px; color: #9CA3AF;
+            font-weight: 700; text-transform: uppercase; padding: 4px 0;
+        }
+        .cal-dia {
+            text-align: center; padding: 8px 4px; border-radius: 8px;
+            font-size: 13px; cursor: pointer; transition: all 0.15s;
+            color: var(--carbon);
+        }
+        .cal-dia:hover:not(.pasado):not(.vacio) { background: #F3F4F6; }
+        .cal-dia.hoy { color: var(--acento); font-weight: 700; }
+        .cal-dia.sel { background: var(--carbon); color: #fff; font-weight: 700; }
+        .cal-dia.pasado { color: #D1D5DB; cursor: not-allowed; }
+        .cal-dia.vacio  { cursor: default; }
+
+        .turno-opciones { display: flex; flex-direction: column; gap: 0.8rem; flex: 1; }
+        .btn-turno {
+            width: 100%; border: 2px solid var(--borde); border-radius: 12px;
+            padding: 1.2rem; background: #fff; cursor: pointer;
+            font-size: 16px; font-weight: 700; color: var(--carbon);
+            font-family: 'Lato', sans-serif; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .btn-turno:hover { border-color: var(--carbon); }
+        .btn-turno .turno-hora { font-size: 12px; color: #9CA3AF; font-weight: 400; }
+
+        .horas-lista {
+            display: flex; flex-direction: column; gap: 0.5rem;
+            overflow-y: auto; max-height: 300px; padding-right: 4px;
+        }
+        .horas-lista::-webkit-scrollbar { width: 4px; }
+        .horas-lista::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
+        .btn-hora {
+            width: 100%; border: 1px solid var(--borde); border-radius: 10px;
+            padding: 0.85rem; background: #fff; cursor: pointer;
+            font-size: 14px; color: var(--carbon); font-family: 'Lato', sans-serif;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.2s; font-weight: 500;
+        }
+        .btn-hora:hover { border-color: var(--carbon); background: #FAFAFA; }
+        .btn-hora i { color: var(--acento); }
+
+        .salon-cliente {
+            position: relative; width: 100%; height: 300px;
+            background-image: linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+            background-size: 28px 28px;
+            border: 1px solid var(--borde); border-radius: 10px;
+            overflow: auto; margin-bottom: 0.8rem;
+        }
+        .salon-inner { position: relative; width: 1200px; height: 700px; }
+        .salon-instruccion {
+            font-size: 11px; color: #9CA3AF; margin-bottom: 0.6rem;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .capacidad-info {
+            font-size: 12px; color: #6B7280;
+            display: flex; align-items: center; gap: 4px; margin-bottom: 0.6rem;
+        }
+        .capacidad-info span { font-weight: 700; color: var(--carbon); }
+        .mesas-sel-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.8rem; min-height: 24px; }
+        .badge-mesa {
+            background: var(--carbon); color: #fff;
+            font-size: 11px; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .badge-mesa button {
+            background: none; border: none; color: #fff;
+            cursor: pointer; font-size: 12px; padding: 0; line-height: 1;
+        }
+        .aviso-cap {
+            background: rgba(245,158,11,0.08); border-left: 3px solid #F59E0B;
+            padding: 0.5rem 0.8rem; border-radius: 4px;
+            font-size: 12px; color: #92400e; margin-bottom: 0.6rem; display: none;
+        }
+
+        .resumen-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.2rem; }
+        .resumen-item { display: flex; flex-direction: column; gap: 2px; }
+        .resumen-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #9CA3AF; }
+        .resumen-val { font-size: 14px; font-weight: 700; color: var(--carbon); }
+        .resumen-costo { font-size: 22px; font-weight: 700; color: var(--acento); }
+        .resumen-mesas { display: flex; flex-wrap: wrap; gap: 4px; }
+        .badge-mesa-res {
+            background: #F3F4F6; color: var(--carbon);
+            font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px;
+        }
+
+        .card-footer-res {
+            padding: 1rem 1.8rem;
+            border-top: 1px solid var(--borde);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .btn-volver {
+            width: 38px; height: 38px; border-radius: 50%;
+            border: 1px solid var(--borde); background: #fff;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: var(--carbon); transition: all 0.2s;
+        }
+        .btn-volver:hover { background: var(--carbon); color: #fff; border-color: var(--carbon); }
+        .btn-continuar {
+            background: var(--carbon); color: #fff; border: none;
+            border-radius: 10px; padding: 0.65rem 1.6rem;
+            font-size: 14px; font-weight: 700; font-family: 'Lato', sans-serif;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-continuar:hover { background: #444; }
+        .btn-continuar.acento { background: var(--acento); }
+        .btn-continuar.acento:hover { background: #b8922e; }
+
+        .alerta-res {
+            background: #FEF2F2; border-left: 3px solid var(--rojo);
+            padding: 0.6rem 0.9rem; border-radius: 4px;
+            font-size: 12px; color: var(--rojo); margin-bottom: 0.8rem; display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-foto"></div>
+
+<div class="reserva-card">
+
+    <!-- HEADER -->
+    <div class="card-header">
+        <div class="header-logo">La <span>Estancia</span></div>
+        <div style="width:32px;"></div>
+    </div>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb" id="breadcrumb"></div>
+
+    <!-- PROGRESO -->
+    <div class="progreso-wrap">
+        <div class="progreso-barra" id="progresoBarra" style="width:14%;"></div>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body-res">
+
+        <!-- PASO 1 — BIENVENIDA -->
+        <div class="paso activo" id="paso1" style="align-items:center; text-align:center; justify-content:center;">
+            <div class="paso-titulo">Bienvenido de nuevo</div>
+            <div style="margin-bottom:2rem;">
+                <div class="bienvenida-nombre">@cliente?.Nombres @cliente?.Apellidos</div>
+            </div>
+            <button class="btn-reservar" onclick="irPaso(2)">
+                <i class="bi bi-calendar-check"></i> Hacer una reserva
+            </button>
+        </div>
+
+        <!-- PASO 2 — COMENSALES -->
+        <div class="paso" id="paso2">
+            <div class="paso-titulo">¿Cuántos comensales?</div>
+            <div class="paso-sub">Selecciona el tamaño de tu grupo</div>
+            <div class="comensales-grid">
+                @foreach (var n in new[] {1,2,3,4})
+                {
+                    <button class="btn-comensal" onclick="selComensales(@n, this)">
+                        <span class="num">@n</span>
+                        <span class="lbl">@(n == 1 ? "persona" : "personas")</span>
+                    </button>
+                }
+            </div>
+            <div class="personalizado-wrap">
+                <div class="personalizado-lbl">Tamaño personalizado</div>
+                <div class="personalizado-ctrl">
+                    <button class="btn-ctrl" onclick="ajustarPersonalizado(-1)">−</button>
+                    <div class="personalizado-num">
+                        <span id="numPersonalizado">5</span>
+                        <span class="personalizado-sub" id="lblPersonalizado">personas</span>
+                    </div>
+                    <button class="btn-ctrl" onclick="ajustarPersonalizado(1)">+</button>
+                </div>
+                <button class="btn-continuar" id="btnContinuarPersonalizado"
+                        style="margin-top:0.8rem; width:100%; justify-content:center; display:none;"
+                        onclick="usarPersonalizado()">
+                    Continuar con <span id="lblBtnPers">5</span> personas
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <a href="https://wa.me/51999999999?text=Hola,%20quisiera%20hacer%20una%20reserva%20en%20La%20Estancia"
+               target="_blank" class="btn-whatsapp">
+                <i class="bi bi-whatsapp"></i> Contactar via WhatsApp
+            </a>
+        </div>
+
+        <!-- PASO 3 — CALENDARIO -->
+        <div class="paso" id="paso3">
+            <div class="paso-titulo">¿Cuándo visitarnos?</div>
+            <div class="paso-sub">Selecciona tu fecha preferida</div>
+            <div class="cal-header">
+                <button class="btn-mes" id="btnMesAnt" onclick="cambiarMes(-1)"><i class="bi bi-chevron-left"></i></button>
+                <div class="cal-mes" id="calMesLabel"></div>
+                <button class="btn-mes" onclick="cambiarMes(1)"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <!-- PASO 4 — TURNO -->
+        <div class="paso" id="paso4">
+            <div class="paso-titulo">Selecciona un servicio</div>
+            <div class="paso-sub">Elige tu horario preferido</div>
+            <div class="turno-opciones">
+                <button class="btn-turno" onclick="selTurno('almuerzo')">
+                    <span>Almuerzo</span>
+                    <span class="turno-hora">10:00 — 16:00</span>
+                </button>
+                <button class="btn-turno" onclick="selTurno('cena')">
+                    <span>Cena</span>
+                    <span class="turno-hora">16:00 — 23:00</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- PASO 5 — HORA -->
+        <div class="paso" id="paso5">
+            <div class="paso-titulo">Selecciona una hora</div>
+            <div class="paso-sub">Elige un horario disponible</div>
+            <div class="horas-lista" id="horasLista"></div>
+        </div>
+
+        <!-- PASO 6 — MESAS -->
+        <div class="paso" id="paso6">
+            <div class="paso-titulo">Elige tu mesa</div>
+            <div class="paso-sub">Selecciona las mesas que necesitas</div>
+            <div class="alerta-res" id="alertaMesas"></div>
+            <div class="aviso-cap" id="avisoCap"></div>
+            <div class="salon-instruccion">
+                <i class="bi bi-hand-index"></i>
+                Haz click en las mesas verdes para seleccionarlas
+            </div>
+            <div class="salon-cliente" id="salonCliente">
+                <div class="salon-inner" id="salonInner"></div>
+            </div>
+            <div class="capacidad-info">
+                Capacidad seleccionada: <span id="capSeleccionada">0</span> personas
+            </div>
+            <div class="mesas-sel-wrap" id="mesasSelWrap"></div>
+        </div>
+
+        <!-- PASO 7 — RESUMEN -->
+        <div class="paso" id="paso7">
+            <div class="paso-titulo">Confirma tu reserva</div>
+            <div class="paso-sub">Revisa los datos antes de confirmar</div>
+            <div style="background:rgba(201,168,76,0.08); border-left:3px solid var(--acento); padding:0.6rem 0.9rem; border-radius:4px; font-size:12px; color:#92400e; margin-bottom:1rem;">
+                <i class="bi bi-info-circle"></i>
+                Nuestro costo por persona para reserva es <strong>S/ @((ViewBag.PrecioReserva as App_Web.Models.VM.ConfiguracionReservaVM)?.PrecioReserva.ToString("0.00") ?? "0.00")</strong>
+            </div>
+            <div class="alerta-res" id="alertaResumen"></div>
+            <div class="resumen-grid">
+                <div class="resumen-item">
+                    <div class="resumen-lbl">Cliente</div>
+                    <div class="resumen-val" id="rCliente"></div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-lbl">Personas</div>
+                    <div class="resumen-val" id="rPersonas"></div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-lbl">Fecha</div>
+                    <div class="resumen-val" id="rFecha"></div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-lbl">Turno</div>
+                    <div class="resumen-val" id="rTurno"></div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-lbl">Hora</div>
+                    <div class="resumen-val" id="rHora"></div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-lbl">Costo total</div>
+                    <div class="resumen-costo" id="rCosto"></div>
+                </div>
+            </div>
+            <div style="margin-bottom:1rem;">
+                <div class="resumen-lbl" style="margin-bottom:6px;">Mesas seleccionadas</div>
+                <div class="resumen-mesas" id="rMesas"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card-footer-res">
+        <button class="btn-volver" id="btnVolver" onclick="volver()" style="visibility:hidden;">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <div id="footerDer"></div>
+    </div>
+
+</div>
+
+<script>
+    const nombreCliente = decodeURIComponent('@Uri.EscapeDataString((cliente?.Nombres ?? "") + " " + (cliente?.Apellidos ?? ""))');
+    const precioReserva  = @((ViewBag.PrecioReserva as App_Web.Models.VM.ConfiguracionReservaVM)?.PrecioReserva ?? 0);
+    let estado = {
+        paso:      1,
+        personas:  null,
+        fecha:     null,   
+        turno:     null,  
+        hora:      null,   
+        mesas:     [],     
+        mesasData: []      
+    };
+
+    let calFecha = new Date();
+    calFecha.setDate(1);
+
+    const TOTAL_PASOS = 7;
+    const BC_LABELS = ['', 'Inicio', 'Comensales', 'Fecha', 'Servicio', 'Hora', 'Mesas', 'Confirmar'];
+
+    function irPaso(n) {
+        document.getElementById('paso' + estado.paso)?.classList.remove('activo');
+        estado.paso = n;
+        document.getElementById('paso' + n)?.classList.add('activo');
+        actualizarUI();
+    }
+
+    function volver() {
+        if (estado.paso > 1) irPaso(estado.paso - 1);
+    }
+
+    function actualizarUI() {
+        const p = estado.paso;
+
+        document.getElementById('progresoBarra').style.width = ((p / TOTAL_PASOS) * 100) + '%';
+
+        document.getElementById('btnVolver').style.visibility = p > 1 ? 'visible' : 'hidden';
+
+        const bc = document.getElementById('breadcrumb');
+        bc.innerHTML = '';
+        if (p > 1) {
+            const items = [];
+            if (estado.personas) items.push(estado.personas + ' pers.');
+            if (estado.fecha)    items.push(formatFechaCorta(estado.fecha));
+            if (estado.turno)    items.push(estado.turno === 'almuerzo' ? 'Almuerzo' : 'Cena');
+            if (estado.hora)     items.push(estado.hora);
+            items.forEach((txt, i) => {
+                if (i > 0) bc.innerHTML += '<span class="bc-sep">›</span>';
+                bc.innerHTML += `<span class="bc-item">${txt}</span>`;
+            });
+        }
+
+        const fd = document.getElementById('footerDer');
+        fd.innerHTML = '';
+
+        if (p === 1 || p === 4) return;
+
+        if (p === 7) {
+            fd.innerHTML = `<button class="btn-continuar acento" onclick="confirmarReserva()">
+                <i class="bi bi-check-lg"></i> Confirmar reserva
+            </button>`;
+        } else if (p !== 2 && p !== 5 && p !== 6) {
+        }
+    }
+
+    let personasPersonalizado = 5;
+
+    function selComensales(n, btn) {
+        document.querySelectorAll('.btn-comensal').forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        estado.personas = n;
+        setTimeout(() => irPaso(3), 300);
+    }
+
+    function ajustarPersonalizado(delta) {
+        personasPersonalizado = Math.max(1, personasPersonalizado + delta);
+        document.getElementById('numPersonalizado').textContent  = personasPersonalizado;
+        document.getElementById('lblPersonalizado').textContent  = personasPersonalizado === 1 ? 'persona' : 'personas';
+        document.getElementById('lblBtnPers').textContent        = personasPersonalizado;
+        document.getElementById('btnContinuarPersonalizado').style.display = 'flex';
+        estado.personas = personasPersonalizado;
+        document.querySelectorAll('.btn-comensal').forEach(b => b.classList.remove('sel'));
+    }
+
+    function usarPersonalizado() {
+        estado.personas = personasPersonalizado;
+        irPaso(3);
+    }
+
+    function renderCalendario() {
+        const hoy      = new Date(); hoy.setHours(0,0,0,0);
+        const año      = calFecha.getFullYear();
+        const mes      = calFecha.getMonth();
+        const label    = calFecha.toLocaleDateString('es-PE', { month:'long', year:'numeric' });
+        document.getElementById('calMesLabel').textContent = label;
+
+        document.getElementById('btnMesAnt').disabled =
+            año === hoy.getFullYear() && mes === hoy.getMonth();
+
+        const grid = document.getElementById('calGrid');
+        grid.innerHTML = '';
+
+        ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].forEach(d => {
+            grid.innerHTML += `<div class="cal-dia-nombre">${d}</div>`;
+        });
+
+        const primerDia = new Date(año, mes, 1).getDay();
+        const offset    = (primerDia + 6) % 7;
+        for (let i = 0; i < offset; i++)
+            grid.innerHTML += `<div class="cal-dia vacio"></div>`;
+
+        const diasEnMes = new Date(año, mes + 1, 0).getDate();
+        for (let d = 1; d <= diasEnMes; d++) {
+            const fecha   = new Date(año, mes, d);
+            const pasado  = fecha < hoy;
+            const esHoy   = fecha.getTime() === hoy.getTime();
+            const esSel   = estado.fecha && fecha.getTime() === estado.fecha.getTime();
+            let cls = 'cal-dia';
+            if (pasado) cls += ' pasado';
+            if (esHoy)  cls += ' hoy';
+            if (esSel)  cls += ' sel';
+
+            const onclick = pasado ? '' : `onclick="selFecha(${año},${mes},${d})"`;
+            grid.innerHTML += `<div class="${cls}" ${onclick}>${d}</div>`;
+        }
+    }
+
+    function cambiarMes(delta) {
+        calFecha.setMonth(calFecha.getMonth() + delta);
+        renderCalendario();
+    }
+
+    function selFecha(a, m, d) {
+        estado.fecha = new Date(a, m, d);
+        renderCalendario();
+        const fd = document.getElementById('footerDer');
+        fd.innerHTML = `<button class="btn-continuar" onclick="irPaso(4)">
+            <i class="bi bi-calendar-check"></i> Continuar con la fecha seleccionada
+        </button>`;
+    }
+
+    function formatFechaCorta(f) {
+        return f.toLocaleDateString('es-PE', { day:'2-digit', month:'short' });
+    }
+
+    function selTurno(turno) {
+        estado.turno = turno;
+        renderHoras();
+        irPaso(5);
+    }
+
+    function renderHoras() {
+        const inicio = estado.turno === 'almuerzo' ? 10 : 16;
+        const fin    = estado.turno === 'almuerzo' ? 16 : 23;
+        const lista  = document.getElementById('horasLista');
+        lista.innerHTML = '';
+
+        for (let h = inicio; h < fin; h++) {
+            for (let m = 0; m < 60; m += 30) {
+                const hh  = String(h).padStart(2, '0');
+                const mm  = String(m).padStart(2, '0');
+                const txt = `${hh}:${mm}`;
+                lista.innerHTML += `
+                <button class="btn-hora" onclick="selHora('${txt}')">
+                    <i class="bi bi-clock"></i> ${txt}
+                </button>`;
+            }
+        }
+    }
+
+    function selHora(hora) {
+        estado.hora = hora;
+        cargarMesas();
+        irPaso(6);
+    }
+
+    let posiciones = {};
+    try {
+        const saved = localStorage.getItem('salon_posiciones');
+        if (saved) posiciones = JSON.parse(saved);
+    } catch(e) {}
+
+    function cargarMesas() {
+        const fechaStr = estado.fecha.toISOString().split('T')[0];
+        const horaStr  = estado.hora + ':00';
+
+        fetch(`/Cliente/FiltradoMesas?FechaReserva=${fechaStr}&HoraReserva=${encodeURIComponent(horaStr)}`)
+            .then(r => r.json())
+            .then(mesas => {
+                estado.mesasData = mesas;
+                estado.mesas     = [];
+                document.getElementById('mesasSelWrap').innerHTML = '';
+                document.getElementById('capSeleccionada').textContent = '0';
+                renderSalonCliente();
+            });
+    }
+
+    function colorBorde(e) {
+        if (e === 1) return '#16a34a';
+        if (e === 3) return '#dc2626';
+        return '#9CA3AF';
+    }
+    function colorSilla(e) {
+        if (e === 1) return '#28FC64';
+        if (e === 3) return '#FC4C28';
+        return '#B4B2A9';
+    }
+    function mesaSize(p) {
+        if (p <= 2) return { w:60,  h:34 };
+        if (p <= 4) return { w:80,  h:44 };
+        if (p <= 6) return { w:100, h:54 };
+        if (p <= 8) return { w:120, h:62 };
+        return              { w:145, h:70 };
+    }
+    function crearSVG(m, vertical, sel) {
+        const { w, h } = mesaSize(m.espacioOcupable);
+        const CH = 9, CG = 4;
+        const cols = Math.ceil(m.espacioOcupable / 2);
+        const cw   = Math.max(10, Math.floor(w / (cols+1)) - 3);
+        const sp   = w / (cols+1);
+        const ox   = CG, oy = CH + CG;
+        const totalW = w + CG*2;
+        const borde  = sel ? '#C9A84C' : colorBorde(m.estado);
+        const silla  = sel ? '#C9A84C' : colorSilla(m.estado);
+        const fill   = sel ? 'rgba(201,168,76,0.1)' : 'white';
+        let chairs = '';
+        for (let i = 0; i < cols; i++) {
+            const cx = ox + sp*(i+1) - cw/2;
+            chairs += `<rect x="${cx.toFixed(1)}" y="${oy-CH-3}" width="${cw}" height="${CH}" rx="2" fill="${silla}" opacity="0.85"/>`;
+            if (i*2+1 < m.espacioOcupable)
+                chairs += `<rect x="${cx.toFixed(1)}" y="${oy+h+3}" width="${cw}" height="${CH}" rx="2" fill="${silla}" opacity="0.85"/>`;
+        }
+        const totalH = h + (CH+CG)*2;
+        const svgW = vertical ? totalH : totalW;
+        const svgH = vertical ? totalW : totalH;
+        const tf   = vertical ? `rotate(90) translate(0,-${totalW})` : '';
+        return `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+            <g transform="${tf}">
+                ${chairs}
+                <rect x="${ox}" y="${oy}" width="${w}" height="${h}" rx="5"
+                    fill="${fill}" stroke="${borde}" stroke-width="${sel?2.5:2}"/>
+                <text x="${ox+w/2}" y="${oy+h/2+4}" text-anchor="middle"
+                    font-family="Lato,sans-serif" font-size="13" font-weight="700" fill="#2C2C2C">${m.numeroMesa}</text>
+                <text x="${ox+w/2}" y="${oy+h/2+17}" text-anchor="middle"
+                    font-family="Lato,sans-serif" font-size="10" fill="#9CA3AF">${m.espacioOcupable}p</text>
+            </g>
+        </svg>`;
+    }
+
+    function renderSalonCliente() {
+        const inner = document.getElementById('salonInner');
+        inner.innerHTML = '';
+        let autoX = 20, autoY = 20;
+
+        estado.mesasData.forEach(m => {
+            const { w, h } = mesaSize(m.espacioOcupable);
+            const CG = 4, CH = 9;
+            const totalW = w + CG*2;
+            const totalH = h + (CH+CG)*2;
+            const pos    = posiciones[m.idMesa] || { x: autoX, y: autoY, vertical: false };
+            if (!posiciones[m.idMesa]) {
+                autoX += totalW + 20;
+                if (autoX + totalW > 1100) { autoX = 20; autoY += totalH + 20; }
+            }
+
+            const sel   = estado.mesas.some(x => x.idMesa === m.idMesa);
+            const libre = m.estado === 1;
+            const div   = document.createElement('div');
+            div.style.cssText = `position:absolute; left:${pos.x}px; top:${pos.y}px; user-select:none;`;
+            div.style.cursor  = libre || sel ? 'pointer' : 'not-allowed';
+            div.style.opacity = !libre && !sel ? '0.5' : '1';
+            div.innerHTML = crearSVG(m, pos.vertical || false, sel);
+
+            if (libre || sel) {
+                div.addEventListener('click', () => toggleMesa(m));
+            }
+            inner.appendChild(div);
+        });
+    }
+
+    function toggleMesa(m) {
+        const idx = estado.mesas.findIndex(x => x.idMesa === m.idMesa);
+        if (idx === -1) estado.mesas.push(m);
+        else            estado.mesas.splice(idx, 1);
+        actualizarBadgesMesas();
+        renderSalonCliente();
+        validarCapMesas();
+    }
+
+    function actualizarBadgesMesas() {
+        const wrap = document.getElementById('mesasSelWrap');
+        wrap.innerHTML = '';
+        const cap  = estado.mesas.reduce((s, m) => s + m.espacioOcupable, 0);
+        document.getElementById('capSeleccionada').textContent = cap;
+        estado.mesas.forEach(m => {
+            const b = document.createElement('div');
+            b.className = 'badge-mesa';
+            b.innerHTML = `Mesa ${m.numeroMesa} <button onclick="quitarMesa(${m.idMesa})">×</button>`;
+            wrap.appendChild(b);
+        });
+    }
+
+    function quitarMesa(id) {
+        estado.mesas = estado.mesas.filter(m => m.idMesa !== id);
+        actualizarBadgesMesas();
+        renderSalonCliente();
+        validarCapMesas();
+    }
+
+    function validarCapMesas() {
+        const cap    = estado.mesas.reduce((s, m) => s + m.espacioOcupable, 0);
+        const pers   = estado.personas || 0;
+        const aviso  = document.getElementById('avisoCap');
+        if (cap > 0 && pers > 0) {
+            if (cap < pers) {
+                aviso.textContent   = `⚠ Espacio insuficiente — ${cap} lugares para ${pers} personas.`;
+                aviso.style.display = 'block';
+            } else if (cap > pers * 1.5) {
+                aviso.textContent   = `ℹ Estás usando más espacio del necesario (${cap} lugares para ${pers} personas).`;
+                aviso.style.display = 'block';
+            } else {
+                aviso.style.display = 'none';
+            }
+        } else {
+            aviso.style.display = 'none';
+        }
+    }
+
+    function mostrarResumen() {
+        const alerta = document.getElementById('alertaMesas');
+        const cap    = estado.mesas.reduce((s, m) => s + m.espacioOcupable, 0);
+
+        if (estado.mesas.length === 0) {
+            alerta.textContent   = 'Selecciona al menos una mesa.';
+            alerta.style.display = 'block'; return;
+        }
+        if (cap < estado.personas) {
+            alerta.textContent   = `Espacio insuficiente — ${cap} lugares para ${estado.personas} personas.`;
+            alerta.style.display = 'block'; return;
+        }
+
+        alerta.style.display = 'none';
+
+        document.getElementById('rCliente').textContent  = nombreCliente;
+        document.getElementById('rPersonas').textContent = estado.personas + ' personas';
+        document.getElementById('rFecha').textContent    = estado.fecha.toLocaleDateString('es-PE', { day:'2-digit', month:'long', year:'numeric' });
+        document.getElementById('rTurno').textContent    = estado.turno === 'almuerzo' ? 'Almuerzo' : 'Cena';
+        document.getElementById('rHora').textContent     = estado.hora;
+
+        const costoTotal = precioReserva * estado.personas;
+        document.getElementById('rCosto').textContent   = 'S/ ' + costoTotal.toFixed(2);
+        document.getElementById('rCosto').title         = `S/ ${precioReserva.toFixed(2)} × ${estado.personas} personas`;
+
+        const rMesas = document.getElementById('rMesas');
+        rMesas.innerHTML = '';
+        estado.mesas.forEach(m => {
+            rMesas.innerHTML += `<span class="badge-mesa-res">Mesa ${m.numeroMesa}</span>`;
+        });
+
+        irPaso(7);
+    }
+
+    function confirmarReserva() {
+        const alerta = document.getElementById('alertaResumen');
+        const fechaStr = estado.fecha.toISOString().split('T')[0];
+        const horaStr  = estado.hora + ':00';
+
+        const payload = {
+            Reserva: {
+                FechaReserva:     fechaStr,
+                HoraReserva:      horaStr,
+                CantidadPersonas: estado.personas
+            },
+            DetalleReserva: estado.mesas.map(m => ({ IdMesa: m.idMesa }))
+        };
+
+        fetch('/Cliente/InsertarReserva', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(r => {
+            if (r.redirected) { window.location.href = r.url; }
+            else { return r.json(); }
+        })
+        .then(data => {
+            if (data?.mensaje) {
+                alerta.textContent   = data.mensaje;
+                alerta.style.display = 'block';
+            }
+        })
+        .catch(() => {
+            alerta.textContent   = 'Ocurrió un error al confirmar la reserva.';
+            alerta.style.display = 'block';
+        });
+    }
+
+    const _irPasoOrig = irPaso;
+    window.irPaso = function(n) {
+        _irPasoOrig(n);
+        if (n === 6) {
+            document.getElementById('footerDer').innerHTML = `
+                <button class="btn-continuar" onclick="mostrarResumen()">
+                    Revisar reserva <i class="bi bi-arrow-right"></i>
+                </button>`;
+        }
+        if (n === 3) renderCalendario();
+    };
+
+    actualizarUI();
+</script>
+</body>
+</html>

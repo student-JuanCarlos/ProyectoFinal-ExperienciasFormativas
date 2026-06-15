@@ -902,18 +902,6 @@ BEGIN
 
 	BEGIN TRY
 		BEGIN TRAN
-			
-			IF (SELECT SUM(m.EspacioOcupable)
-			FROM @Mesas ms
-			INNER JOIN Mesa m ON m.IdMesa = ms.IdMesa) < (
-				SELECT CantidadPersonas FROM Reserva WHERE IdReserva = @IdReserva
-			)
-			BEGIN
-				RAISERROR('Espacio insuficiente para la cantidad de personas', 16, 1);
-				ROLLBACK;
-				RETURN;
-			END
-			
 			UPDATE Mesa
 			SET Estado = 1
 			WHERE IdMesa IN (SELECT IdMesa FROM DetalleReserva WHERE IdReserva = @IdReserva) AND IdMesa NOT IN (SELECT IdMesa FROM @Mesas)
@@ -974,6 +962,63 @@ BEGIN
 END
 
 GO
+CREATE PROC sp_ListadoReserva_Cliente --Las reservas de un unico cliente
+@IdCliente INT
+AS
+BEGIN
+	SELECT 
+		r.IdReserva,
+		r.FechaReserva,
+		r.HoraReserva,
+		r.CantidadPersonas,
+		r.CostoTotal,
+		r.Estado
+	FROM Reserva r
+	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
+	WHERE c.IdCliente = @IdCliente AND r.Estado = 1
+	ORDER BY r.FechaReserva
+END
+
+GO
+CREATE PROC sp_DetalleReserva_Cliente
+@IdReserva INT
+AS
+BEGIN
+	SELECT 
+		r.IdReserva,
+		r.FechaReserva,
+		r.HoraReserva,
+		r.CantidadPersonas,
+		r.CostoTotal,
+		r.Estado
+	FROM Reserva r
+	WHERE IdReserva = @IdReserva
+
+	SELECT 
+		m.IdMesa,
+		m.NumeroMesa
+	FROM Mesa m
+	INNER JOIN DetalleReserva dr ON dr.IdMesa = m.IdMesa
+	WHERE dr.IdReserva = @IdReserva 
+END
+
+GO
+CREATE PROC sp_ActualizarReserva_Cliente
+@IdReserva INT,
+@FechaReserva DATE,
+@HoraReserva TIME,
+@CantidadPersonas INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	UPDATE Reserva 
+	SET FechaReserva = @FechaReserva,
+		HoraReserva = @HoraReserva,
+		CantidadPersonas = @CantidadPersonas
+		WHERE IdReserva = @IdReserva
+END
+
+GO
 CREATE PROC sp_FiltradoReservas
 @Busqueda VARCHAR(150),
 @Estado INT
@@ -994,7 +1039,33 @@ BEGIN
 	OR c.Nombres+' '+c.Apellidos LIKE '%'+@Busqueda+'%') AND 
 	(@Estado IS NULL OR r.Estado = @Estado)
 END
-GO 
+GO
+
+--Para el controlador de los clientes
+CREATE PROC sp_FiltradoReservas_Cliente
+@FechaReserva DATE,
+@HoraReserva TIME
+AS
+BEGIN
+    SELECT 
+        m.IdMesa,
+        m.NumeroMesa,
+        m.EspacioOcupable,
+        CASE 
+            WHEN EXISTS (
+                SELECT 1 FROM Reserva r
+                INNER JOIN DetalleReserva dr ON dr.IdReserva = r.IdReserva
+                WHERE dr.IdMesa = m.IdMesa
+                AND r.FechaReserva = @FechaReserva
+                AND r.Estado IN (1, 2) 
+                AND @HoraReserva < DATEADD(HOUR, 3, r.HoraReserva)
+                AND DATEADD(HOUR, 3, @HoraReserva) > r.HoraReserva
+            ) THEN 3  
+            ELSE 1    
+        END AS Estado
+    FROM Mesa m
+END
+
 ------------------------------------
 --------SP DE Venta
 ------------------------------------
@@ -1186,4 +1257,9 @@ BEGIN
         WHERE r.FechaReserva = CAST(GETDATE() AS DATE)    
         AND r.Estado = 1  
     );
+
+	UPDATE Reserva
+	SET Estado = 3
+	WHERE Estado = 1 AND FechaReserva < GETDATE()
+
 END

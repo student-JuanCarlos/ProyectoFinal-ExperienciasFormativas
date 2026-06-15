@@ -70,6 +70,29 @@ namespace Data.Repository
             return f;
         }
 
+        public int ActualizarReserva_Cliente(Reserva r)
+        {
+            int f = 0;
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cn;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_ActualizarReserva_Cliente";
+                    cmd.Parameters.AddWithValue("@IdReserva", r.IdReserva);
+                    cmd.Parameters.AddWithValue("@FechaReserva", r.FechaReserva);
+                    cmd.Parameters.AddWithValue("@HoraReserva", r.HoraReserva);
+                    cmd.Parameters.AddWithValue("@CantidadPersonas", r.CantidadPersonas);
+                    cn.Open();
+                    f = cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex) { throw new Exception(ex.Message); }
+            }
+            return f;
+        }
+
         public int CancelarReserva(int IdReserva, DataTable mesas)
         {
             int f = 0;
@@ -115,6 +138,11 @@ namespace Data.Repository
 
                     if (reader.Read())
                     {
+                        Usuario usuario = new Usuario()
+                        {
+                            NombreUsuario = reader["GeneradoPor"].ToString()
+                        };
+
                         reserva = new Reserva()
                         {
                             TipoReserva = reader["TipoReserva"].ToString(),
@@ -123,7 +151,7 @@ namespace Data.Repository
                             CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
                             CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
                             DetalleMesa = new List<DetalleReserva>(),
-                            usuario = new Usuario { NombreUsuario = reader["GeneradoPor"].ToString() }
+                            usuario = usuario
                         };
                     }
 
@@ -150,7 +178,62 @@ namespace Data.Repository
                         };
                     }
                 }
-                catch (Exception ex) { throw new Exception(ex.Message); }
+                catch (Exception ex) 
+                { 
+                    throw new Exception(ex.Message); 
+                }
+            }
+            return reserva;
+        }
+
+        public Reserva DetalleReserva_Cliente(int id)
+        {
+            var reserva = new Reserva();
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cn;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_DetalleReserva_Cliente";
+                    cmd.Parameters.AddWithValue("@IdReserva", id);
+                    cn.Open();
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        reserva = new Reserva()
+                        {
+                            IdReserva = Convert.ToInt32(reader["IdReserva"]),
+                            FechaReserva = Convert.ToDateTime(reader["FechaReserva"]),
+                            HoraReserva = (TimeSpan)reader["HoraReserva"],
+                            CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
+                            CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
+                            Estado = Convert.ToInt32(reader["Estado"]),
+                            DetalleMesa = new List<DetalleReserva>(),
+                        };
+                    }
+
+                    reader.NextResult();
+                    while (reader.Read())
+                    {
+                        var mesa = new Mesa()
+                        {
+                            IdMesa = Convert.ToInt32(reader["IdMesa"]),
+                            NumeroMesa = Convert.ToInt32(reader["NumeroMesa"])
+                        };
+
+                        reserva.DetalleMesa.Add(new DetalleReserva()
+                        {
+                            mesa = mesa
+                        });
+                    }
+                }
+                catch (Exception ex) 
+                { 
+                    throw new Exception(ex.Message); 
+                }
             }
             return reserva;
         }
@@ -236,6 +319,41 @@ namespace Data.Repository
                     }
                 }
                 catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            return listado;
+        }
+
+        public List<Reserva> ListadoReserva_Cliente(int IdCliente)
+        {
+            var listado = new List<Reserva>();
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cn;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_ListadoReserva_Cliente";
+                    cmd.Parameters.AddWithValue("@IdCliente", IdCliente);
+                    cn.Open();
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        listado.Add(new Reserva()
+                        {
+                            IdReserva = Convert.ToInt32(reader["IdReserva"]),
+                            FechaReserva = Convert.ToDateTime(reader["FechaReserva"]),
+                            HoraReserva = (TimeSpan)reader["HoraReserva"],
+                            CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
+                            CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
+                            Estado = Convert.ToInt32(reader["Estado"]),
+                        });
+                    }
+                }
+                catch(Exception ex)
                 {
                     throw new Exception(ex.Message);
                 }

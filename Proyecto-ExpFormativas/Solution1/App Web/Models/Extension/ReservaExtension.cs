@@ -39,6 +39,7 @@ namespace App_Web.Models.Extension
                 {
                     mesa = new MesaVM()
                     {
+                        IdMesa = dr.mesa.IdMesa,
                         NumeroMesa = dr.mesa.NumeroMesa,
                     }
                 }).ToList()

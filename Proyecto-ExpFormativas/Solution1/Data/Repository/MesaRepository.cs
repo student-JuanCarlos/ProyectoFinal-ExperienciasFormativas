@@ -122,6 +122,40 @@ namespace Data.Repository
             return mesa;
         }
 
+        public List<Mesa> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva)
+        {
+            var listado = new List<Mesa>();
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cn;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_FiltradoReservas_Cliente";
+                    cmd.Parameters.AddWithValue("@FechaReserva", FechaReserva);
+                    cmd.Parameters.AddWithValue("@HoraReserva", HoraReserva);
+                    cn.Open();
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        listado.Add(new Mesa()
+                        {
+                            IdMesa = Convert.ToInt32(reader["IdMesa"]),
+                            NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
+                            EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
+                            Estado = Convert.ToInt32(reader["Estado"])
+                        });
+                    }
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            return listado;
+        }
+
         public List<Mesa> Listado(string Busqueda)
         {
             var listado = new List<Mesa>();

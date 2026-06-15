@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    var reservas = ViewBag.ReservaCliente as IEnumerable<App_Web.Models.VM.ReservaVM>;
 }
 
 <!DOCTYPE html>
@@ -8,513 +9,535 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mi Cuenta — La Estancia Gourmet</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
     <style>
-            :root {
-                --crema: #FAF8F3;
-                --carbon: #2C2C2C;
-                --dorado: #C9A84C;
-                --vino: #6B2D2D;
-                --gris-suave: #EDEBE5;
-            }
+        :root {
+            --crema:      #FAF8F3;
+            --carbon:     #2C2C2C;
+            --dorado:     #C9A84C;
+            --vino:       #6B2D2D;
+            --gris-suave: #EDEBE5;
+            --borde:      #E0DBD0;
+        }
 
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-            body {
-                font-family: 'Lato', sans-serif;
-                background-color: var(--gris-suave);
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-            }
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--gris-suave);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-            /* ── NAVBAR ── */
-            .navbar-estancia {
-                background-color: var(--crema);
-                border-bottom: 1px solid #ddd;
-                padding: 1.2rem 3rem;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
+        /* NAVBAR */
+        .navbar-estancia {
+            background: var(--crema);
+            border-bottom: 1px solid var(--borde);
+            padding: 1.2rem 3rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .navbar-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem; font-weight: 400;
+            color: var(--carbon); text-decoration: none;
+        }
+        .navbar-links { display: flex; gap: 2rem; list-style: none; margin: 0; }
+        .navbar-links a {
+            font-size: 0.72rem; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--carbon);
+            text-decoration: none; transition: color 0.25s;
+        }
+        .navbar-links a:hover { color: var(--dorado); }
+        .btn-cerrar-sesion {
+            font-size: 0.72rem; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #fff;
+            background: var(--carbon); border: none;
+            border-radius: 50px; padding: 0.45rem 1.2rem;
+            text-decoration: none; transition: background 0.25s; cursor: pointer;
+        }
+        .btn-cerrar-sesion:hover { background: var(--vino); color: #fff; }
 
-            .navbar-logo {
-                font-family: 'Cormorant Garamond', serif;
-                font-size: 1.4rem;
-                font-weight: 400;
-                color: var(--carbon);
-                text-decoration: none;
-            }
+        /* LAYOUT */
+        .page-wrapper {
+            flex: 1; display: flex;
+            padding: 2.5rem 3rem; gap: 2rem;
+            max-width: 1100px; margin: 0 auto; width: 100%;
+        }
 
-            .navbar-links {
-                display: flex;
-                gap: 2rem;
-                list-style: none;
-                margin: 0;
-            }
+        /* PANEL IZQUIERDO */
+        .panel-izq {
+            width: 260px; flex-shrink: 0;
+            display: flex; flex-direction: column; gap: 1rem;
+        }
 
-                .navbar-links a {
-                    font-family: 'Lato', sans-serif;
-                    font-size: 0.72rem;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: var(--carbon);
-                    text-decoration: none;
-                    transition: color 0.25s;
-                }
+        .card-perfil-mini {
+            background: var(--crema); border: 1px solid var(--borde);
+            border-radius: 4px; overflow: hidden;
+        }
+        .perfil-mini-header {
+            background: linear-gradient(135deg, var(--carbon) 0%, #444 100%);
+            padding: 1.8rem 1.5rem;
+            display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+        }
+        .perfil-foto-wrap { position: relative; cursor: pointer; }
+        .perfil-foto {
+            width: 72px; height: 72px; border-radius: 50%;
+            object-fit: cover; border: 2px solid rgba(255,255,255,0.3);
+        }
+        .perfil-foto-edit {
+            position: absolute; bottom: 0; right: 0;
+            width: 22px; height: 22px; background: var(--dorado);
+            border-radius: 50%; display: none;
+            align-items: center; justify-content: center;
+            font-size: 10px; color: #fff;
+        }
+        .perfil-foto-wrap:hover .perfil-foto-edit { display: flex; }
+        .perfil-mini-nombre {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem; color: #fff; text-align: center; line-height: 1.2;
+        }
+        .perfil-mini-tag {
+            font-size: 0.6rem; letter-spacing: 0.18em;
+            text-transform: uppercase; color: var(--dorado);
+        }
 
-                    .navbar-links a:hover {
-                        color: var(--dorado);
-                    }
+        /* NAV LATERAL */
+        .nav-lateral { padding: 0.5rem 0; }
+        .nav-lat-item {
+            display: flex; align-items: center; gap: 0.8rem;
+            padding: 0.75rem 1.5rem; font-size: 0.8rem;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: #888; cursor: pointer; transition: all 0.2s;
+            border-left: 2px solid transparent;
+            text-decoration: none;
+        }
+        .nav-lat-item:hover { color: var(--carbon); background: rgba(0,0,0,0.02); }
+        .nav-lat-item.activo {
+            color: var(--carbon); border-left-color: var(--dorado);
+            background: rgba(201,168,76,0.05);
+        }
+        .nav-lat-item i { font-size: 14px; }
 
-            .btn-cerrar-sesion {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.72rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: #fff;
-                background-color: var(--carbon);
-                border: none;
-                border-radius: 50px;
-                padding: 0.45rem 1.2rem;
-                text-decoration: none;
-                transition: background 0.25s;
-                cursor: pointer;
-            }
+        /* PANEL DERECHO */
+        .panel-der { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
 
-                .btn-cerrar-sesion:hover {
-                    background-color: var(--vino);
-                    color: #fff;
-                }
+        .seccion { display: none; }
+        .seccion.activa { display: block; }
 
-            /* ── CONTENIDO ── */
-            .page-wrapper {
-                flex: 1;
-                display: flex;
-                align-items: flex-start;
-                justify-content: center;
-                padding: 3rem 1.5rem;
-            }
+        /* CARD CONTENIDO */
+        .card-contenido {
+            background: var(--crema); border: 1px solid var(--borde);
+            border-radius: 4px; overflow: hidden;
+        }
+        .card-contenido-header {
+            padding: 1.5rem 2rem; border-bottom: 1px solid var(--borde);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-titulo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem; font-weight: 400; color: var(--carbon);
+        }
+        .card-body-cont { padding: 2rem; }
 
-            .card-cuenta {
-                background-color: var(--crema);
-                border: 1px solid #e0dbd0;
-                border-radius: 4px;
-                width: 100%;
-                max-width: 700px;
-                overflow: hidden;
-            }
+        /* DATOS PERSONALES */
+        .datos-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 1.8rem; margin-bottom: 2rem;
+        }
+        .dato-label {
+            font-size: 0.62rem; letter-spacing: 0.16em;
+            text-transform: uppercase; color: #aaa;
+            display: block; margin-bottom: 5px;
+        }
+        .dato-valor {
+            font-size: 0.95rem; color: var(--carbon);
+            border-bottom: 1px solid var(--borde);
+            padding-bottom: 6px; display: block;
+        }
+        .dato-input {
+            width: 100%; border: none;
+            border-bottom: 1px solid #ccc; background: transparent;
+            padding: 0.3rem 0; font-family: 'Lato', sans-serif;
+            font-size: 0.95rem; color: var(--carbon);
+            outline: none; transition: border-color 0.25s; display: none;
+        }
+        .dato-input:focus { border-bottom-color: var(--carbon); }
 
-            /* ── HEADER PERFIL ── */
-            .perfil-header {
-                background: linear-gradient(135deg, var(--carbon) 0%, #444 100%);
-                padding: 2.5rem 2.5rem 1.5rem;
-                display: flex;
-                align-items: center;
-                gap: 1.8rem;
-            }
+        .perfil-acciones { display: flex; gap: 1rem; align-items: center; }
+        .btn-acc {
+            font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+            border-radius: 50px; padding: 0.55rem 1.5rem;
+            cursor: pointer; transition: all 0.25s; font-family: 'Lato', sans-serif;
+        }
+        .btn-acc-outline {
+            color: var(--carbon); border: 1px solid var(--carbon); background: transparent;
+        }
+        .btn-acc-outline:hover { background: var(--carbon); color: #fff; }
+        .btn-acc-solid {
+            color: #fff; background: var(--carbon); border: none; display: none;
+        }
+        .btn-acc-solid:hover { background: #444; }
+        .btn-acc-ghost {
+            color: #888; background: transparent; border: none; display: none;
+        }
+        .btn-acc-ghost:hover { color: var(--vino); }
 
-            .perfil-foto-wrapper {
-                position: relative;
-                cursor: pointer;
-            }
+        .alerta-ok {
+            background: #f0fdf4; border-left: 3px solid #4caf50;
+            padding: 0.7rem 1rem; margin-bottom: 1.5rem;
+            border-radius: 2px; display: none;
+            font-size: 0.82rem; color: #2e7d32;
+        }
+        .alerta-err {
+            background: #fdf0f0; border-left: 3px solid var(--vino);
+            padding: 0.7rem 1rem; margin-bottom: 1.5rem;
+            border-radius: 2px; display: none;
+            font-size: 0.82rem; color: var(--vino);
+        }
 
-            .perfil-foto {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 2px solid rgba(255,255,255,0.3);
-            }
+        /* RESERVAS */
+        .reservas-lista { display: flex; flex-direction: column; gap: 1rem; }
 
-            .perfil-foto-edit {
-                position: absolute;
-                bottom: 0;
-                right: 0;
-                width: 24px;
-                height: 24px;
-                background-color: var(--dorado);
-                border-radius: 50%;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                font-size: 11px;
-                color: #fff;
-            }
+        .reserva-card {
+            background: var(--crema); border: 1px solid var(--borde);
+            border-radius: 4px; display: flex;
+            overflow: hidden; transition: box-shadow 0.2s;
+        }
+        .reserva-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
 
-            .perfil-foto-wrapper:hover .perfil-foto-edit {
-                display: flex;
-            }
+        /* Franja lateral dorada con fecha */
+        .reserva-fecha-col {
+            width: 80px; flex-shrink: 0;
+            background: var(--carbon);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 1.2rem 0.5rem; gap: 2px;
+        }
+        .fecha-dia {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem; font-weight: 600; color: var(--dorado); line-height: 1;
+        }
+        .fecha-mes {
+            font-size: 0.6rem; letter-spacing: 0.15em;
+            text-transform: uppercase; color: rgba(255,255,255,0.5);
+        }
+        .fecha-año {
+            font-size: 0.6rem; color: rgba(255,255,255,0.3);
+        }
 
-            .perfil-info {
-                flex: 1;
-            }
+        /* Cuerpo card reserva */
+        .reserva-info {
+            flex: 1; padding: 1.2rem 1.5rem;
+            display: flex; align-items: center; gap: 1.5rem;
+        }
+        .reserva-datos { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .reserva-hora {
+            font-size: 0.75rem; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #aaa;
+        }
+        .reserva-personas {
+            font-size: 1rem; font-weight: 700; color: var(--carbon);
+        }
+        .reserva-costo {
+            font-size: 0.85rem; color: var(--dorado); font-weight: 600;
+        }
 
-            .perfil-nombre {
-                font-family: 'Cormorant Garamond', serif;
-                font-size: 1.8rem;
-                font-weight: 400;
-                color: #fff;
-                margin-bottom: 0.2rem;
-            }
+        .badge-estado {
+            font-size: 0.6rem; letter-spacing: 0.14em;
+            text-transform: uppercase; font-weight: 700;
+            padding: 4px 12px; border-radius: 50px;
+        }
+        .badge-pendiente { background: rgba(245,158,11,0.1);  color: #92400e; }
+        .badge-concluido { background: rgba(34,197,94,0.1);   color: #166534; }
+        .badge-cancelado { background: rgba(107,45,45,0.1);   color: var(--vino); }
 
-            .perfil-tag {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.65rem;
-                letter-spacing: 0.18em;
-                text-transform: uppercase;
-                color: var(--dorado);
-            }
+        .btn-ver-detalle {
+            font-size: 0.65rem; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--carbon);
+            border: 1px solid var(--borde); border-radius: 50px;
+            padding: 0.45rem 1rem; background: transparent;
+            text-decoration: none; transition: all 0.2s; white-space: nowrap;
+            font-family: 'Lato', sans-serif;
+        }
+        .btn-ver-detalle:hover {
+            background: var(--carbon); color: #fff; border-color: var(--carbon);
+        }
 
-            /* ── CUERPO ── */
-            .perfil-body {
-                padding: 2.5rem;
-            }
+        .reservas-vacio {
+            text-align: center; padding: 3rem 2rem;
+            color: #aaa; font-size: 0.9rem;
+        }
+        .reservas-vacio i { font-size: 2.5rem; display: block; margin-bottom: 0.8rem; color: #ccc; }
 
-            .seccion-titulo {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.65rem;
-                letter-spacing: 0.2em;
-                text-transform: uppercase;
-                color: #aaa;
-                margin-bottom: 1.5rem;
-                padding-bottom: 0.5rem;
-                border-bottom: 1px solid #e0dbd0;
-            }
+        /* NUEVA RESERVA BTN */
+        .btn-nueva-reserva {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+            color: #fff; background: var(--carbon); border: none;
+            border-radius: 50px; padding: 0.55rem 1.3rem;
+            text-decoration: none; transition: background 0.25s;
+            font-family: 'Lato', sans-serif; cursor: pointer;
+        }
+        .btn-nueva-reserva:hover { background: var(--dorado); color: #fff; }
 
-            .datos-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1.8rem;
-                margin-bottom: 2.5rem;
-            }
-
-            .dato-item {
-            }
-
-            .dato-label {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.65rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: #aaa;
-                display: block;
-                margin-bottom: 5px;
-            }
-
-            .dato-valor {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.95rem;
-                color: var(--carbon);
-                border-bottom: 1px solid #e0dbd0;
-                padding-bottom: 6px;
-                display: block;
-            }
-
-            .dato-input {
-                width: 100%;
-                border: none;
-                border-bottom: 1px solid #ccc;
-                background: transparent;
-                padding: 0.3rem 0;
-                font-family: 'Lato', sans-serif;
-                font-size: 0.95rem;
-                color: var(--carbon);
-                outline: none;
-                transition: border-color 0.25s;
-                display: none;
-            }
-
-                .dato-input:focus {
-                    border-bottom-color: var(--carbon);
-                }
-
-            /* ── ACCIONES ── */
-            .perfil-acciones {
-                display: flex;
-                gap: 1rem;
-                align-items: center;
-            }
-
-            .btn-editar {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.7rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--carbon);
-                border: 1px solid var(--carbon);
-                border-radius: 50px;
-                padding: 0.55rem 1.5rem;
-                background: transparent;
-                cursor: pointer;
-                transition: background 0.25s, color 0.25s;
-            }
-
-                .btn-editar:hover {
-                    background-color: var(--carbon);
-                    color: #fff;
-                }
-
-            .btn-guardar {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.7rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: #fff;
-                background-color: var(--carbon);
-                border: none;
-                border-radius: 50px;
-                padding: 0.55rem 1.5rem;
-                cursor: pointer;
-                transition: background 0.25s;
-                display: none;
-            }
-
-                .btn-guardar:hover {
-                    background-color: #444;
-                }
-
-            .btn-cancelar {
-                font-family: 'Lato', sans-serif;
-                font-size: 0.7rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: #888;
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                display: none;
-            }
-
-                .btn-cancelar:hover {
-                    color: var(--vino);
-                }
-
-            .alerta-ok {
-                background-color: #f0fdf4;
-                border-left: 3px solid #4caf50;
-                padding: 0.7rem 1rem;
-                margin-bottom: 1.5rem;
-                border-radius: 2px;
-                display: none;
-            }
-
-                .alerta-ok p {
-                    font-family: 'Lato', sans-serif;
-                    font-size: 0.82rem;
-                    color: #2e7d32;
-                    margin: 0;
-                }
-
-            .alerta-error {
-                background-color: #fdf0f0;
-                border-left: 3px solid var(--vino);
-                padding: 0.7rem 1rem;
-                margin-bottom: 1.5rem;
-                border-radius: 2px;
-                display: none;
-            }
-
-                .alerta-error p {
-                    font-family: 'Lato', sans-serif;
-                    font-size: 0.82rem;
-                    color: var(--vino);
-                    margin: 0;
-                }
-
-            /* ── FOOTER ── */
-            footer {
-                background-color: #1a1a1a;
-                padding: 1.2rem 3rem;
-                display: flex;
-                justify-content: space-between;
-            }
-
-                footer p {
-                    font-family: 'Lato', sans-serif;
-                    font-size: 0.72rem;
-                    color: #555;
-                    margin: 0;
-                }
+        /* FOOTER */
+        footer {
+            background: #1a1a1a; padding: 1.2rem 3rem;
+            display: flex; justify-content: space-between;
+        }
+        footer p { font-size: 0.72rem; color: #555; margin: 0; }
     </style>
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar-estancia">
-        <a href="/Cliente/Index" class="navbar-logo">La Estancia Gourmet</a>
-        <ul class="navbar-links">
-            <li><a href="/Cliente/Index">Inicio</a></li>
-            <li><a href="/Reserva/Index">Reservas</a></li>
-        </ul>
-        <a href="/Cliente/CerrarSesion" class="btn-cerrar-sesion">Cerrar sesión</a>
-    </nav>
+<nav class="navbar-estancia">
+    <a href="/Cliente/Index" class="navbar-logo">La Estancia Gourmet</a>
+    <ul class="navbar-links">
+        <li><a href="/Cliente/Index">Inicio</a></li>
+        <li><a href="/Cliente/Reserva">Nueva reserva</a></li>
+    </ul>
+    <a href="/Cliente/CerrarSesion" class="btn-cerrar-sesion">Cerrar sesión</a>
+</nav>
 
-    <!-- CONTENIDO -->
-    <div class="page-wrapper">
-        <div class="card-cuenta">
+<div class="page-wrapper">
 
-            <!-- Header -->
-            <div class="perfil-header">
-                <div class="perfil-foto-wrapper" onclick="document.getElementById('inputFoto').click()">
-                    <img id="fotoDisplay" src="" alt="Foto de perfil" class="perfil-foto" />
-                    <div class="perfil-foto-edit">✎</div>
+    <!-- PANEL IZQUIERDO -->
+    <div class="panel-izq">
+        <div class="card-perfil-mini">
+            <div class="perfil-mini-header">
+                <div class="perfil-foto-wrap" onclick="document.getElementById('inputFoto').click()">
+                    <img id="fotoDisplay" src="" alt="Foto" class="perfil-foto" />
+                    <div class="perfil-foto-edit"><i class="bi bi-pencil"></i></div>
                     <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="cambiarFoto(this)" />
                 </div>
-                <div class="perfil-info">
-                    <p class="perfil-nombre" id="headerNombre">Cargando...</p>
-                </div>
+                <div class="perfil-mini-nombre" id="sidebarNombre">Cargando...</div>
+                <div class="perfil-mini-tag">Cliente</div>
             </div>
-
-            <!-- Cuerpo -->
-            <div class="perfil-body">
-
-                <div class="alerta-ok" id="alerta-ok"><p>Datos actualizados correctamente.</p></div>
-                <div class="alerta-error" id="alerta-error"><p id="msg-error"></p></div>
-
-                <p class="seccion-titulo">Información personal</p>
-
-                <div class="datos-grid">
-                    <div class="dato-item">
-                        <span class="dato-label">Nombres</span>
-                        <span class="dato-valor" id="v-Nombres"></span>
-                        <input type="text" class="dato-input" id="i-Nombres" />
-                    </div>
-                    <div class="dato-item">
-                        <span class="dato-label">Apellidos</span>
-                        <span class="dato-valor" id="v-Apellidos"></span>
-                        <input type="text" class="dato-input" id="i-Apellidos" />
-                    </div>
-                    <div class="dato-item">
-                        <span class="dato-label">Documento</span>
-                        <span class="dato-valor" id="v-Documento"></span>
-                        <input type="text" class="dato-input" id="i-Documento" />
-                    </div>
-                    <div class="dato-item">
-                        <span class="dato-label">Teléfono</span>
-                        <span class="dato-valor" id="v-Telefono"></span>
-                        <input type="text" class="dato-input" id="i-Telefono" />
-                    </div>
-                    <div class="dato-item" style="grid-column: span 2;">
-                        <span class="dato-label">Correo electrónico</span>
-                        <span class="dato-valor" id="v-Email"></span>
-                        <input type="email" class="dato-input" id="i-Email" />
-                    </div>
-                </div>
-
-                <div class="perfil-acciones">
-                    <button class="btn-editar" id="btnEditar" onclick="activarEdicion()">Editar perfil</button>
-                    <button class="btn-guardar" id="btnGuardar" onclick="guardar()">Guardar cambios</button>
-                    <button class="btn-cancelar" id="btnCancelar" onclick="cancelarEdicion()">Cancelar</button>
-                </div>
-            </div>
+            <nav class="nav-lateral">
+                <a class="nav-lat-item activo" id="navPerfil" onclick="mostrarSeccion('perfil')">
+                    <i class="bi bi-person"></i> Mi perfil
+                </a>
+                <a class="nav-lat-item" id="navReservas" onclick="mostrarSeccion('reservas')">
+                    <i class="bi bi-calendar-check"></i> Mis reservas
+                </a>
+            </nav>
         </div>
     </div>
 
-    <footer>
-        <p>© 2026 La Estancia Gourmet</p>
-        <p>RUC: 20509076945 — La Estancia S.A.C.</p>
-    </footer>
+    <!-- PANEL DERECHO -->
+    <div class="panel-der">
 
-    <script>
-            let clienteActual = null;
+        <!-- SECCIÓN PERFIL -->
+        <div class="seccion activa" id="seccionPerfil">
+            <div class="card-contenido">
+                <div class="card-contenido-header">
+                    <div class="card-titulo">Información personal</div>
+                </div>
+                <div class="card-body-cont">
+                    <div class="alerta-ok" id="alerta-ok">Datos actualizados correctamente.</div>
+                    <div class="alerta-err" id="alerta-err" id="msg-error"></div>
 
-            window.onload = function () {
-                fetch('/Cliente/ObtenerSesion', { method: 'POST' })
-                    .then(r => r.json())
-                    .then(data => {
-                        clienteActual = data;
-                        cargarDatos(data);
-                    });
-            };
+                    <div class="datos-grid">
+                        <div>
+                            <span class="dato-label">Nombres</span>
+                            <span class="dato-valor" id="v-Nombres"></span>
+                            <input type="text" class="dato-input" id="i-Nombres" />
+                        </div>
+                        <div>
+                            <span class="dato-label">Apellidos</span>
+                            <span class="dato-valor" id="v-Apellidos"></span>
+                            <input type="text" class="dato-input" id="i-Apellidos" />
+                        </div>
+                        <div>
+                            <span class="dato-label">Documento</span>
+                            <span class="dato-valor" id="v-Documento"></span>
+                            <input type="text" class="dato-input" id="i-Documento" />
+                        </div>
+                        <div>
+                            <span class="dato-label">Teléfono</span>
+                            <span class="dato-valor" id="v-Telefono"></span>
+                            <input type="text" class="dato-input" id="i-Telefono" />
+                        </div>
+                        <div style="grid-column:span 2;">
+                            <span class="dato-label">Correo electrónico</span>
+                            <span class="dato-valor" id="v-Email"></span>
+                            <input type="email" class="dato-input" id="i-Email" />
+                        </div>
+                    </div>
 
-            function cargarDatos(data) {
-                document.getElementById('headerNombre').textContent = data.nombres + ' ' + data.apellidos;
-                document.getElementById('fotoDisplay').src = data.fotografia ? '/' + data.fotografia : 'https://via.placeholder.com/80';
+                    <div class="perfil-acciones">
+                        <button class="btn-acc btn-acc-outline" id="btnEditar" onclick="activarEdicion()">Editar perfil</button>
+                        <button class="btn-acc btn-acc-solid"   id="btnGuardar" onclick="guardar()">Guardar cambios</button>
+                        <button class="btn-acc btn-acc-ghost"   id="btnCancelar" onclick="cancelarEdicion()">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                document.getElementById('v-Nombres').textContent = data.nombres;
-                document.getElementById('v-Apellidos').textContent = data.apellidos;
-                document.getElementById('v-Documento').textContent = data.documento;
-                document.getElementById('v-Telefono').textContent = data.telefono;
-                document.getElementById('v-Email').textContent = data.email;
+        <!-- SECCIÓN RESERVAS -->
+        <div class="seccion" id="seccionReservas">
+            <div class="card-contenido">
+                <div class="card-contenido-header">
+                    <div class="card-titulo">Mis Reservas</div>
+                    <a href="/Cliente/Reserva" class="btn-nueva-reserva">
+                        <i class="bi bi-plus-lg"></i> Nueva reserva
+                    </a>
+                </div>
+                <div class="card-body-cont">
+                    @if (reservas == null || !reservas.Any())
+                    {
+                        <div class="reservas-vacio">
+                            <i class="bi bi-calendar-x"></i>
+                            Aún no tienes reservas registradas.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="reservas-lista">
+                            @foreach (var r in reservas)
+                            {
+                                var estadoClass = r.Estado == 1 ? "badge-pendiente" :
+                                                  r.Estado == 2 ? "badge-concluido" : "badge-cancelado";
+                                var estadoTxt   = r.Estado == 1 ? "Pendiente" :
+                                                  r.Estado == 2 ? "Concluido" : "Cancelado";
+                                <div class="reserva-card">
+                                    <div class="reserva-fecha-col">
+                                        <div class="fecha-dia">@r.FechaReserva.Day</div>
+                                        <div class="fecha-mes">@r.FechaReserva.ToString("MMM", new System.Globalization.CultureInfo("es-PE"))</div>
+                                        <div class="fecha-año">@r.FechaReserva.Year</div>
+                                    </div>
+                                    <div class="reserva-info">
+                                        <div class="reserva-datos">
+                                            <div class="reserva-hora">@r.HoraReserva.ToString(@"hh\:mm")</div>
+                                            <div class="reserva-personas">@r.CantidadPersonas personas</div>
+                                            <div class="reserva-costo">S/ @r.CostoTotal.ToString("0.00")</div>
+                                        </div>
+                                        <span class="badge-estado @estadoClass">@estadoTxt</span>
+                                        <a href="/Cliente/DetalleReserva?IdReserva=@r.IdReserva" class="btn-ver-detalle">
+                                            Ver detalle
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
 
-                document.getElementById('i-Nombres').value = data.nombres;
-                document.getElementById('i-Apellidos').value = data.apellidos;
-                document.getElementById('i-Documento').value = data.documento;
-                document.getElementById('i-Telefono').value = data.telefono;
-                document.getElementById('i-Email').value = data.email;
-            }
+    </div>
+</div>
 
-            function activarEdicion() {
-                ['Nombres','Apellidos','Documento','Telefono','Email'].forEach(campo => {
-                    document.getElementById('v-' + campo).style.display = 'none';
-                    document.getElementById('i-' + campo).style.display = 'block';
-                });
-                document.getElementById('btnEditar').style.display = 'none';
-                document.getElementById('btnGuardar').style.display = 'inline-block';
-                document.getElementById('btnCancelar').style.display = 'inline-block';
-                document.querySelector('.perfil-foto-edit').style.display = 'flex';
-            }
+<footer>
+    <p>© 2026 La Estancia Gourmet</p>
+    <p>RUC: 20509076945 — La Estancia S.A.C.</p>
+</footer>
 
-            function cancelarEdicion() {
-                cargarDatos(clienteActual);
-                ['Nombres','Apellidos','Documento','Telefono','Email'].forEach(campo => {
-                    document.getElementById('v-' + campo).style.display = 'block';
-                    document.getElementById('i-' + campo).style.display = 'none';
-                });
-                document.getElementById('btnEditar').style.display = 'inline-block';
-                document.getElementById('btnGuardar').style.display = 'none';
-                document.getElementById('btnCancelar').style.display = 'none';
-                document.querySelector('.perfil-foto-edit').style.display = 'none';
-            }
+<script>
+    let clienteActual = null;
 
-            function cambiarFoto(input) {
-                if (input.files && input.files[0]) {
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('fotoDisplay').src = e.target.result;
-                    };
-                    reader.readAsDataURL(input.files[0]);
+    window.onload = function() {
+        fetch('/Cliente/ObtenerSesion', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                clienteActual = data;
+                cargarDatos(data);
+            });
+
+        // Si viene con ?tab=reservas abrir esa sección
+        if (window.location.search.includes('tab=reservas'))
+            mostrarSeccion('reservas');
+    };
+
+    function mostrarSeccion(cual) {
+        document.getElementById('seccionPerfil').classList.remove('activa');
+        document.getElementById('seccionReservas').classList.remove('activa');
+        document.getElementById('navPerfil').classList.remove('activo');
+        document.getElementById('navReservas').classList.remove('activo');
+
+        document.getElementById('seccion' + (cual === 'perfil' ? 'Perfil' : 'Reservas')).classList.add('activa');
+        document.getElementById('nav' + (cual === 'perfil' ? 'Perfil' : 'Reservas')).classList.add('activo');
+    }
+
+    function cargarDatos(data) {
+        document.getElementById('sidebarNombre').textContent = data.nombres + ' ' + data.apellidos;
+        document.getElementById('fotoDisplay').src = data.fotografia ? '/' + data.fotografia : 'https://via.placeholder.com/72';
+
+        document.getElementById('v-Nombres').textContent   = data.nombres;
+        document.getElementById('v-Apellidos').textContent = data.apellidos;
+        document.getElementById('v-Documento').textContent = data.documento;
+        document.getElementById('v-Telefono').textContent  = data.telefono;
+        document.getElementById('v-Email').textContent     = data.email;
+
+        document.getElementById('i-Nombres').value   = data.nombres;
+        document.getElementById('i-Apellidos').value = data.apellidos;
+        document.getElementById('i-Documento').value = data.documento;
+        document.getElementById('i-Telefono').value  = data.telefono;
+        document.getElementById('i-Email').value     = data.email;
+    }
+
+    function activarEdicion() {
+        ['Nombres','Apellidos','Documento','Telefono','Email'].forEach(c => {
+            document.getElementById('v-' + c).style.display = 'none';
+            document.getElementById('i-' + c).style.display = 'block';
+        });
+        document.getElementById('btnEditar').style.display   = 'none';
+        document.getElementById('btnGuardar').style.display  = 'inline-block';
+        document.getElementById('btnCancelar').style.display = 'inline-block';
+        document.querySelector('.perfil-foto-edit').style.display = 'flex';
+    }
+
+    function cancelarEdicion() {
+        cargarDatos(clienteActual);
+        ['Nombres','Apellidos','Documento','Telefono','Email'].forEach(c => {
+            document.getElementById('v-' + c).style.display = 'block';
+            document.getElementById('i-' + c).style.display = 'none';
+        });
+        document.getElementById('btnEditar').style.display   = 'inline-block';
+        document.getElementById('btnGuardar').style.display  = 'none';
+        document.getElementById('btnCancelar').style.display = 'none';
+        document.querySelector('.perfil-foto-edit').style.display = 'none';
+    }
+
+    function cambiarFoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => { document.getElementById('fotoDisplay').src = e.target.result; };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function guardar() {
+        const formData = new FormData();
+        formData.append('IdCliente', clienteActual.idCliente);
+        formData.append('Nombres',   document.getElementById('i-Nombres').value.trim());
+        formData.append('Apellidos', document.getElementById('i-Apellidos').value.trim());
+        formData.append('Documento', document.getElementById('i-Documento').value.trim());
+        formData.append('Telefono',  document.getElementById('i-Telefono').value.trim());
+        formData.append('Email',     document.getElementById('i-Email').value.trim());
+        formData.append('FotoActual', clienteActual.fotografia ?? '');
+
+        const foto = document.getElementById('inputFoto').files[0];
+        if (foto) formData.append('Fotografia', foto);
+
+        fetch('/Cliente/GestionarCliente', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (data.resultado) {
+                    document.getElementById('alerta-ok').style.display = 'block';
+                    document.getElementById('alerta-err').style.display = 'none';
+                    cancelarEdicion();
+                    fetch('/Cliente/ObtenerSesion', { method: 'POST' })
+                        .then(r => r.json())
+                        .then(d => { clienteActual = d; cargarDatos(d); });
+                } else {
+                    document.getElementById('alerta-err').style.display = 'block';
+                    document.getElementById('alerta-err').textContent   = data.mensaje;
                 }
-            }
-
-            function guardar() {
-                const formData = new FormData();
-                formData.append('IdCliente', clienteActual.idCliente);
-                formData.append('Nombres', document.getElementById('i-Nombres').value.trim());
-                formData.append('Apellidos', document.getElementById('i-Apellidos').value.trim());
-                formData.append('Documento', document.getElementById('i-Documento').value.trim());
-                formData.append('Telefono', document.getElementById('i-Telefono').value.trim());
-                formData.append('Email', document.getElementById('i-Email').value.trim());
-                formData.append('FotoActual', clienteActual.fotografia ?? '');
-
-                const foto = document.getElementById('inputFoto').files[0];
-                if (foto) formData.append('Fotografia', foto);
-
-                fetch('/Cliente/GestionarCliente', { method: 'POST', body: formData })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.resultado) {
-                            document.getElementById('alerta-ok').style.display = 'block';
-                            document.getElementById('alerta-error').style.display = 'none';
-                            cancelarEdicion();
-                            // Recargar datos actualizados
-                            fetch('/Cliente/ObtenerSesion', { method: 'POST' })
-                                .then(r => r.json())
-                                .then(d => { clienteActual = d; cargarDatos(d); });
-                        } else {
-                            document.getElementById('alerta-error').style.display = 'block';
-                            document.getElementById('msg-error').textContent = data.mensaje;
-                        }
-                    });
-            }
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            });
+    }
+</script>
 </body>
 </html>
