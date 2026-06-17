@@ -1,0 +1,1097 @@
+﻿@model IEnumerable<App_Web.Models.VM.VentaVM>
+@{
+    Layout = null;
+    var platillos  = ViewBag.Platillos  as List<App_Web.Models.VM.PlatilloVM>;
+    var descuentos = ViewBag.Descuentos as List<App_Web.Models.VM.DescuentoVM>;
+    var reservas   = ViewBag.Reservas   as List<App_Web.Models.VM.ReservaVM>;
+    var clientes   = ViewBag.Clientes   as List<App_Web.Models.VM.ClienteVM>;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Ventas — La Estancia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+    <style>
+        :root {
+            --sidebar:  #1C1C1C;
+            --gold:     #C9A84C;
+            --gold-dim: rgba(201,168,76,0.12);
+            --bg:       #F4F5F7;
+            --surface:  #FFFFFF;
+            --border:   #E8E8EC;
+            --text:     #1A1A2E;
+            --muted:    #8A8A9A;
+            --danger:   #DC2626;
+            --success:  #16A34A;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); display: flex; min-height: 100vh; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 220px; min-height: 100vh; background: var(--sidebar);
+            display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100;
+        }
+        .sidebar-brand {
+            padding: 1.5rem 1.2rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-brand span {
+            font-size: 1rem; font-weight: 700; color: var(--gold);
+            letter-spacing: 0.04em; display: block;
+        }
+        .sidebar-brand small { font-size: 0.65rem; color: rgba(255,255,255,0.3); letter-spacing: 0.08em; }
+        .sidebar-nav { padding: 1rem 0; flex: 1; }
+        .nav-label {
+            font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase;
+            color: rgba(255,255,255,0.25); padding: 0.8rem 1.2rem 0.3rem;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.6rem 1.2rem; font-size: 0.8rem; color: rgba(255,255,255,0.5);
+            text-decoration: none; transition: all 0.2s; border-left: 2px solid transparent;
+        }
+        .nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+        .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
+        .nav-item i { font-size: 1rem; width: 18px; }
+        .sidebar-footer {
+            padding: 1rem 1.2rem; border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-footer a {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; color: rgba(255,255,255,0.35);
+            text-decoration: none; transition: color 0.2s;
+        }
+        .sidebar-footer a:hover { color: var(--danger); }
+
+        /* ── MAIN ── */
+        .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .topbar {
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+        .topbar-title small { font-size: 0.72rem; color: var(--muted); font-weight: 400; display: block; }
+        .topbar-date { font-size: 0.75rem; color: var(--muted); }
+
+        .content { padding: 1.5rem 2rem; flex: 1; }
+
+        /* ── POS GRID ── */
+        .pos-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── PANEL IZQUIERDO ── */
+        .pos-left { display: flex; flex-direction: column; gap: 1rem; }
+
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; overflow: hidden;
+        }
+        .card-header {
+            padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-header-title {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--muted);
+        }
+        .card-body { padding: 1.2rem; }
+
+        /* SELECTOR RESERVA */
+        .reserva-selector { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+        .reserva-chip {
+            border: 1px solid var(--border); border-radius: 6px;
+            padding: 0.55rem 0.9rem; cursor: pointer; transition: all 0.18s;
+            background: var(--surface);
+        }
+        .reserva-chip:hover { border-color: var(--gold); background: var(--gold-dim); }
+        .reserva-chip.selected { border-color: var(--gold); background: var(--gold-dim); }
+        .reserva-chip-nombre { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+        .reserva-chip-sub { font-size: 0.68rem; color: var(--muted); }
+        .reserva-chip-badge {
+            display: inline-block; font-size: 0.55rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            padding: 2px 7px; border-radius: 20px; margin-bottom: 2px;
+        }
+        .badge-web { background: rgba(22,163,74,0.1); color: #15803d; }
+        .badge-directa { background: rgba(59,130,246,0.1); color: #1d4ed8; }
+
+        .reserva-info {
+            display: none; margin-top: 0.8rem;
+            background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25);
+            border-radius: 6px; padding: 0.8rem 1rem;
+        }
+        .reserva-info.show { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .reserva-info-item { display: flex; flex-direction: column; gap: 2px; }
+        .reserva-info-lbl { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+        .reserva-info-val { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .reserva-info-val.gold { color: var(--gold); }
+
+        /* BUSQUEDA PLATILLOS */
+        .busq-inp {
+            width: 100%; border: 1px solid var(--border); border-radius: 6px;
+            padding: 0.5rem 0.9rem 0.5rem 2.2rem; font-size: 0.82rem;
+            color: var(--text); background: var(--bg); outline: none;
+            transition: border-color 0.2s;
+        }
+        .busq-inp:focus { border-color: var(--gold); }
+        .busq-wrap { position: relative; margin-bottom: 0.9rem; }
+        .busq-wrap i { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; }
+
+        /* GRID PLATILLOS */
+        .platillos-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.7rem; max-height: 320px; overflow-y: auto; padding-right: 2px;
+        }
+        .platillo-card {
+            border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+            cursor: pointer; transition: all 0.18s; background: var(--surface);
+            position: relative;
+        }
+        .platillo-card:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(201,168,76,0.15); transform: translateY(-1px); }
+        .platillo-card img {
+            width: 100%; height: 90px; object-fit: cover; display: block;
+        }
+        .platillo-card-body { padding: 0.5rem 0.6rem; }
+        .platillo-card-nombre { font-size: 0.75rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+        .platillo-card-precio { font-size: 0.78rem; color: var(--gold); font-weight: 700; margin-top: 2px; }
+        .platillo-add-btn {
+            position: absolute; top: 6px; right: 6px;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--gold); border: none; color: #fff;
+            font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.15s;
+        }
+        .platillo-card:hover .platillo-add-btn { opacity: 1; }
+
+        /* CARRITO */
+        .carrito-vacio {
+            text-align: center; padding: 1.5rem; color: var(--muted); font-size: 0.8rem;
+        }
+        .carrito-vacio i { font-size: 1.8rem; display: block; margin-bottom: 0.4rem; opacity: 0.35; }
+        .carrito-tabla { width: 100%; border-collapse: collapse; }
+        .carrito-tabla th {
+            font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--muted); padding: 0 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border);
+        }
+        .carrito-tabla th:last-child { text-align: right; }
+        .carrito-tabla td { padding: 0.55rem 0.5rem; vertical-align: middle; border-bottom: 1px solid var(--border); }
+        .carrito-tabla tr:last-child td { border-bottom: none; }
+        .carrito-nombre { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+        .carrito-precio { font-size: 0.75rem; color: var(--muted); }
+        .qty-ctrl { display: flex; align-items: center; gap: 5px; }
+        .qty-btn {
+            width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text); font-size: 0.85rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .qty-btn:hover { border-color: var(--gold); color: var(--gold); }
+        .qty-val { font-size: 0.82rem; font-weight: 700; color: var(--text); min-width: 20px; text-align: center; }
+        .carrito-subtotal { font-size: 0.82rem; font-weight: 700; color: var(--text); text-align: right; }
+        .carrito-del {
+            background: none; border: none; color: var(--muted); cursor: pointer;
+            font-size: 0.9rem; transition: color 0.15s; padding: 2px;
+        }
+        .carrito-del:hover { color: var(--danger); }
+
+        /* DESCUENTOS */
+        .desc-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .desc-chip {
+            display: flex; align-items: center; gap: 6px;
+            border: 1.5px solid var(--border); border-radius: 20px;
+            padding: 0.35rem 0.8rem; cursor: pointer; transition: all 0.18s;
+            font-size: 0.75rem; font-weight: 600; color: var(--text); background: var(--surface);
+        }
+        .desc-chip .desc-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .desc-chip:hover { border-color: var(--gold); }
+        .desc-chip.selected { border-color: var(--gold); background: var(--gold-dim); color: var(--text); }
+        .desc-chip .desc-pct { font-size: 0.68rem; color: var(--muted); }
+        .desc-chip.selected .desc-pct { color: #92400e; }
+
+        /* CLIENTES */
+        .clientes-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.6rem; max-height: 220px; overflow-y: auto;
+        }
+        .cliente-chip {
+            display: flex; align-items: center; gap: 0.6rem;
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 0.5rem 0.7rem; cursor: pointer; transition: all 0.18s;
+            background: var(--surface);
+        }
+        .cliente-chip:hover { border-color: var(--gold); background: var(--gold-dim); }
+        .cliente-chip.selected { border-color: var(--gold); background: var(--gold-dim); }
+        .cliente-chip img {
+            width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+            border: 1.5px solid var(--border); flex-shrink: 0;
+        }
+        .cliente-chip-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--bg); border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); font-size: 0.9rem; flex-shrink: 0;
+        }
+        .cliente-chip-nombre { font-size: 0.75rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+        .cliente-chip-email  { font-size: 0.62rem; color: var(--muted); }
+
+        /* METODO PAGO */
+        .metodo-opts { display: flex; gap: 0.6rem; }
+        .metodo-btn {
+            flex: 1; padding: 0.6rem; border: 1.5px solid var(--border);
+            border-radius: 6px; background: var(--surface); cursor: pointer;
+            transition: all 0.18s; text-align: center; font-size: 0.78rem;
+            font-weight: 600; color: var(--muted); font-family: inherit;
+        }
+        .metodo-btn i { display: block; font-size: 1.2rem; margin-bottom: 3px; }
+        .metodo-btn:hover { border-color: var(--gold); color: var(--text); }
+        .metodo-btn.selected { border-color: var(--gold); background: var(--gold-dim); color: var(--text); }
+
+        /* ── PANEL DERECHO — RESUMEN ── */
+        .pos-right { position: sticky; top: 76px; }
+        .resumen-card {
+            background: var(--sidebar); border-radius: 8px; padding: 1.4rem;
+            color: #fff;
+        }
+        .resumen-titulo {
+            font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+            color: rgba(255,255,255,0.35); margin-bottom: 1rem;
+        }
+
+        .resumen-cliente {
+            display: flex; align-items: center; gap: 0.7rem;
+            margin-bottom: 1rem; padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .resumen-cliente img {
+            width: 38px; height: 38px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--gold);
+        }
+        .resumen-cliente-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: var(--gold-dim); border: 2px solid var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: var(--gold);
+        }
+        .resumen-cliente-nombre { font-size: 0.85rem; font-weight: 600; color: #fff; }
+        .resumen-cliente-tipo { font-size: 0.65rem; color: rgba(255,255,255,0.4); }
+
+        .resumen-lineas { margin-bottom: 0.8rem; display: flex; flex-direction: column; gap: 0.45rem; }
+        .resumen-linea {
+            display: flex; justify-content: space-between; align-items: baseline;
+            font-size: 0.78rem; color: rgba(255,255,255,0.55);
+        }
+        .resumen-linea span:last-child { color: rgba(255,255,255,0.85); font-weight: 600; }
+        .resumen-linea.descuento span:last-child { color: #f87171; }
+        .resumen-sep { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 0.8rem 0; }
+        .resumen-total-wrap { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; }
+        .resumen-total-lbl { font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+        .resumen-total-val { font-size: 1.6rem; font-weight: 800; color: var(--gold); }
+
+        .btn-registrar {
+            width: 100%; padding: 0.85rem; background: var(--gold); border: none;
+            border-radius: 6px; font-family: inherit; font-size: 0.82rem;
+            font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+            color: #1a1200; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-registrar:hover { background: #d4b05a; }
+        .btn-registrar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .resumen-warning {
+            font-size: 0.7rem; color: rgba(255,255,255,0.3);
+            text-align: center; margin-top: 0.6rem;
+            display: none;
+        }
+        .resumen-warning.show { display: block; }
+
+        /* ── TABLA VENTAS ── */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem;
+        }
+        .section-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+        .busq-form { display: flex; gap: 0.5rem; }
+        .busq-form input {
+            border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.8rem;
+            font-size: 0.78rem; color: var(--text); background: var(--surface); outline: none;
+            transition: border-color 0.2s; font-family: inherit;
+        }
+        .busq-form input:focus { border-color: var(--gold); }
+        .btn-buscar {
+            background: var(--sidebar); color: #fff; border: none; border-radius: 6px;
+            padding: 0.4rem 0.9rem; font-size: 0.78rem; cursor: pointer; font-family: inherit;
+            transition: background 0.2s;
+        }
+        .btn-buscar:hover { background: #333; }
+
+        .tabla-ventas { width: 100%; border-collapse: collapse; }
+        .tabla-ventas thead th {
+            font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--muted); padding: 0.6rem 1rem; text-align: left;
+            border-bottom: 2px solid var(--border); background: var(--surface);
+        }
+        .tabla-ventas tbody td {
+            padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--text);
+            border-bottom: 1px solid var(--border); vertical-align: middle;
+        }
+        .tabla-ventas tbody tr:hover { background: rgba(201,168,76,0.03); }
+        .tabla-ventas tbody tr:last-child td { border-bottom: none; }
+        .td-total { font-weight: 700; color: var(--gold); }
+        .metodo-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.65rem; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+        }
+        .metodo-efectivo { background: rgba(22,163,74,0.1); color: #15803d; }
+        .metodo-tarjeta  { background: rgba(59,130,246,0.1); color: #1d4ed8; }
+        .metodo-yape     { background: rgba(126,34,206,0.1); color: #7e22ce; }
+        .btn-detalle {
+            background: none; border: 1px solid var(--border); border-radius: 5px;
+            padding: 0.3rem 0.7rem; font-size: 0.7rem; color: var(--muted);
+            cursor: pointer; transition: all 0.15s; font-family: inherit;
+        }
+        .btn-detalle:hover { border-color: var(--gold); color: var(--text); }
+
+        /* ── MODAL DETALLE ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            display: none; align-items: center; justify-content: center; z-index: 200;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--surface); border-radius: 10px; width: 90%; max-width: 560px;
+            max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+        }
+        .modal-header {
+            padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; background: var(--surface); z-index: 1;
+        }
+        .modal-header-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+        .modal-close {
+            background: none; border: none; font-size: 1.1rem; color: var(--muted);
+            cursor: pointer; transition: color 0.15s;
+        }
+        .modal-close:hover { color: var(--danger); }
+        .modal-body { padding: 1.4rem 1.5rem; }
+
+        .det-seccion-lbl {
+            font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 0.5rem; margin-top: 1rem;
+        }
+        .det-seccion-lbl:first-child { margin-top: 0; }
+        .det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .det-item { display: flex; flex-direction: column; gap: 2px; }
+        .det-lbl { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+        .det-val { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+        .det-val.gold { color: var(--gold); }
+
+        .det-tabla { width: 100%; border-collapse: collapse; margin-top: 0.4rem; }
+        .det-tabla th {
+            font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--muted); padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); text-align: left;
+        }
+        .det-tabla th:last-child { text-align: right; }
+        .det-tabla td { font-size: 0.8rem; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+        .det-tabla td:last-child { text-align: right; font-weight: 600; }
+        .det-tabla tr:last-child td { border-bottom: none; }
+
+        .det-desc-chip {
+            display: inline-flex; align-items: center; gap: 5px;
+            border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 600;
+            margin: 2px;
+        }
+        .det-total-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            padding: 0.8rem 0; border-top: 2px solid var(--border); margin-top: 0.5rem;
+        }
+        .det-total-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+        .det-total-val { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <span>La Estancia</span>
+        <small>SISTEMA INTERNO</small>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-label">Operaciones</div>
+        <a href="/Venta/Index"    class="nav-item active"><i class="bi bi-receipt"></i> Ventas</a>
+        <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
+        <div class="nav-label">Catálogo</div>
+        <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
+        <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
+        <a href="/Descuento/Index" class="nav-item"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
+        <div class="nav-label">Gestión</div>
+        <a href="/Mesa/Index"    class="nav-item"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
+        <a href="/Usuario/Index" class="nav-item"><i class="bi bi-people"></i> Usuarios</a>
+        <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
+    </nav>
+    <div class="sidebar-footer">
+        <a asp-action="CerrarSesion" asp-controller="Usuario"><i class="bi bi-box-arrow-left"></i> Cerrar sesión</a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <div>
+            <div class="topbar-title">Ventas</div>
+            <small class="topbar-title small" style="font-size:0.72rem; color:var(--muted); font-weight:400;">Registro y seguimiento de ventas</small>
+        </div>
+        <div class="topbar-date" id="fechaHoy"></div>
+    </div>
+
+    <div class="content">
+
+        <!-- POS -->
+        <div class="pos-grid">
+
+            <!-- IZQUIERDA -->
+            <div class="pos-left">
+
+                <!-- RESERVA -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-header-title"><i class="bi bi-calendar-check"></i> Reserva</span>
+                        <span style="font-size:0.7rem; color:var(--muted);">@(reservas?.Count ?? 0) pendientes hoy</span>
+                    </div>
+                    <div class="card-body">
+                        @if (reservas == null || !reservas.Any())
+                        {
+                            <div style="text-align:center; padding:1rem; color:var(--muted); font-size:0.8rem;">
+                                <i class="bi bi-calendar-x" style="font-size:1.5rem; display:block; margin-bottom:0.3rem; opacity:0.3;"></i>
+                                Sin reservas pendientes hoy
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="busq-wrap" style="margin-bottom:0.8rem;">
+                                <i class="bi bi-search"></i>
+                                <input class="busq-inp" type="text" placeholder="Buscar reserva..." oninput="filtrarReservas(this.value)" />
+                            </div>
+                            <div class="reserva-selector" id="reservaSelector">
+                                @foreach (var r in reservas)
+                                {
+                                    var nombreR = !string.IsNullOrEmpty(r.NombreCliente) ? r.NombreCliente : "Sin nombre";
+                                    var clienteId = r.cliente?.IdCliente ?? 0;
+                                    var fotoCliente = clientes?.FirstOrDefault(c => c.IdCliente == clienteId)?.FotoActual ?? "";
+                                    <div class="reserva-chip"
+                                         onclick="seleccionarReserva(@r.IdReserva, '@nombreR', '@r.TipoReserva', @r.CantidadPersonas, @r.CostoTotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture), @clienteId, '@fotoCliente')"
+                                         id="chip-@r.IdReserva"
+                                         data-nombre="@nombreR.ToLower()">
+                                        <div>
+                                            <span class="reserva-chip-badge @(r.TipoReserva == "Web" ? "badge-web" : "badge-directa")">@r.TipoReserva</span>
+                                            <div class="reserva-chip-nombre">@nombreR</div>
+                                            <div class="reserva-chip-sub">@r.FechaReserva.ToString("dd/MM") · @r.HoraReserva.ToString(@"hh\:mm") · @r.CantidadPersonas p.</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        <div class="reserva-info" id="reservaInfo">
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-lbl">Cliente</span>
+                                <span class="reserva-info-val" id="info-cliente">—</span>
+                            </div>
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-lbl">Personas</span>
+                                <span class="reserva-info-val" id="info-personas">—</span>
+                            </div>
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-lbl">Costo reserva</span>
+                                <span class="reserva-info-val gold" id="info-costo">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PLATILLOS -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-header-title"><i class="bi bi-egg-fried"></i> Platillos</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="busq-wrap">
+                            <i class="bi bi-search"></i>
+                            <input class="busq-inp" type="text" placeholder="Buscar platillo..." oninput="filtrarPlatillos(this.value)" />
+                        </div>
+                        <div class="platillos-grid" id="platillosGrid">
+                            @if (platillos != null)
+                            {
+                                foreach (var p in platillos)
+                                {
+                                    <div class="platillo-card" onclick="agregarAlCarrito(@p.IdPlatillo, '@p.NombrePlatillo.Replace("'","\\'")', @p.Precio.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture), '@p.FotoActual')"
+                                         data-nombre="@p.NombrePlatillo.ToLower()">
+                                        @if (!string.IsNullOrEmpty(p.FotoActual))
+                                        {
+                                            <img src="/@p.FotoActual" alt="@p.NombrePlatillo" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width:100%; height:90px; background:var(--bg); display:flex; align-items:center; justify-content:center;">
+                                                <i class="bi bi-image" style="color:var(--muted); font-size:1.5rem;"></i>
+                                            </div>
+                                        }
+                                        <div class="platillo-card-body">
+                                            <div class="platillo-card-nombre">@p.NombrePlatillo</div>
+                                            <div class="platillo-card-precio">S/ @p.Precio.ToString("0.00")</div>
+                                        </div>
+                                        <button class="platillo-add-btn"><i class="bi bi-plus"></i></button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARRITO -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-header-title"><i class="bi bi-cart3"></i> Pedido</span>
+                        <span style="font-size:0.7rem; color:var(--muted);" id="carritoConteo">0 items</span>
+                    </div>
+                    <div class="card-body" style="padding:0;">
+                        <div id="carritoVacio" class="carrito-vacio">
+                            <i class="bi bi-cart-x"></i>
+                            Agrega platillos al pedido
+                        </div>
+                        <div id="carritoContenido" style="display:none; padding:0.8rem 1rem;">
+                            <table class="carrito-tabla">
+                                <thead>
+                                    <tr>
+                                        <th>Platillo</th>
+                                        <th style="width:100px;">Cant.</th>
+                                        <th style="width:80px; text-align:right;">Total</th>
+                                        <th style="width:30px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="carritoBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DESCUENTOS -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-header-title"><i class="bi bi-ticket-perforated"></i> Descuentos</span>
+                        <span style="font-size:0.7rem; color:var(--muted);">Opcional</span>
+                    </div>
+                    <div class="card-body">
+                        @if (descuentos == null || !descuentos.Any())
+                        {
+                            <span style="font-size:0.78rem; color:var(--muted);">Sin descuentos disponibles</span>
+                        }
+                        else
+                        {
+                            <div class="busq-wrap" style="margin-bottom:0.8rem;">
+                                <i class="bi bi-search"></i>
+                                <input class="busq-inp" type="text" placeholder="Buscar descuento..." oninput="filtrarDescuentos(this.value)" />
+                            </div>
+                            <div class="desc-grid" id="descuentosGrid">
+                                @foreach (var d in descuentos)
+                                {
+                                    <div class="desc-chip" onclick="toggleDescuento(@d.IdDescuento, '@d.NombreDescuento', @d.PorcentajeDescuento.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture), '@d.ColorCard')"
+                                         id="desc-@d.IdDescuento"
+                                         data-nombre="@d.NombreDescuento.ToLower()">
+                                        <div class="desc-dot" style="background:@d.ColorCard;"></div>
+                                        @d.NombreDescuento
+                                        <span class="desc-pct">@d.PorcentajeDescuento%</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- MÉTODO PAGO -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-header-title"><i class="bi bi-credit-card"></i> Método de pago</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="metodo-opts">
+                            <button class="metodo-btn" onclick="seleccionarMetodo('Efectivo', this)">
+                                <i class="bi bi-cash-coin"></i> Efectivo
+                            </button>
+                            <button class="metodo-btn" onclick="seleccionarMetodo('Tarjeta', this)">
+                                <i class="bi bi-credit-card-2-front"></i> Tarjeta
+                            </button>
+                            <button class="metodo-btn" onclick="seleccionarMetodo('Yape', this)">
+                                <i class="bi bi-phone"></i> Yape
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- DERECHA — RESUMEN -->
+            <div class="pos-right">
+                <div class="resumen-card">
+                    <div class="resumen-titulo">Resumen de venta</div>
+
+                    <div class="resumen-cliente" id="resumenCliente">
+                        <div class="resumen-cliente-avatar"><i class="bi bi-person"></i></div>
+                        <div>
+                            <div class="resumen-cliente-nombre" id="resumenClienteNombre">Sin reserva</div>
+                            <div class="resumen-cliente-tipo" id="resumenClienteTipo">Selecciona una reserva</div>
+                        </div>
+                    </div>
+
+                    <div class="resumen-lineas" id="resumenLineas">
+                        <div class="resumen-linea">
+                            <span>Subtotal platillos</span>
+                            <span id="rsSubtotal">S/ 0.00</span>
+                        </div>
+                        <div class="resumen-linea">
+                            <span>Costo reserva</span>
+                            <span id="rsCostoReserva">S/ 0.00</span>
+                        </div>
+                        <div id="rsDescuentosWrap"></div>
+                    </div>
+
+                    <hr class="resumen-sep"/>
+
+                    <div class="resumen-total-wrap">
+                        <div class="resumen-total-lbl">Total</div>
+                        <div class="resumen-total-val" id="rsTotal">S/ 0.00</div>
+                    </div>
+
+                    <button class="btn-registrar" id="btnRegistrar" onclick="registrarVenta()" disabled>
+                        <i class="bi bi-check-circle"></i> Registrar venta
+                    </button>
+                    <div class="resumen-warning" id="resumenWarning">
+                        Selecciona reserva, platillos y método de pago
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TABLA VENTAS -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title"><i class="bi bi-clock-history"></i> Ventas registradas</span>
+                <form method="get" action="/Venta/Index" class="busq-form">
+                    <input name="Busqueda" placeholder="Buscar cliente..." value="@ViewContext.HttpContext.Request.Query["Busqueda"]" />
+                    <button type="submit" class="btn-buscar"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="tabla-ventas">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Método</th>
+                            <th>Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">
+                                    Sin ventas registradas
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var v in Model)
+                            {
+                                var metodoClass = v.MetodoPago == "Efectivo" ? "metodo-efectivo" :
+                                                  v.MetodoPago == "Tarjeta"  ? "metodo-tarjeta"  : "metodo-yape";
+                                <tr>
+                                    <td style="color:var(--muted); font-size:0.75rem;">#@v.IdVenta</td>
+                                    <td>@(v.reserva.cliente?.Nombres ?? v.reserva?.NombreCliente ?? "—")</td>
+                                    <td style="color:var(--muted);">@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td><span class="metodo-badge @metodoClass">@v.MetodoPago</span></td>
+                                    <td class="td-total">S/ @v.Total.ToString("0.00")</td>
+                                    <td>
+                                        <button class="btn-detalle" onclick="verDetalle(@v.IdVenta)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL DETALLE VENTA -->
+<div class="modal-overlay" id="modalDetalle">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-header-title">Detalle de venta</div>
+            <button class="modal-close" onclick="cerrarDetalle()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body" id="modalDetalleBody">
+            <div style="text-align:center; padding:2rem; color:var(--muted);">
+                <i class="bi bi-arrow-clockwise" style="font-size:1.5rem; animation: spin 1s linear infinite;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+// ── ESTADO ────────────────────────────────────────────────────────────────
+let estado = {
+    idReserva:      0,
+    idCliente:      null,   // viene de la reserva Web
+    idClienteExtra: null,   // seleccionado manualmente
+    costoReserva:   0,
+    carrito:        [],
+    descuentos:     [],
+    metodoPago:     ''
+};
+
+// ── FECHA TOPBAR ──────────────────────────────────────────────────────────
+document.getElementById('fechaHoy').textContent =
+    new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+// ── FILTROS JS ────────────────────────────────────────────────────────────
+function filtrarReservas(q) {
+    document.querySelectorAll('.reserva-chip').forEach(c => {
+        c.style.display = c.dataset.nombre.includes(q.toLowerCase()) ? '' : 'none';
+    });
+}
+
+function filtrarClientes(q) {
+    document.querySelectorAll('.cliente-chip').forEach(c => {
+        c.style.display = c.dataset.nombre.includes(q.toLowerCase()) ? '' : 'none';
+    });
+}
+
+function filtrarDescuentos(q) {
+    document.querySelectorAll('.desc-chip').forEach(c => {
+        c.style.display = c.dataset.nombre.includes(q.toLowerCase()) ? '' : 'none';
+    });
+}
+
+// ── CLIENTE ───────────────────────────────────────────────────────────────
+function seleccionarCliente(id, nombre, foto) {
+    document.querySelectorAll('.cliente-chip').forEach(c => c.classList.remove('selected'));
+    const chip = document.getElementById('cliente-' + id);
+
+    // Toggle — click en el mismo lo deselecciona
+    if (estado.idClienteExtra === id) {
+        estado.idClienteExtra = null;
+        return;
+    }
+
+    chip?.classList.add('selected');
+    estado.idClienteExtra = id;
+}
+
+// ── RESERVA ───────────────────────────────────────────────────────────────
+function seleccionarReserva(id, nombre, tipo, personas, costo, clienteId, foto) {
+    // deselect todos
+    document.querySelectorAll('.reserva-chip').forEach(c => c.classList.remove('selected'));
+    document.getElementById('chip-' + id)?.classList.add('selected');
+
+    estado.idReserva    = id;
+    estado.idCliente    = clienteId || null;
+    estado.costoReserva = parseFloat(costo);
+
+    // Info strip
+    document.getElementById('info-cliente').textContent  = nombre;
+    document.getElementById('info-personas').textContent = personas + ' personas';
+    document.getElementById('info-costo').textContent    = 'S/ ' + parseFloat(costo).toFixed(2);
+    document.getElementById('reservaInfo').classList.add('show');
+
+    // Resumen cliente
+    const wrap = document.getElementById('resumenCliente');
+    wrap.innerHTML = '';
+    if (foto) {
+        wrap.innerHTML = `<img src="/${foto}" alt="${nombre}"/><div>
+            <div class="resumen-cliente-nombre">${nombre}</div>
+            <div class="resumen-cliente-tipo">${tipo} · ${personas} personas</div></div>`;
+    } else {
+        wrap.innerHTML = `<div class="resumen-cliente-avatar"><i class="bi bi-person"></i></div><div>
+            <div class="resumen-cliente-nombre">${nombre}</div>
+            <div class="resumen-cliente-tipo">${tipo} · ${personas} personas</div></div>`;
+    }
+
+    recalcular();
+}
+
+function filtrarPlatillos(q) {
+    document.querySelectorAll('.platillo-card').forEach(c => {
+        c.style.display = c.dataset.nombre.includes(q.toLowerCase()) ? '' : 'none';
+    });
+}
+
+function agregarAlCarrito(id, nombre, precio, foto) {
+    const idx = estado.carrito.findIndex(x => x.idPlatillo === id);
+    if (idx !== -1) {
+        estado.carrito[idx].cantidad++;
+    } else {
+        estado.carrito.push({ idPlatillo: id, nombre, precio: parseFloat(precio), cantidad: 1 });
+    }
+    renderCarrito();
+    recalcular();
+}
+
+function cambiarCantidad(id, delta) {
+    const idx = estado.carrito.findIndex(x => x.idPlatillo === id);
+    if (idx === -1) return;
+    estado.carrito[idx].cantidad += delta;
+    if (estado.carrito[idx].cantidad <= 0) estado.carrito.splice(idx, 1);
+    renderCarrito();
+    recalcular();
+}
+
+function quitarDelCarrito(id) {
+    estado.carrito = estado.carrito.filter(x => x.idPlatillo !== id);
+    renderCarrito();
+    recalcular();
+}
+
+function renderCarrito() {
+    const vacio    = document.getElementById('carritoVacio');
+    const contenido = document.getElementById('carritoContenido');
+    const body     = document.getElementById('carritoBody');
+    const conteo   = document.getElementById('carritoConteo');
+
+    const total = estado.carrito.reduce((s, x) => s + x.cantidad, 0);
+    conteo.textContent = total + (total === 1 ? ' item' : ' items');
+
+    if (estado.carrito.length === 0) {
+        vacio.style.display    = '';
+        contenido.style.display = 'none';
+        return;
+    }
+    vacio.style.display    = 'none';
+    contenido.style.display = '';
+
+    body.innerHTML = '';
+    estado.carrito.forEach(item => {
+        const subtotal = (item.precio * item.cantidad).toFixed(2);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <div class="carrito-nombre">${item.nombre}</div>
+                <div class="carrito-precio">S/ ${item.precio.toFixed(2)}</div>
+            </td>
+            <td>
+                <div class="qty-ctrl">
+                    <button class="qty-btn" onclick="cambiarCantidad(${item.idPlatillo}, -1)">−</button>
+                    <span class="qty-val">${item.cantidad}</span>
+                    <button class="qty-btn" onclick="cambiarCantidad(${item.idPlatillo}, 1)">+</button>
+                </div>
+            </td>
+            <td class="carrito-subtotal">S/ ${subtotal}</td>
+            <td><button class="carrito-del" onclick="quitarDelCarrito(${item.idPlatillo})"><i class="bi bi-trash3"></i></button></td>
+        `;
+        body.appendChild(tr);
+    });
+}
+
+function toggleDescuento(id, nombre, porcentaje, color) {
+    const chip = document.getElementById('desc-' + id);
+    const idx  = estado.descuentos.findIndex(x => x.idDescuento === id);
+    if (idx !== -1) {
+        estado.descuentos.splice(idx, 1);
+        chip.classList.remove('selected');
+    } else {
+        estado.descuentos.push({ idDescuento: id, nombre, porcentaje: parseFloat(porcentaje), color });
+        chip.classList.add('selected');
+    }
+    recalcular();
+}
+
+function seleccionarMetodo(metodo, btn) {
+    document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    estado.metodoPago = metodo;
+    validarBtn();
+}
+
+function recalcular() {
+    const subtotalPlatillos = estado.carrito.reduce((s, x) => s + x.precio * x.cantidad, 0);
+    const costoReserva      = estado.costoReserva;
+    const baseTotal         = subtotalPlatillos + costoReserva;
+    const totalDesc         = estado.descuentos.reduce((s, d) => s + d.porcentaje, 0);
+    const descMonto         = baseTotal * (totalDesc / 100);
+    const total             = baseTotal - descMonto;
+
+    document.getElementById('rsSubtotal').textContent    = 'S/ ' + subtotalPlatillos.toFixed(2);
+    document.getElementById('rsCostoReserva').textContent = 'S/ ' + costoReserva.toFixed(2);
+    document.getElementById('rsTotal').textContent       = 'S/ ' + total.toFixed(2);
+
+    const wrap = document.getElementById('rsDescuentosWrap');
+    wrap.innerHTML = '';
+    estado.descuentos.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'resumen-linea descuento';
+        div.innerHTML = `<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${d.color};margin-right:4px;"></span>${d.nombre} (${d.porcentaje}%)</span><span>− S/ ${(baseTotal * d.porcentaje / 100).toFixed(2)}</span>`;
+        wrap.appendChild(div);
+    });
+
+    validarBtn();
+}
+
+function validarBtn() {
+    const btn  = document.getElementById('btnRegistrar');
+    const warn = document.getElementById('resumenWarning');
+    const ok   = estado.idReserva > 0 && estado.carrito.length > 0 && estado.metodoPago !== '';
+    btn.disabled = !ok;
+    warn.classList.toggle('show', !ok);
+}
+
+async function registrarVenta() {
+    const btn = document.getElementById('btnRegistrar');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Procesando...';
+
+    const request = {
+        venta: {
+            IdCliente:  estado.idCliente,
+            IdReserva:  estado.idReserva,
+            MetodoPago: estado.metodoPago,
+            IdUsuario:  0   
+        },
+        detalleVenta: estado.carrito.map(x => ({
+            IdPlatillo: x.idPlatillo,
+            Cantidad:   x.cantidad
+        })),
+        detalleDescuento: estado.descuentos.map(d => ({
+            IdDescuento:        d.idDescuento,
+            DescuentoUnitario: d.porcentaje
+        }))
+    };
+
+    try {
+        const r = await fetch('/Venta/InsertarVenta', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(request)
+        });
+        if (r.redirected) window.location.href = r.url;
+        else location.reload();
+    } catch(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Registrar venta';
+        alert('Error al registrar la venta: ' + err.message);
+    }
+}
+
+async function verDetalle(id) {
+    document.getElementById('modalDetalle').classList.add('show');
+    document.getElementById('modalDetalleBody').innerHTML =
+        '<div style="text-align:center;padding:2rem;color:var(--muted);"><i class="bi bi-arrow-clockwise" style="font-size:1.5rem;"></i></div>';
+
+    const data = await fetch('/Venta/Detalle?id=' + id).then(r => r.json());
+
+    const metodoClass = data.metodoPago === 'Efectivo' ? 'metodo-efectivo' :
+                        data.metodoPago === 'Tarjeta'  ? 'metodo-tarjeta'  : 'metodo-yape';
+
+    const nombreCliente = (data.reserva?.cliente?.nombres)
+    ? (data.reserva.cliente.nombres + ' ' + data.reserva.cliente.apellidos).trim()
+    : (data.reserva?.nombreCliente ?? '—');
+
+    const contacto = data.reserva?.cliente?.email ?? data.reserva?.telefonoCliente ?? '—';
+
+    let platillosHTML = '';
+    (data.detalles || []).forEach(d => {
+        platillosHTML += `<tr>
+            <td>${d.platillo?.nombrePlatillo ?? '—'}</td>
+            <td>${d.cantidad}</td>
+            <td>S/ ${parseFloat(d.precioUnitario).toFixed(2)}</td>
+            <td>S/ ${(d.cantidad * d.precioUnitario).toFixed(2)}</td>
+        </tr>`;
+    });
+
+    let descHTML = '';
+    (data.descuentos || []).forEach(d => {
+        descHTML += `<span class="det-desc-chip" style="background:${d.descuento?.colorCard}22; color:${d.descuento?.colorCard};">
+            ${d.descuento?.nombreDescuento} · ${d.descuentoUnitario}% OFF
+        </span>`;
+    });
+
+    document.getElementById('modalDetalleBody').innerHTML = `
+        <div class="det-seccion-lbl">Cliente</div>
+        <div class="det-grid">
+            <div class="det-item">
+                <span class="det-lbl">Nombre</span>
+                <span class="det-val">${nombreCliente}</span>
+            </div>
+            <div class="det-item">
+                <span class="det-lbl">Contacto</span>
+                <span class="det-val">${contacto}</span>
+            </div>
+        </div>
+
+        <div class="det-seccion-lbl" style="margin-top:1rem;">Reserva</div>
+        <div class="det-grid">
+            <div class="det-item">
+                <span class="det-lbl">Tipo</span>
+                <span class="det-val">${data.reserva?.tipoReserva ?? '—'}</span>
+            </div>
+            <div class="det-item">
+                <span class="det-lbl">Personas</span>
+                <span class="det-val">${data.reserva?.cantidadPersonas ?? '—'}</span>
+            </div>
+            <div class="det-item">
+                <span class="det-lbl">Costo reserva</span>
+                <span class="det-val gold">S/ ${parseFloat(data.reserva?.costoTotal ?? 0).toFixed(2)}</span>
+            </div>
+            <div class="det-item">
+                <span class="det-lbl">Método de pago</span>
+                <span class="det-val"><span class="metodo-badge ${metodoClass}">${data.metodoPago}</span></span>
+            </div>
+        </div>
+
+        <div class="det-seccion-lbl" style="margin-top:1rem;">Platillos</div>
+        <table class="det-tabla">
+            <thead><tr><th>Platillo</th><th>Cant.</th><th>P. Unit.</th><th>Subtotal</th></tr></thead>
+            <tbody>${platillosHTML || '<tr><td colspan="4" style="color:var(--muted);">Sin platillos</td></tr>'}</tbody>
+        </table>
+
+        ${descHTML ? `<div class="det-seccion-lbl" style="margin-top:1rem;">Descuentos</div><div>${descHTML}</div>` : ''}
+
+        <div class="det-total-row">
+            <span class="det-total-lbl">Total</span>
+            <span class="det-total-val">S/ ${parseFloat(data.total ?? 0).toFixed(2)}</span>
+        </div>
+        <div style="font-size:0.7rem; color:var(--muted); text-align:right; margin-top:-0.3rem;">
+            Registrado por ${data.usuario?.nombreUsuario ?? '—'} · ${new Date(data.fechaVenta).toLocaleString('es-PE')}
+        </div>
+    `;
+}
+
+function cerrarDetalle() {
+    document.getElementById('modalDetalle').classList.remove('show');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDetalle(); });
+document.getElementById('modalDetalle').addEventListener('click', e => {
+    if (e.target === e.currentTarget) cerrarDetalle();
+});
+</script>
+
+</body>
+</html>
+

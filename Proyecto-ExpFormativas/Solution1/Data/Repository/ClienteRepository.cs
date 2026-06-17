@@ -123,7 +123,7 @@ namespace Data.Repository
                     cmd.Connection = cn;
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.CommandText = "sp_FiltradoCliente";
-                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda);
+                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
                     if (reader.Read())
@@ -131,6 +131,7 @@ namespace Data.Repository
                         listado.Add(new Cliente()
                         {
                             IdCliente = Convert.ToInt32(reader["IdCliente"]),
+                            Fotografia = reader["Fotografia"].ToString(),
                             NombreCompleto = reader["NombreCompleto"].ToString(),
                             Documento = reader["Documento"].ToString(),
                             Telefono = reader["Telefono"].ToString(),

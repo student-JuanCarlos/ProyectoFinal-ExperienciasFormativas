@@ -55,20 +55,22 @@ namespace App_Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(string Email, string Contraseña)
+        public async Task<IActionResult> Login(string Email, string Contraseña)
         {
             var usuario = usuarioService.Login(Email, Contraseña);
 
-            if(usuario == null)
+            if (usuario == null)
             {
                 ViewBag.Error = "Email o Contraseña incorrecta";
                 return View("Login");
             }
             if(usuario.Estado == false)
             {
-                ViewBag.Error("Su cuenta ha sido desactivada");
+                ViewBag.Error = "Su cuenta ha sido desactivada";
                 return View("Login");
             }
+
+            mesaService.ActualizarEstadoMesasHoy();
 
             var claims = new List<Claim>
             {
@@ -77,19 +79,12 @@ namespace App_Web.Controllers
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
             HttpContext.Session.SetString("Usuario", JsonConvert.SerializeObject(usuario));
             HttpContext.Session.SetString("Rol", usuario.rol.NombreRol);
 
-            if(usuario != null)
-            {
-                return RedirectToAction("DashBoard", "Usuario");
-            }
-
-            mesaService.ActualizarEstadoMesasHoy();
-
-            return RedirectToAction("Index", "Usuario");
+            return RedirectToAction("DashBoard", "Usuario");
         }
 
         [HttpGet]

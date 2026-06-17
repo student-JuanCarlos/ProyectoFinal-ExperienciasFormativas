@@ -1,5 +1,4 @@
 ﻿using App_Web.Models.VM;
-using Data.Infraestructure;
 using Entities;
 
 namespace App_Web.Models.Extension

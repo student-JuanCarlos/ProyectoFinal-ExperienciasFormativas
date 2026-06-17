@@ -25,6 +25,7 @@
             --carbon:     #1A1A1E;
             --borde:      #E2E8F0;
             --verde:      #10B981;
+            --danger:   #DC2626;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -82,7 +83,6 @@
         .topbar-sub    { font-size: 12px; color: #94A3B8; }
         .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.8rem; }
 
-        /* TOOLBAR */
         .toolbar {
             background: var(--card); border: 1px solid var(--borde);
             border-radius: 16px; padding: 0.9rem 1.2rem;
@@ -121,7 +121,6 @@
             display: flex; align-items: center; gap: 5px; font-weight: 700;
         }
 
-        /* GRILLA FORMATO CAPTURA 1 */
         .grilla {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -129,9 +128,7 @@
             margin-bottom: 1.5rem;
         }
 
-        /* CARD ACTUALIZADA: COLOR COMPLETO EN EL CENTRO */
         .descuento-card {
-            /* El background se inyecta dinámicamente vía Razor inline styles */
             border-radius: 28px;
             padding: 2.2rem 1.8rem;
             display: flex;
@@ -144,7 +141,6 @@
             border: none;
             overflow: hidden;
         }
-        /* Efecto sutil de oscurecimiento de fondo al fondo de la card */
         .descuento-card::before {
             content: ''; position: absolute; inset: 0;
             background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.15) 100%);
@@ -155,13 +151,11 @@
             box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15);
         }
 
-        /* Forzamos a que todo el contenido interno se posicione sobre el pseudo-elemento */
         .descuento-card > * {
             position: relative;
             z-index: 2;
         }
 
-        /* Textos e iconos adaptados en blanco para legibilidad sobre color */
         .card-titulo-uiverse {
             font-size: 26px;
             font-weight: 700;
@@ -198,7 +192,6 @@
             margin-left: 3px;
         }
 
-        /* Botón de acción principal invertido (Blanco premium con texto oscuro) */
         .btn-action-uiverse {
             background: #ffffff;
             color: var(--carbon);
@@ -231,7 +224,6 @@
             border-top: 1px solid rgba(255, 255, 255, 0.15);
         }
 
-        /* SWITCH TOGGLE ADAPTADO A CARDS DE COLOR */
         .toggle-wrap { display: flex; align-items: center; }
         .toggle { position: relative; width: 34px; height: 18px; }
         .toggle input { opacity: 0; width: 0; height: 0; }
@@ -254,7 +246,6 @@
         }
         .btn-edit-uiverse:hover { color: #ffffff; transform: scale(1.1); }
 
-        /* PALETA INTERACTIVA ANIMADA ("Captura de pantalla 2026-06-07 003529.png") */
         .palette-container {
             background: #FFFFFF;
             border: 2px solid #1A1A1E;
@@ -284,7 +275,6 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.6); font-size: 11px;
         }
 
-        /* VACÍO Y PAGINACIÓN */
         .vacio {
             grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: #94A3B8;
             background: var(--card); border: 1px dashed var(--borde); border-radius: 28px;
@@ -299,7 +289,6 @@
         .pag-btn.activo { background: var(--carbon); color: #fff; border-color: var(--carbon); }
         .pag-btn.disabled { opacity: 0.3; pointer-events: none; }
 
-        /* MODAL RESPONSIVO */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.3);
             display: none; align-items: center; justify-content: center; z-index: 1000;
@@ -323,7 +312,20 @@
         .btn-cancel { background: transparent; border: 1px solid var(--borde); border-radius: 8px; padding: 0.45rem 1rem; font-size: 13px; cursor: pointer; }
         .btn-save { background: var(--carbon); color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.2rem; font-size: 13px; cursor: pointer; }
 
+        .sidebar-footer a {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; color: rgba(255,255,255,0.35);
+            text-decoration: none; transition: color 0.2s;
+        }
+        .sidebar-footer a:hover { color: var(--danger); }
+
+        .nav-label {
+            font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase;
+            color: rgba(255,255,255,0.25); padding: 0.8rem 1.2rem 0.3rem;
+        }
+
         #formEstado { display: none; }
+
     </style>
 </head>
 <body>
@@ -334,21 +336,20 @@
         <div class="sidebar-sub">Sistema interno</div>
     </div>
     <nav class="sidebar-nav">
-        <a class="nav-item" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
-        <a class="nav-item" href="/Mesa/Index"><i class="bi bi-grid-1x2"></i> Mesas</a>
-        <a class="nav-item" href="#"><i class="bi bi-calendar-check"></i> Reservas</a>
-        <a class="nav-item" href="#"><i class="bi bi-receipt"></i> Ventas</a>
-        <a class="nav-item" href="/Platillo/Index"><i class="bi bi-egg-fried"></i> Platillos</a>
-        <a class="nav-item" href="#"><i class="bi bi-people"></i> Usuarios</a>
-        <a class="nav-item active" href="/Descuento/Index"><i class="bi bi-percent"></i> Descuentos</a>
-        <a class="nav-item" href="#"><i class="bi bi-gear"></i> Configuración</a>
+        <div class="nav-label">Operaciones</div>
+                <a href="/Venta/Index"    class="nav-item"><i class="bi bi-receipt"></i> Ventas</a>
+                <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
+            <div class="nav-label">Catálogo</div>
+                <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
+                <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
+                <a href="/Descuento/Index" class="nav-item active"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
+            <div class="nav-label">Gestión</div>
+                <a href="/Mesa/Index"    class="nav-item"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
+                <a href="/Usuario/Index" class="nav-item"><i class="bi bi-people"></i> Usuarios</a>
+                <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
     </nav>
     <div class="sidebar-footer">
-        <div class="avatar">AD</div>
-        <div>
-            <div class="sidebar-user-name">Administrador</div>
-            <div class="sidebar-user-role">Sistema</div>
-        </div>
+        <a asp-action="CerrarSesion" asp-controller="Usuario"><i class="bi bi-box-arrow-left"></i> Cerrar sesión</a>
     </div>
 </aside>
 

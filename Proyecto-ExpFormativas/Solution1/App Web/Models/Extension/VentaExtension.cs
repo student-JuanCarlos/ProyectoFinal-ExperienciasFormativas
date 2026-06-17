@@ -12,25 +12,26 @@ namespace App_Web.Models.Extension
             return new VentaVM()
             {
                 IdVenta = venta.IdVenta,
-                IdCliente = venta.IdCliente,
                 IdReserva = venta.IdReserva,
                 IdUsuario = venta.IdUsuario,
-                NombreCliente = venta.NombreCliente == null ? null : venta.NombreCliente,
                 FechaVenta = venta.FechaVenta,
                 MetodoPago = venta.MetodoPago,
                 Total = venta.Total,
-                cliente = venta.cliente != null ? new ClienteVM()
-                {
-                    IdCliente = venta.cliente.IdCliente,
-                    Nombres = venta.cliente.Nombres,
-                    Apellidos = venta.cliente.Apellidos,
-                    Email = venta.cliente.Email
-                } : null,
                 reserva = venta.reserva != null ? new ReservaVM()
                 {
+                    NombreCliente = venta.reserva.NombreCliente,
+                    TelefonoCliente = venta.reserva.TelefonoCliente,
                     TipoReserva = venta.reserva.TipoReserva,
                     CantidadPersonas = venta.reserva.CantidadPersonas,
-                    CostoTotal = venta.reserva.CostoTotal
+                    CostoTotal = venta.reserva.CostoTotal,
+                    cliente = venta.reserva.cliente != null ? new ClienteVM()
+                    {
+                        IdCliente = venta.reserva.cliente.IdCliente,
+                        NombreCompleto = venta.reserva.NombreCliente,
+                        Nombres = venta.reserva.cliente.Nombres,
+                        Apellidos = venta.reserva.cliente.Apellidos,
+                        Email = venta.reserva.cliente.Email
+                    } : null,
                 } : null,
                 usuario = venta.usuario != null ? new UsuarioVM()
                 {
@@ -62,10 +63,8 @@ namespace App_Web.Models.Extension
             return new Venta()
             {
                 IdVenta = model.IdVenta,
-                IdCliente = model.IdCliente,
                 IdReserva = model.IdReserva,
                 IdUsuario = model.IdUsuario,
-                NombreCliente = model.NombreCliente == null ? null : model.NombreCliente,
                 FechaVenta = model.FechaVenta,
                 MetodoPago = model.MetodoPago,
                 Total = model.Total

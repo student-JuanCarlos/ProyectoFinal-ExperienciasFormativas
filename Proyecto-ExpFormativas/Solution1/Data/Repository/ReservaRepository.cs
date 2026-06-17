@@ -301,7 +301,7 @@ namespace Data.Repository
 
                         Cliente cliente = new Cliente()
                         {
-                            NombreCompleto = reader["Cliente"].ToString()
+                            NombreCompleto = reader["Cliente"] == DBNull.Value ? null : reader["Cliente"].ToString()
                         };
 
                         listado.Add(new Reserva

@@ -123,16 +123,11 @@ CREATE TABLE DetalleReserva(
 
 CREATE TABLE Venta(
 	IdVenta INT IDENTITY(1,1) PRIMARY KEY,
-	IdCliente INT NULL FOREIGN KEY REFERENCES Cliente(IdCliente),
 	IdReserva INT NOT NULL FOREIGN KEY REFERENCES Reserva(IdReserva),
 	IdUsuario INT NOT NULL FOREIGN KEY REFERENCES Usuario(IdUsuario),
-	NombreCliente VARCHAR(150) NULL,
 	FechaVenta DATE DEFAULT GETDATE(),
 	MetodoPago VARCHAR(50) NOT NULL,
-	Total DECIMAL(6,2) NOT NULL,
-	CONSTRAINT ValidacionCliente CHECK(
-		IdCliente IS NOT NULL OR NombreCliente IS NOT NULL
-	)
+	Total DECIMAL(6,2) NOT NULL
 );
 
 CREATE TABLE DetalleVenta(
@@ -463,6 +458,7 @@ AS
 BEGIN	
 	SELECT
 		c.IdCliente,
+		c.Fotografia,
 		c.Nombres+' '+Apellidos AS NombreCompleto,
 		c.Documento, 
 		c.Telefono,
@@ -1081,10 +1077,8 @@ CREATE TYPE TVP_DetalleDescuento AS TABLE(
 );
 GO
 CREATE PROC sp_RegistrarVenta
-@IdCliente INT NULL,
 @IdReserva INT,
 @IdUsuario INT,
-@NombreCliente VARCHAR(50) NULL,
 @MetodoPago VARCHAR(50),
 @Detalle TVP_DetalleVenta READONLY,
 @Descuento TVP_DetalleDescuento READONLY
@@ -1102,8 +1096,8 @@ BEGIN
             RETURN;
         END
 
-        INSERT INTO Venta(IdCliente, IdReserva, IdUsuario, NombreCliente, MetodoPago, Total)
-        VALUES(@IdCliente, @IdReserva, @IdUsuario, @NombreCliente, @MetodoPago, 0);
+        INSERT INTO Venta(IdReserva, IdUsuario, MetodoPago, Total)
+        VALUES(@IdReserva, @IdUsuario, @MetodoPago, 0);
         SET @IdVenta = SCOPE_IDENTITY();
 
         INSERT INTO DetalleVenta(IdVenta, IdPlatillo, Cantidad, PrecioUnitario)
@@ -1138,25 +1132,26 @@ BEGIN
         THROW;
     END CATCH
 END
-		
+
 GO
 CREATE PROC sp_DetalleVenta
 @IdVenta INT
 AS
 BEGIN
 	SELECT 
-		ISNULL(c.Nombres+' '+c.Apellidos, v.NombreCliente) AS NombreCompleto,
+		ISNULL(c.Nombres+' '+c.Apellidos, r.NombreCliente) AS NombreCompleto,
 		r.TipoReserva,
-		c.Email,
+		ISNULL(c.Email, r.TelefonoCliente) AS Contacto,
 		r.CantidadPersonas,
-		r.CostoTotal AS CostoReserva,
+		r.CostoTotal,
 		v.FechaVenta,
 		v.MetodoPago,
+		v.Total,
 		u.NombreUsuario
 	FROM Venta v
-	LEFT JOIN Cliente c ON c.IdCliente = v.IdCliente
-	INNER JOIN Usuario u ON u.IdUsuario = v.IdUsuario
-	INNER JOIN Reserva r ON r.IdReserva = v.IdReserva
+	LEFT JOIN Usuario u ON u.IdUsuario = v.IdUsuario
+	LEFT JOIN Reserva r ON r.IdReserva = v.IdReserva
+	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
 	WHERE IdVenta = @IdVenta
 
 	SELECT 
@@ -1172,9 +1167,8 @@ BEGIN
 		de.ColorCard,
 		dd.DescuentoUnitario
 	FROM DetalleDescuento dd
-	INNER JOIN Descuento de ON de.IdDescuento = dd.IdDescuento
+	LEFT JOIN Descuento de ON de.IdDescuento = dd.IdDescuento
 	WHERE IdVenta = @IdVenta
-
 END
 
 GO
@@ -1184,13 +1178,14 @@ AS
 BEGIN
 	SELECT
 		v.IdVenta,
-		ISNULL(c.Nombres + ' ' + c.Apellidos, v.NombreCliente) AS NombreCompleto,
+		ISNULL(c.Nombres + ' ' + c.Apellidos, r.NombreCliente) AS NombreCompleto,
 		v.FechaVenta,
 		v.MetodoPago,
 		v.Total
 	FROM Venta v
-	LEFT JOIN Cliente c ON c.IdCliente = v.IdCliente
-	WHERE (@Busqueda IS NULL OR ISNULL(c.Nombres+' '+ c.Apellidos, v.NombreCliente) LIKE '%'+ @Busqueda +'%')
+	LEFT JOIN Reserva r ON r.IdReserva = v.IdReserva
+	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
+	WHERE (@Busqueda IS NULL OR ISNULL(c.Nombres+' '+ c.Apellidos, r.NombreCliente) LIKE '%'+ @Busqueda +'%')
 END
 
 ------------------------------------
@@ -1209,6 +1204,11 @@ SELECT * FROM ConfiguracionReserva;
 SELECT * FROM Descuento;
 SELECT * FROM Rol;
 SELECT * FROM Reserva;
+SELECT * FROM DetalleReserva;
+SELECT * FROM Usuario;
+SELECT * FROM Venta;
+SELECT * FROM DetalleDescuento;
+SELECT * FROM DetalleVenta;
 
 ------------------------------------
 --------Control interno del sistema
@@ -1227,8 +1227,7 @@ GO
 CREATE PROC sp_ActualizarEstadoMesasHoy
 AS
 BEGIN
-    SET NOCOUNT ON;
-
+	SET NOCOUNT ON;
     UPDATE Mesa 
     SET Estado = 1 -- Libre
     WHERE Estado = 2 
@@ -1260,6 +1259,5 @@ BEGIN
 
 	UPDATE Reserva
 	SET Estado = 3
-	WHERE Estado = 1 AND FechaReserva < GETDATE()
-
-END
+	WHERE Estado = 1 AND FechaReserva < CAST(GETDATE() AS DATE)
+END 

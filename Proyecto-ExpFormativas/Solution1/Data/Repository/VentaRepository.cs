@@ -38,19 +38,18 @@ namespace Data.Repository
                     ddesc.Columns.Add("IdDescuento", typeof(int));
                     ddesc.Columns.Add("PorcentajeAplicado", typeof(decimal));
 
+                    foreach(var d in descuentos)
+                    {
+                        ddesc.Rows.Add(d.IdDescuento, d.DescuentoUnitario);
+                    }
 
                     SqlCommand cmd = new SqlCommand();
                     cmd.Connection = cn;
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.CommandText = "sp_RegistrarVenta";
-                    cmd.Parameters.AddWithValue("@IdCliente", v.IdCliente == null ? (object)DBNull.Value : v.IdCliente);
                     cmd.Parameters.AddWithValue("@IdReserva", v.IdReserva);
                     cmd.Parameters.AddWithValue("@IdUsuario", v.IdUsuario);
-                    cmd.Parameters.AddWithValue("@NombreCliente", v.NombreCliente == null ? (object)DBNull.Value : v.NombreCliente);
                     cmd.Parameters.AddWithValue("@MetodoPago", v.MetodoPago);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-
 
                     SqlParameter tvpd = cmd.Parameters.AddWithValue("@Detalle", dventa);
                     tvpd.SqlDbType = SqlDbType.Structured;
@@ -59,6 +58,10 @@ namespace Data.Repository
                     SqlParameter tvpdes = cmd.Parameters.AddWithValue("@Descuento", ddesc);
                     tvpdes.SqlDbType = SqlDbType.Structured;
                     tvpdes.TypeName = "TVP_DetalleDescuento";
+
+                    cn.Open();
+                    f = cmd.ExecuteNonQuery();
+
                 }
                 catch (Exception ex)
                 {
@@ -86,16 +89,18 @@ namespace Data.Repository
                     {
                         Cliente cliente = new Cliente()
                         {
-                            IdCliente = Convert.ToInt32(reader["IdCliente"]),
-                            Nombres = reader["Nombres"].ToString(),
-                            Apellidos = reader["Apellidos"].ToString()
+                            NombreCompleto = reader["NombreCompleto"].ToString()
+                        };
+
+                        Reserva reserva = new Reserva()
+                        {
+                            NombreCliente = reader["NombreCompleto"].ToString()
                         };
 
                         listado.Add(new Venta
                         {
                             IdVenta = Convert.ToInt32(reader["IdVenta"]),
-                            NombreCliente = reader["NombreCompleto"] == DBNull.Value ? null : reader["NombreCompleto"].ToString(),
-                            cliente = cliente,
+                            reserva = reserva,
                             FechaVenta = Convert.ToDateTime(reader["FechaVenta"]),
                             MetodoPago = reader["MetodoPago"].ToString(),
                             Total = Convert.ToDecimal(reader["Total"])
@@ -128,17 +133,18 @@ namespace Data.Repository
                     {
                         Cliente cliente = new Cliente()
                         {
-                            IdCliente = Convert.ToInt32(reader["IdCliente"]),
-                            Nombres = reader["Nombres"].ToString(),
-                            Apellidos = reader["Apellidos"].ToString(),
-                            Email = reader["Email"].ToString(),
+                            NombreCompleto = reader["NombreCompleto"] == DBNull.Value ? null : reader["NombreCompleto"].ToString(),
+                            Email = reader["Contacto"].ToString(),
                         };
 
                         Reserva reserva = new Reserva()
                         {
+                            NombreCliente = reader["NombreCompleto"] == DBNull.Value ? null : reader["NombreCompleto"].ToString(),
+                            TelefonoCliente = reader["Contacto"] == DBNull.Value ? null : reader["Contacto"].ToString(),
                             TipoReserva = reader["TipoReserva"].ToString(),
                             CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
-                            CostoTotal = Convert.ToDecimal(reader["CostoReserva"])
+                            CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
+                            cliente = cliente
                         };
 
                         Usuario usuario = new Usuario()
@@ -148,18 +154,17 @@ namespace Data.Repository
 
                         venta = new Venta()
                         {
-                            NombreCliente = reader["NombreCompleto"] == DBNull.Value ? null : reader["NombreCompleto"].ToString(),
-                            cliente = cliente,
                             reserva = reserva,
                             usuario = usuario,
                             FechaVenta = Convert.ToDateTime(reader["FechaVenta"]),
                             MetodoPago = reader["MetodoPago"].ToString(),
                             Total = Convert.ToDecimal(reader["Total"]),
-                            
+                            detalles = new List<DetalleVenta>(),
+                            descuentos = new List<DetalleDescuento>()
                         };
 
                         reader.NextResult();
-                        if (reader.Read())
+                        while (reader.Read())
                         {
                             Platillo platillo = new Platillo()
                             {
@@ -175,7 +180,7 @@ namespace Data.Repository
                         }
 
                         reader.NextResult();
-                        if (reader.Read())
+                        while (reader.Read())
                         {
                             Descuento descuento = new Descuento()
                             {

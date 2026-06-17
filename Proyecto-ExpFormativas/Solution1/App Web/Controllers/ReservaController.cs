@@ -38,6 +38,8 @@ namespace App_Web.Controllers
 
             request.Reserva.IdUsuario = usuario.IdUsuario;
             request.Reserva.TipoReserva = "Directa";
+            request.Reserva.FechaReserva = DateTime.Now;
+            request.Reserva.HoraReserva = DateTime.Now.TimeOfDay;
 
             reservaService.InsertarReserva(request.Reserva.ToEntity(), request.DetalleReserva.Select(dr => dr.ToEntity()).ToList());
 

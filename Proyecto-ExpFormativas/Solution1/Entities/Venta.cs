@@ -9,21 +9,15 @@ namespace Entities
 
         public int IdVenta { get; set; }
 
-        public int? IdCliente { get; set; }
-
         public int IdReserva { get; set; }
 
         public int IdUsuario { get; set; }
-
-        public string? NombreCliente { get; set; }
 
         public DateTime FechaVenta { get; set; }
 
         public string MetodoPago { get; set; }
 
         public decimal Total {  get; set; }
-
-        public Cliente cliente {  get; set; }
 
         public Reserva reserva { get; set; }
 
