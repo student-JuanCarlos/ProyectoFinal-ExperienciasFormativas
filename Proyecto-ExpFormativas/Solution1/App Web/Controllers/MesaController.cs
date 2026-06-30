@@ -18,12 +18,18 @@ namespace App_Web.Controllers
             confireservice = confi;
         }
 
-        public IActionResult Index(string Busqueda = null)
+        public IActionResult Index()
         {
+
+            if(HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Login", "Usuario");
+            }
+
             var precio = confireservice.DetallePrecioReserva();
 
             ViewBag.PrecioReserva = precio.ToViewModel();
-            var listado = mesaservice.ListadoMesa(Busqueda);
+            var listado = mesaservice.ListadoMesa();
 
             return View(listado.Select(m => m.ToViewModel()));
         }

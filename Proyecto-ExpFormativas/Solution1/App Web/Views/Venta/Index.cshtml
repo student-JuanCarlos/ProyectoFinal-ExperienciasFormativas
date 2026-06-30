@@ -412,6 +412,14 @@
         }
         .det-total-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
         .det-total-val { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+
+        .btn-pdf {
+            background: var(--danger); color: #1A1A2E; border: none;
+            border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.75rem;
+            font-weight: 700; cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; gap: 6px; transition: background 0.2s;
+        }
+        .btn-pdf:hover { background: #b91c1c; }
     </style>
 </head>
 <body>
@@ -423,17 +431,23 @@
         <small>SISTEMA INTERNO</small>
     </div>
     <nav class="sidebar-nav">
-        <div class="nav-label">Operaciones</div>
-        <a href="/Venta/Index"    class="nav-item active"><i class="bi bi-receipt"></i> Ventas</a>
-        <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
-        <div class="nav-label">Catálogo</div>
-        <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
-        <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
-        <a href="/Descuento/Index" class="nav-item"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
-        <div class="nav-label">Gestión</div>
-        <a href="/Mesa/Index"    class="nav-item"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
-        <a href="/Usuario/Index" class="nav-item"><i class="bi bi-people"></i> Usuarios</a>
-        <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
+            <div class="nav-label">Operaciones</div>
+                <a href="/Venta/Index"    class="nav-item active"><i class="bi bi-receipt"></i> Ventas</a>
+                <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
+            <div class="nav-label">Catálogo</div>
+                <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
+            @if (User.IsInRole("Administrador"))
+            {
+                <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
+                <a href="/Descuento/Index" class="nav-item"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
+            }
+            <div class="nav-label">Gestión</div>
+                <a href="/Mesa/Index"    class="nav-item"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
+            @if (User.IsInRole("Administrador"))
+             {
+                <a href="/Usuario/Index" class="nav-item"><i class="bi bi-people"></i> Usuarios</a>
+                <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
+             }
     </nav>
     <div class="sidebar-footer">
         <a asp-action="CerrarSesion" asp-controller="Usuario"><i class="bi bi-box-arrow-left"></i> Cerrar sesión</a>
@@ -491,7 +505,7 @@
                                         <div>
                                             <span class="reserva-chip-badge @(r.TipoReserva == "Web" ? "badge-web" : "badge-directa")">@r.TipoReserva</span>
                                             <div class="reserva-chip-nombre">@nombreR</div>
-                                            <div class="reserva-chip-sub">@r.FechaReserva.ToString("dd/MM") · @r.HoraReserva.ToString(@"hh\:mm") · @r.CantidadPersonas p.</div>
+                                            <div class="reserva-chip-sub">@r.FechaReserva?.ToString("dd/MM") · @r.HoraReserva?.ToString(@"hh\:mm") · @r.CantidadPersonas p.</div>
                                         </div>
                                     </div>
                                 }
@@ -756,22 +770,19 @@
 </style>
 
 <script>
-// ── ESTADO ────────────────────────────────────────────────────────────────
 let estado = {
     idReserva:      0,
-    idCliente:      null,   // viene de la reserva Web
-    idClienteExtra: null,   // seleccionado manualmente
+    idCliente:      null,   
+    idClienteExtra: null,   
     costoReserva:   0,
     carrito:        [],
     descuentos:     [],
     metodoPago:     ''
 };
 
-// ── FECHA TOPBAR ──────────────────────────────────────────────────────────
 document.getElementById('fechaHoy').textContent =
     new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-// ── FILTROS JS ────────────────────────────────────────────────────────────
 function filtrarReservas(q) {
     document.querySelectorAll('.reserva-chip').forEach(c => {
         c.style.display = c.dataset.nombre.includes(q.toLowerCase()) ? '' : 'none';
@@ -790,12 +801,10 @@ function filtrarDescuentos(q) {
     });
 }
 
-// ── CLIENTE ───────────────────────────────────────────────────────────────
 function seleccionarCliente(id, nombre, foto) {
     document.querySelectorAll('.cliente-chip').forEach(c => c.classList.remove('selected'));
     const chip = document.getElementById('cliente-' + id);
 
-    // Toggle — click en el mismo lo deselecciona
     if (estado.idClienteExtra === id) {
         estado.idClienteExtra = null;
         return;
@@ -805,9 +814,7 @@ function seleccionarCliente(id, nombre, foto) {
     estado.idClienteExtra = id;
 }
 
-// ── RESERVA ───────────────────────────────────────────────────────────────
 function seleccionarReserva(id, nombre, tipo, personas, costo, clienteId, foto) {
-    // deselect todos
     document.querySelectorAll('.reserva-chip').forEach(c => c.classList.remove('selected'));
     document.getElementById('chip-' + id)?.classList.add('selected');
 
@@ -815,13 +822,11 @@ function seleccionarReserva(id, nombre, tipo, personas, costo, clienteId, foto) 
     estado.idCliente    = clienteId || null;
     estado.costoReserva = parseFloat(costo);
 
-    // Info strip
     document.getElementById('info-cliente').textContent  = nombre;
     document.getElementById('info-personas').textContent = personas + ' personas';
     document.getElementById('info-costo').textContent    = 'S/ ' + parseFloat(costo).toFixed(2);
     document.getElementById('reservaInfo').classList.add('show');
 
-    // Resumen cliente
     const wrap = document.getElementById('resumenCliente');
     wrap.innerHTML = '';
     if (foto) {
@@ -1079,11 +1084,25 @@ async function verDetalle(id) {
         <div style="font-size:0.7rem; color:var(--muted); text-align:right; margin-top:-0.3rem;">
             Registrado por ${data.usuario?.nombreUsuario ?? '—'} · ${new Date(data.fechaVenta).toLocaleString('es-PE')}
         </div>
+
+        
+        @if (User.IsInRole("Administrador"))
+        {
+           <div style="display:flex; justify-content:flex-end; margin-top:1rem;">
+              <button class="btn-pdf" onclick="descargarPDF(${id})">
+                  <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+              </button>
+           </div>
+        }
     `;
 }
 
 function cerrarDetalle() {
     document.getElementById('modalDetalle').classList.remove('show');
+}
+
+function descargarPDF(id) {
+    window.location.href = '/Venta/ExportarVentaPDF?id=' + id;
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDetalle(); });

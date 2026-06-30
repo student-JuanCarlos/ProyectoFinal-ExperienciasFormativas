@@ -24,9 +24,9 @@ namespace Business_Logic.Service
                 return mesaDB.Actualizar(m);
         }
 
-        public List<Mesa> ListadoMesa(string Busqueda)
+        public List<Mesa> ListadoMesa()
         {
-            return mesaDB.Listado(Busqueda);
+            return mesaDB.Listado();
         }
 
         public Mesa Detalle(int id)
@@ -36,7 +36,7 @@ namespace Business_Logic.Service
 
         public void ActualizarEstadoMesasHoy()
         {
-
+            mesaDB.ActualizarEstadoMesasHoy();
         }
 
         public List<Mesa> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva)

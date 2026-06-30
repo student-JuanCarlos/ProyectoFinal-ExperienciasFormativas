@@ -1,6 +1,7 @@
 ﻿using App_Web.Models.Extension;
 using App_Web.Models.Request;
 using Business_Logic.Service;
+using Business_Logic.Utilidades.PDF.Generate;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -13,18 +14,25 @@ namespace App_Web.Controllers
         private readonly DescuentoService descuentoService;
         private readonly ReservaService reservaService;
         private readonly ClienteService clienteService;
+        private readonly VentaPDFService ventaPDFService;
 
-        public VentaController(VentaService venta, PlatilloService platillo, DescuentoService descuento, ReservaService reserva, ClienteService cliente)
+        public VentaController(VentaService venta, PlatilloService platillo, DescuentoService descuento, ReservaService reserva, ClienteService cliente, VentaPDFService ventapdf)
         {
             ventaService = venta;
             platilloService = platillo;
             descuentoService = descuento;
             reservaService = reserva;
             clienteService = cliente;
+            ventaPDFService = ventapdf;
         }
 
         public IActionResult Index(string Busqueda) 
         {
+
+            if (HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Login", "Usuario");
+            }
 
             var listado = ventaService.Listado(Busqueda).Select(v => v.ToViewModel());
 
@@ -54,6 +62,16 @@ namespace App_Web.Controllers
             var venta = ventaService.Detalle(id).ToViewModel();
 
             return Json(venta);
+        }
+
+        [HttpGet]
+        public IActionResult ExportarVentaPDF(int id)
+        {
+            var venta = ventaService.Detalle(id);
+
+            var (bytes, nombre) = ventaPDFService.ObtenerArchivo(venta);
+
+            return File(bytes, "application/pdf", nombre);
         }
     }
 }

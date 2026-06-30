@@ -22,7 +22,16 @@ namespace App_Web.Controllers
         public IActionResult Index(string Busqueda = null, int? Estado = null)
         {
 
-            ViewBag.Mesas = mesaService.ListadoMesa(null).Select(m => m.ToViewModel()).ToList();
+            if(HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Login", "Usuario");
+            }
+
+            var json = HttpContext.Session.GetString("Usuario");
+            var usuario = JsonConvert.DeserializeObject<App_Web.Models.VM.UsuarioVM>(json);
+            ViewBag.Usuario = usuario;
+
+            ViewBag.Mesas = mesaService.ListadoMesa().Select(m => m.ToViewModel()).ToList();
 
             var listado = reservaService.ListadoReserva(Busqueda, Estado).Select(r => r.ToViewModel()).ToList();
 
@@ -86,6 +95,14 @@ namespace App_Web.Controllers
             var reserva = reservaService.Detalle(id).ToViewModel();
 
             return Json(reserva);
+        }
+
+        [HttpGet]
+        public JsonResult FiltradoMesas(DateTime fecha, TimeSpan hora) //EndPoint para filtrar mediante la fecha y hora y edicion en el momento 
+        {
+            var listado = mesaService.FiltradoMesas_Cliente(fecha, hora);
+
+            return Json(listado);
         }
     }
 }

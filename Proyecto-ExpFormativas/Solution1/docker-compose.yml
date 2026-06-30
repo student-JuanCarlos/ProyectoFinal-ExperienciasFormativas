@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__Database=${Db_Connection}
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${Password}
+    ports:
+      - "1435:1433"
+    volumes:
+      - sqldata:/var/lib/mssql/data
+      - ./Base de Datos/App_Restaurantes.sql:/init.sql
+      - ./init.sh:/init.sh
+    command: >
+      bash -c "(/init.sh &) && /opt/mssql/bin/sqlservr"
+
+volumes:
+  sqldata:

@@ -46,6 +46,28 @@ namespace Data.Repository
             return f;
         }
 
+        public int ActualizarEstadoDescuentosHoy()
+        {
+            int f = 0;
+            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cn;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_ActualizarEstadoDescuentosHoy";
+                    cn.Open();
+                    f = cmd.ExecuteNonQuery();
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            return f;
+        }
+
         public int Agregar(Descuento d)
         {
             int f = 0;

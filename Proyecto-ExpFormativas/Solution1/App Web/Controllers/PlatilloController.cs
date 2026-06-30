@@ -19,6 +19,12 @@ namespace App_Web.Controllers
 
         public IActionResult Index(int page = 1, string Busqueda = null)
         {
+
+            if(HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Login", "Usuario");
+            }
+
             ViewBag.Categorias = categoriaService.ListadoCategoria(null).Select(c => c.ToViewModel()).ToList();
 
             var listado = platilloservice.ListadoPlatillo(Busqueda).Select(p => p.ToViewModel()).ToList();

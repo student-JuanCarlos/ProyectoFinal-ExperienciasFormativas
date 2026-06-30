@@ -336,18 +336,24 @@
         <div class="sidebar-sub">Sistema interno</div>
     </div>
     <nav class="sidebar-nav">
-        <div class="nav-label">Operaciones</div>
+            <div class="nav-label">Operaciones</div>
                 <a href="/Venta/Index"    class="nav-item"><i class="bi bi-receipt"></i> Ventas</a>
                 <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
             <div class="nav-label">Catálogo</div>
                 <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
+            @if (User.IsInRole("Administrador"))
+            {
                 <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
                 <a href="/Descuento/Index" class="nav-item active"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
+            }
             <div class="nav-label">Gestión</div>
                 <a href="/Mesa/Index"    class="nav-item"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
+            @if (User.IsInRole("Administrador"))
+             {
                 <a href="/Usuario/Index" class="nav-item"><i class="bi bi-people"></i> Usuarios</a>
                 <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
-    </nav>
+             }
+        </nav>
     <div class="sidebar-footer">
         <a asp-action="CerrarSesion" asp-controller="Usuario"><i class="bi bi-box-arrow-left"></i> Cerrar sesión</a>
     </div>

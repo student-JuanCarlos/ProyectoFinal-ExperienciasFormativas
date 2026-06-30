@@ -102,15 +102,25 @@ namespace Data.Repository
                     SqlDataReader reader = cmd.ExecuteReader();
                     if (reader.Read())
                     {
+                        var cliente = new Cliente()
+                        {
+                            NombreCompleto = reader["OcupadoPor"] == DBNull.Value ? null : reader["OcupadoPor"].ToString()
+                        };
+
+                        var reserva = new Reserva()
+                        {
+                            HoraReserva = reader["HoraReserva"] == DBNull.Value ? null : (TimeSpan)reader["HoraReserva"],
+                            NombreCliente = reader["OcupadoPor"] == DBNull.Value ? null : reader["OcupadoPor"].ToString()
+                        };
+
                         mesa = new Mesa()
                         {
                             IdMesa = Convert.ToInt32(reader["IdMesa"]),
                             NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
                             EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
                             Estado = Convert.ToInt32(reader["Estado"]),
-                            OcupadoPor = reader["OcupadoPor"].ToString(),
-                            HoraReserva = reader["HoraReserva"] == (object)DBNull.Value ? null : (TimeSpan)reader["HoraReserva"],
-                            FechaReserva = reader["FechaReserva"] == (object)DBNull.Value ? null : Convert.ToDateTime(reader["FechaReserva"])
+                            reserva = reserva,
+                            cliente = cliente
                         };
                     }
                 }
@@ -156,7 +166,7 @@ namespace Data.Repository
             return listado;
         }
 
-        public List<Mesa> Listado(string Busqueda)
+        public List<Mesa> Listado()
         {
             var listado = new List<Mesa>();
             using (SqlConnection cn = new SqlConnection(cadenaConexion))
@@ -167,7 +177,6 @@ namespace Data.Repository
                     cmd.Connection = cn;
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.CommandText = "sp_FiltradoMesa";
-                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
                     cn.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -178,7 +187,6 @@ namespace Data.Repository
                             NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
                             EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
                             Estado = Convert.ToInt32(reader["Estado"]),
-                            OcupadoPor = reader["OcupadoPor"] == (object)DBNull.Value ? null : reader["OcupadoPor"].ToString()
                         });
                     }
                 }
@@ -189,5 +197,12 @@ namespace Data.Repository
             }
             return listado;
         }
+
+        #region
+        public List<Mesa> Listado(string Busqueda)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

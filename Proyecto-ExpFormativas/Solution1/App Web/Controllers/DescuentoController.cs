@@ -18,9 +18,14 @@ namespace App_Web.Controllers
         public IActionResult Index(int page = 1, string Busqueda = null, bool? Estado = null)
         {
 
+            if(HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Login", "Usuario");
+            }
+
             var listado = descuentoService.ListadoDescuento(Busqueda, Estado).Select(d => d.ToViewModel()).ToList();
 
-            int registrosPorPagina = 10;
+            int registrosPorPagina = 8;
             int totalDescuentos = listado.Count;
             int cantidadPaginas = Convert.ToInt32(Math.Ceiling((double)totalDescuentos / registrosPorPagina));
 

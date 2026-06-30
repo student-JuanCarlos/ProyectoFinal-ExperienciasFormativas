@@ -404,13 +404,13 @@
                                                   r.Estado == 2 ? "Concluido" : "Cancelado";
                                 <div class="reserva-card">
                                     <div class="reserva-fecha-col">
-                                        <div class="fecha-dia">@r.FechaReserva.Day</div>
-                                        <div class="fecha-mes">@r.FechaReserva.ToString("MMM", new System.Globalization.CultureInfo("es-PE"))</div>
-                                        <div class="fecha-año">@r.FechaReserva.Year</div>
+                                        <div class="fecha-dia">@r.FechaReserva?.Day</div>
+                                        <div class="fecha-mes">@r.FechaReserva?.ToString("MMM", new System.Globalization.CultureInfo("es-PE"))</div>
+                                        <div class="fecha-año">@r.FechaReserva?.Year</div>
                                     </div>
                                     <div class="reserva-info">
                                         <div class="reserva-datos">
-                                            <div class="reserva-hora">@r.HoraReserva.ToString(@"hh\:mm")</div>
+                                            <div class="reserva-hora">@r.HoraReserva?.ToString(@"hh\:mm")</div>
                                             <div class="reserva-personas">@r.CantidadPersonas personas</div>
                                             <div class="reserva-costo">S/ @r.CostoTotal.ToString("0.00")</div>
                                         </div>

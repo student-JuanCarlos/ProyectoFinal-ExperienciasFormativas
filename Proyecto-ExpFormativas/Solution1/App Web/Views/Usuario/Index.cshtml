@@ -51,6 +51,13 @@
             padding: 1.4rem 1.2rem 1.2rem;
             border-bottom: 1px solid rgba(255,255,255,0.07);
         }
+        .sidebar-footer a {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; color: rgba(255,255,255,0.35);
+            text-decoration: none; transition: color 0.2s;
+        }
+        .sidebar-footer a:hover { color: var(--danger); }
+
         .sidebar-logo { font-size: 14px; font-weight: 700; color: var(--acento); }
         .sidebar-sub  { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
         .sidebar-nav  { flex: 1; padding: 0.8rem 0; }
@@ -350,17 +357,23 @@
         <div class="sidebar-sub">Sistema interno</div>
     </div>
     <nav class="sidebar-nav">
-        <div class="nav-label">Operaciones</div>
-            <a href="/Venta/Index"    class="nav-item"><i class="bi bi-receipt"></i> Ventas</a>
-            <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
-        <div class="nav-label">Catálogo</div>
-            <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
-            <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
-            <a href="/Descuento/Index" class="nav-item"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
-       <div class="nav-label">Gestión</div>
-            <a href="/Mesa/Index"    class="nav-item"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
-            <a href="/Usuario/Index" class="nav-item active"><i class="bi bi-people"></i> Usuarios</a>
-            <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
+            <div class="nav-label">Operaciones</div>
+                <a href="/Venta/Index"    class="nav-item"><i class="bi bi-receipt"></i> Ventas</a>
+                <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
+            <div class="nav-label">Catálogo</div>
+                <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
+            @if (User.IsInRole("Administrador"))
+            {
+                <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
+                <a href="/Descuento/Index" class="nav-item"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
+            }
+            <div class="nav-label">Gestión</div>
+                <a href="/Mesa/Index"    class="nav-item"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
+            @if (User.IsInRole("Administrador"))
+             {
+                <a href="/Usuario/Index" class="nav-item active"><i class="bi bi-people"></i> Usuarios</a>
+                <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
+             }
     </nav>
     <div class="sidebar-footer">
         <a asp-action="CerrarSesion" asp-controller="Usuario"><i class="bi bi-box-arrow-left"></i> Cerrar sesión</a>

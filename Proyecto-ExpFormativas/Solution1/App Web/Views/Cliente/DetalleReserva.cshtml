@@ -363,11 +363,11 @@
                     <div class="datos-reserva">
                         <div class="dato-r">
                             <span class="dato-r-lbl">Fecha</span>
-                            <span class="dato-r-val">@Model.FechaReserva.ToString("dd/MM/yyyy")</span>
+                            <span class="dato-r-val">@Model.FechaReserva?.ToString("dd/MM/yyyy")</span>
                         </div>
                         <div class="dato-r">
                             <span class="dato-r-lbl">Hora</span>
-                            <span class="dato-r-val">@Model.HoraReserva.ToString(@"hh\:mm")</span>
+                            <span class="dato-r-val">@Model.HoraReserva?.ToString(@"hh\:mm")</span>
                         </div>
                         <div class="dato-r">
                             <span class="dato-r-lbl">Personas</span>
@@ -433,7 +433,7 @@
             <div class="campo-grup">
                 <label class="campo-lbl">Fecha</label>
                 <input type="date" id="editFecha" class="campo-inp campo-inp-fecha"
-                       value="@Model.FechaReserva.ToString("yyyy-MM-dd")" />
+                       value="@Model.FechaReserva?.ToString("yyyy-MM-dd")" />
             </div>
             <div class="campo-grup">
             <label class="campo-lbl">Hora</label>
@@ -441,7 +441,7 @@
                     <select id="editHora" class="campo-inp"
                         style="cursor:pointer; appearance:none; -webkit-appearance:none; padding-right:1.4rem;">
                         @{
-                            var horaActual = Model.HoraReserva.ToString(@"hh\:mm");
+                            var horaActual = Model.HoraReserva?.ToString(@"hh\:mm");
                             var horas = new[] {
                                 "10:00","10:30","11:00","11:30","12:00","12:30",
                                 "13:00","13:30","14:00","14:30","15:00","15:30",
@@ -501,8 +501,8 @@
         <div class="modal-titulo">Cancelar reserva</div>
         <p style="font-size:0.85rem; color:#666; margin-bottom:1rem;">
             ¿Estás seguro de cancelar tu reserva del
-            <strong>@Model.FechaReserva.ToString("dd/MM/yyyy")</strong>
-            a las <strong>@Model.HoraReserva.ToString(@"hh\:mm")</strong>?
+            <strong>@Model.FechaReserva?.ToString("dd/MM/yyyy")</strong>
+            a las <strong>@Model.HoraReserva?.ToString(@"hh\:mm")</strong>?
         </p>
         <div class="confirm-aviso">
             <i class="bi bi-exclamation-triangle"></i>
@@ -520,8 +520,8 @@
 <script>
 const idReserva       = @Model.IdReserva;
 const personasOrig    = @Model.CantidadPersonas;
-const fechaOrig       = '@Model.FechaReserva.ToString("yyyy-MM-dd")';
-const horaOrig        = '@Model.HoraReserva.ToString(@"hh\:mm\:ss")';
+const fechaOrig       = '@Model.FechaReserva?.ToString("yyyy-MM-dd")';
+const horaOrig        = '@Model.HoraReserva?.ToString(@"hh\:mm\:ss")';
 const tipoReserva     = '@Model.TipoReserva';
 const mesasReservaIds = @Html.Raw(mesaIdsJson); 
 

@@ -15,18 +15,25 @@ namespace App_Web.Controllers
         private readonly CargoService cargoService;
         private readonly RolService rolService;
         private readonly MesaService mesaService;
+        private readonly DescuentoService descuentoService;
 
-        public UsuarioController(UsuarioService usuario, CargoService cargo, RolService rol, MesaService mesa)
+        public UsuarioController(UsuarioService usuario, CargoService cargo, RolService rol, MesaService mesa, DescuentoService descuento)
         {
             usuarioService = usuario;
             cargoService = cargo;
             rolService = rol;
             mesaService = mesa;
+            descuentoService = descuento;
         }
 
         [HttpGet]
         public IActionResult Index(string Busqueda = null, bool? Estado = null)
         {
+
+            if (HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Login", "Usuario");
+            }
 
             ViewBag.Rol = rolService.Listado(null).Select(r => r.ToViewModel()).ToList();
             ViewBag.Cargo = cargoService.ListadoCargo(null).Select(c => c.ToViewModel()).ToList();
@@ -71,6 +78,7 @@ namespace App_Web.Controllers
             }
 
             mesaService.ActualizarEstadoMesasHoy();
+            descuentoService.ActualizarEstadoDescuentosHoy();
 
             var claims = new List<Claim>
             {

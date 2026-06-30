@@ -16,6 +16,12 @@ namespace App_Web.Controllers
 
         public IActionResult Index(string Busqueda)
         {
+
+            if(HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Login", "Usuario");
+            }
+
             var listado = categoriaservice.ListadoCategoria(Busqueda).Select(c => c.ToViewModel()).ToList();
 
             return View(listado);

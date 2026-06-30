@@ -15,9 +15,16 @@ namespace App_Web.Models.Extension
                 NumeroMesa = mesa.NumeroMesa,
                 EspacioOcupable = mesa.EspacioOcupable,
                 Estado = mesa.Estado,
-                OcupadoPor = mesa.OcupadoPor,
-                HoraReserva = mesa.HoraReserva,
-                FechaReserva = mesa.FechaReserva,
+                reserva = mesa.reserva != null ? new ReservaVM()
+                {
+                    FechaReserva = mesa.reserva.FechaReserva,
+                    HoraReserva = mesa.reserva.HoraReserva,
+                    NombreCliente = mesa.reserva.NombreCliente
+                } : null,
+                cliente = mesa.cliente != null ? new ClienteVM()
+                {
+                    NombreCompleto = mesa.cliente.NombreCompleto
+                } : null
             };
         }
 

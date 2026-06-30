@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO.Pipelines;
 using System.Text;
 
 namespace Data.Repository
@@ -146,10 +147,13 @@ namespace Data.Repository
                         reserva = new Reserva()
                         {
                             TipoReserva = reader["TipoReserva"].ToString(),
+                            NombreCliente = reader["NombreCliente"] == DBNull.Value ? null : reader["NombreCliente"].ToString(),
+                            TelefonoCliente = reader["TelefonoCliente"] == DBNull.Value ? null : reader["TelefonoCliente"].ToString(),
                             FechaReserva = Convert.ToDateTime(reader["FechaReserva"]),
                             HoraReserva = (TimeSpan)reader["HoraReserva"],
                             CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
                             CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
+                            Estado = Convert.ToInt32(reader["Estado"]),
                             DetalleMesa = new List<DetalleReserva>(),
                             usuario = usuario
                         };
@@ -158,9 +162,16 @@ namespace Data.Repository
                     reader.NextResult();
                     while (reader.Read())
                     {
+
+                        var mesa = new Mesa
+                        {
+                            IdMesa = Convert.ToInt32(reader["IdMesa"]),
+                            NumeroMesa = Convert.ToInt32(reader["NumeroMesa"])
+                        };
+
                         reserva.DetalleMesa.Add(new DetalleReserva()
                         {
-                            mesa = new Mesa { NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]) }
+                            mesa = mesa
                         });
                     }
 

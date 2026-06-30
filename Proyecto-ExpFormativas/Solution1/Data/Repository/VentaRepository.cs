@@ -154,6 +154,7 @@ namespace Data.Repository
 
                         venta = new Venta()
                         {
+                            IdVenta = Convert.ToInt32(reader["IdVenta"]),
                             reserva = reserva,
                             usuario = usuario,
                             FechaVenta = Convert.ToDateTime(reader["FechaVenta"]),

@@ -17,9 +17,9 @@ namespace Entities
 
         public string TelefonoCliente { get; set; }
 
-        public DateTime FechaReserva { get; set; }
+        public DateTime? FechaReserva { get; set; }
 
-        public TimeSpan HoraReserva { get; set; }
+        public TimeSpan? HoraReserva { get; set; }
 
         public int CantidadPersonas { get; set; }
 

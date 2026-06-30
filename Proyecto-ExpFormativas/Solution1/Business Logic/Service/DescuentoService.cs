@@ -37,5 +37,10 @@ namespace Business_Logic.Service
         {
             return descuentoDB.Listado(Busqueda, Estado);
         }
+
+        public int ActualizarEstadoDescuentosHoy()
+        {
+            return descuentoDB.ActualizarEstadoDescuentosHoy();
+        }
     }
 }

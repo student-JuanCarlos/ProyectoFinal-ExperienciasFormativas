@@ -11,9 +11,9 @@
 
         public int Estado { get; set; }
 
-        public string OcupadoPor { get; set; }
-        public TimeSpan? HoraReserva { get; set; }
-        public DateTime? FechaReserva { get; set; }
+        public ReservaVM reserva {  get; set; }
+
+        public ClienteVM cliente { get; set; }
 
     }
 }

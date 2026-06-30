@@ -108,11 +108,7 @@ CREATE TABLE Reserva(
 	IdUsuario INT NULL FOREIGN KEY REFERENCES Usuario(IdUsuario),
 	CONSTRAINT ValidacionSesion CHECK(
 		IdCliente IS NOT NULL OR IdUsuario IS NOT NULL
-	),
-	CONSTRAINT DF_Reserva_HoraReserva 
-		DEFAULT CAST(GETDATE() AS TIME) FOR HoraReserva,
-	CONSTRAINT DF_Reserva_FechaReserva 
-		DEFAULT GETDATE() FOR FechaReserva
+	)
 );
 
 CREATE TABLE DetalleReserva(
@@ -298,7 +294,6 @@ END
 
 GO
 CREATE PROC sp_FiltradoMesa
-@Busqueda VARCHAR(150)
 AS
 BEGIN
     SELECT
@@ -306,18 +301,25 @@ BEGIN
         m.NumeroMesa,
         m.EspacioOcupable,
         CASE
-            WHEN r.IdReserva IS NULL THEN 1  -- libre
-            WHEN r.HoraReserva > CAST(GETDATE() AS TIME) THEN 2  -- pendiente
-            ELSE 3  -- ocupada
-        END AS Estado,
-		c.Nombres+' '+c.Apellidos AS OcupadoPor
+            WHEN NOT EXISTS (
+                SELECT 1 FROM DetalleReserva dm
+                INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
+                WHERE dm.IdMesa = m.IdMesa
+                AND r.FechaReserva = CAST(GETDATE() AS DATE)
+                AND r.Estado = 1
+            ) THEN 1  -- libre
+            WHEN EXISTS (
+				SELECT 1 FROM DetalleReserva dm
+				INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
+				WHERE dm.IdMesa = m.IdMesa
+				AND r.FechaReserva = CAST(GETDATE() AS DATE)
+				AND r.Estado = 1
+				AND r.HoraReserva > DATEADD(HOUR, 2, CAST(GETDATE() AS TIME))
+				AND r.HoraReserva > CAST(GETDATE() AS TIME)  
+			) THEN 2 -- pendiente
+            ELSE 3    -- ocupada 
+        END AS Estado
     FROM Mesa m
-    LEFT JOIN DetalleReserva dm ON dm.IdMesa = m.IdMesa
-    LEFT JOIN Reserva r ON dm.IdReserva = r.IdReserva
-        AND r.FechaReserva = CAST(GETDATE() AS DATE)
-        AND r.Estado = 1
-	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
-		WHERE (@Busqueda IS NULL OR c.Nombres+' '+c.Apellidos LIKE '%'+@Busqueda+'%')
 END
 
 GO
@@ -329,17 +331,35 @@ BEGIN
         m.IdMesa,
         m.NumeroMesa,
         m.EspacioOcupable,
-        m.Estado,
-        r.HoraReserva,
-        r.FechaReserva,
-        c.Nombres+' '+c.Apellidos AS OcupadoPor
+        CASE
+            WHEN NOT EXISTS (
+                SELECT 1 FROM DetalleReserva dm
+                INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
+                WHERE dm.IdMesa = m.IdMesa
+                AND r.FechaReserva = CAST(GETDATE() AS DATE)
+                AND r.Estado = 1
+            ) THEN 1 --libre
+            WHEN EXISTS (
+				SELECT 1 FROM DetalleReserva dm
+				INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
+				WHERE dm.IdMesa = m.IdMesa
+				AND r.FechaReserva = CAST(GETDATE() AS DATE)
+				AND r.Estado = 1
+				AND r.HoraReserva > DATEADD(HOUR, 2, CAST(GETDATE() AS TIME))
+				AND r.HoraReserva > CAST(GETDATE() AS TIME)  
+			) THEN 2 -- pendiente
+            ELSE 3 --ocupado
+        END AS Estado,
+		ISNULL(r.HoraReserva, NULL) AS HoraReserva,
+        ISNULL(c.Nombres+' '+c.Apellidos, r.NombreCliente) AS OcupadoPor
     FROM Mesa m
-    LEFT JOIN DetalleReserva dm ON dm.IdMesa = m.IdMesa
-    LEFT JOIN Reserva r ON dm.IdReserva = r.IdReserva
+    INNER JOIN DetalleReserva dm ON dm.IdMesa = m.IdMesa
+    INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
         AND r.FechaReserva = CAST(GETDATE() AS DATE)
         AND r.Estado = 1
     LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
     WHERE m.IdMesa = @IdMesa
+	ORDER BY r.HoraReserva
 END
 
 ------------------------------------
@@ -928,17 +948,21 @@ AS
 BEGIN
 	SELECT 
 		ISNULL(c.Nombres, u.NombreUsuario) AS GeneradoPor,
+		r.NombreCliente,
+		r.TelefonoCliente,
 		r.TipoReserva,
 		r.FechaReserva,
 		r.HoraReserva,
 		r.CantidadPersonas,
-		r.CostoTotal
+		r.CostoTotal,
+		r.Estado
 	FROM Reserva r
 	LEFT JOIN Usuario u ON u.IdUsuario = r.IdUsuario
 	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
 	WHERE IdReserva = @IdReserva
 
 	SELECT 
+		m.IdMesa,
 		m.NumeroMesa
 	FROM Mesa m
 	INNER JOIN DetalleReserva dr ON dr.IdMesa = m.IdMesa
@@ -1034,6 +1058,7 @@ BEGIN
 	WHERE (@Busqueda IS NULL OR r.TipoReserva = @Busqueda
 	OR c.Nombres+' '+c.Apellidos LIKE '%'+@Busqueda+'%') AND 
 	(@Estado IS NULL OR r.Estado = @Estado)
+	AND r.FechaReserva = CAST(GETDATE() AS DATE)
 END
 GO
 
@@ -1065,12 +1090,12 @@ END
 ------------------------------------
 --------SP DE Venta
 ------------------------------------
-
+GO
 CREATE TYPE TVP_DetalleVenta AS TABLE(
 	IdPlatillo INT,
 	Cantidad INT
 );
-
+GO
 CREATE TYPE TVP_DetalleDescuento AS TABLE(
 	IdDescuento INT NULL,
 	PorcentajeAplicado DECIMAL (4,2) NULL
@@ -1139,6 +1164,7 @@ CREATE PROC sp_DetalleVenta
 AS
 BEGIN
 	SELECT 
+		v.IdVenta,
 		ISNULL(c.Nombres+' '+c.Apellidos, r.NombreCliente) AS NombreCompleto,
 		r.TipoReserva,
 		ISNULL(c.Email, r.TelefonoCliente) AS Contacto,
@@ -1194,7 +1220,9 @@ END
 INSERT INTO ConfiguracionReserva VALUES(1, 10.00);
 INSERT INTO Rol (NombreRol) VALUES('Administrador');
 INSERT INTO Rol (NombreRol)VALUES('Trabajador');
+INSERT INTO Cargo (NombreCargo) VALUES('Admin');
 
+INSERT INTO Usuario(NombreUsuario, Documento, Telefono, Email, Contraseña, Sueldo, IdCargo, IdRol) VALUES('useradmin', 11111111, 2222222, 'useradmin@gmail.com', 123, 1200.00, 1, 1)
 ------------------------------------
 --------INSERCIONES BASICAS
 ------------------------------------
@@ -1209,7 +1237,21 @@ SELECT * FROM Usuario;
 SELECT * FROM Venta;
 SELECT * FROM DetalleDescuento;
 SELECT * FROM DetalleVenta;
+SELECT * FROM Cargo;
+SELECT * FROM Categoria;
 
+------------------------------------
+--------INDICES
+------------------------------------
+CREATE INDEX IDX_Ciente_Id ON Cliente(IdCliente);
+CREATE INDEX IDX_Mesa_Id ON Mesa(IdMesa);
+CREATE INDEX IDX_Descuento_Id ON Descuento(IdDescuento);
+CREATE INDEX IDX_Reserva_Id ON Reserva(IdReserva);
+CREATE INDEX IDX_DetalleReserva ON DetalleReserva(IdDetalleMesa);
+CREATE INDEX IDX_Usuario_Id ON Usuario(IdUsuario);
+CREATE INDEX IDX_Venta_Id ON Venta(IdVenta);
+CREATE INDEX IDX_DetalleVenta_Id ON DetalleVenta(IdDetalleVenta);
+CREATE INDEX IDX_DetalleDescuento_Id ON DetalleDescuento(IdDetalleDescuento);
 ------------------------------------
 --------Control interno del sistema
 ------------------------------------
@@ -1261,3 +1303,23 @@ BEGIN
 	SET Estado = 3
 	WHERE Estado = 1 AND FechaReserva < CAST(GETDATE() AS DATE)
 END 
+
+GO
+CREATE PROC sp_ActualizarEstadoDescuentosHoy
+AS
+BEGIN
+	SET NOCOUNT ON;
+    UPDATE Descuento
+    SET Estado = 0  -- Inactivo
+    WHERE FechaInicio IS NOT NULL 
+      AND FechaFin IS NOT NULL
+      AND (CAST(GETDATE() AS DATE) < CAST(FechaInicio AS DATE) 
+           OR CAST(GETDATE() AS DATE) > CAST(FechaFin AS DATE));
+
+    UPDATE Descuento
+    SET Estado = 1  -- Activo
+    WHERE FechaInicio IS NOT NULL 
+      AND FechaFin IS NOT NULL
+      AND CAST(GETDATE() AS DATE) >= CAST(FechaInicio AS DATE)
+      AND CAST(GETDATE() AS DATE) <= CAST(FechaFin AS DATE);
+END

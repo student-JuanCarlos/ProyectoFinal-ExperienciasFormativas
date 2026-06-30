@@ -1,4 +1,6 @@
 ﻿using Business_Logic.Service;
+using Business_Logic.Utilidades.PDF.Generate;
+using Business_Logic.Utilidades.PDF.Interface;
 using Data.Infraestructure;
 using Data.Repository;
 using Entities;
@@ -46,6 +48,9 @@ namespace Business_Logic.Inyeccion
 
             services.AddScoped<IVenta, VentaRepository>();
             services.AddScoped<VentaService>();
+
+            services.AddScoped<IVentaPDF, VentaPDFService>();
+            services.AddScoped<VentaPDFService>();
 
         }
 

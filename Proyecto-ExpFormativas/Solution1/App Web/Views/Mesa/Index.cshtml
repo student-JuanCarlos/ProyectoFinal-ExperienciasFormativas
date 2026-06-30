@@ -113,7 +113,6 @@
             font-family: 'Lato', sans-serif; outline: none;
             width: 200px; transition: border-color 0.2s;
         }
-        .input-busqueda:focus { border-color: var(--carbon); }
 
         #salon {
             position: relative; width: 100%; height: 500px;
@@ -229,17 +228,23 @@
         <div class="sidebar-sub">Sistema interno</div>
     </div>
     <nav class="sidebar-nav">
-        <div class="nav-label">Operaciones</div>
-            <a href="/Venta/Index"    class="nav-item"><i class="bi bi-receipt"></i> Ventas</a>
-            <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
-        <div class="nav-label">Catálogo</div>
-            <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
-            <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
-            <a href="/Descuento/Index" class="nav-item"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
-        <div class="nav-label">Gestión</div>
-            <a href="/Mesa/Index"    class="nav-item active"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
-            <a href="/Usuario/Index" class="nav-item"><i class="bi bi-people"></i> Usuarios</a>
-            <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
+            <div class="nav-label">Operaciones</div>
+                <a href="/Venta/Index"    class="nav-item"><i class="bi bi-receipt"></i> Ventas</a>
+                <a href="/Reserva/Index"  class="nav-item"><i class="bi bi-calendar-check"></i> Reservas</a>
+            <div class="nav-label">Catálogo</div>
+                <a href="/Platillo/Index"  class="nav-item"><i class="bi bi-egg-fried"></i> Platillos</a>
+            @if (User.IsInRole("Administrador"))
+            {
+                <a href="/Categoria/Index" class="nav-item"><i class="bi bi-tags"></i> Categorías</a>
+                <a href="/Descuento/Index" class="nav-item"><i class="bi bi-ticket-perforated"></i> Descuentos</a>
+            }
+            <div class="nav-label">Gestión</div>
+                <a href="/Mesa/Index"    class="nav-item active"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
+            @if (User.IsInRole("Administrador"))
+             {
+                <a href="/Usuario/Index" class="nav-item"><i class="bi bi-people"></i> Usuarios</a>
+                <a href="/Cargo/Index"   class="nav-item"><i class="bi bi-briefcase"></i> Cargos</a>
+             }
     </nav>
     <div class="sidebar-footer">
         <a asp-action="CerrarSesion" asp-controller="Usuario"><i class="bi bi-box-arrow-left"></i> Cerrar sesión</a>
@@ -285,9 +290,9 @@
                         <div class="leyenda-item"><div class="leyenda-dot" style="background:#FFDD00;"></div> Pendiente</div>
                         <div class="leyenda-item"><div class="leyenda-dot" style="background:#FC4C28;"></div> Ocupada</div>
                     </div>
-                    <input type="text" id="inputBusqueda" class="input-busqueda"
-                           placeholder="Buscar cliente..." oninput="filtrarMesas(this.value)" />
                 </div>
+                @if (User.IsInRole("Administrador"))
+                {
                 <div class="salon-toolbar-right">
                     <button class="btn-outline" id="btnInteractuar" onclick="toggleInteract()">
                         <i class="bi bi-arrows-move"></i> Interactuar
@@ -296,6 +301,7 @@
                         <i class="bi bi-plus-lg"></i> Nueva Mesa
                     </button>
                 </div>
+                }
             </div>
             <div id="salon"></div>
             <div class="salon-footer" id="salonFooter">Modo vista — haz click en una mesa para ver su detalle</div>
@@ -545,20 +551,6 @@
         actualizarBotonesRotar();
     }
 
-
-    function filtrarMesas(busqueda) {
-        if (!busqueda || busqueda.trim() === '') {
-            mesasFiltradas = [...mesasData];
-            renderSalon();
-            return;
-        }
-        fetch(`/Mesa/Index?Busqueda=${encodeURIComponent(busqueda)}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.json())
-        .then(data => { mesasFiltradas = data; renderSalon(); });
-    }
-
     function abrirModalMesa(id = null) {
         document.getElementById('mIdMesa').value        = 0;
         document.getElementById('mNumeroMesa').value    = '';
@@ -612,52 +604,51 @@
     }
 
     function abrirDetalle(idMesa) {
-        fetch(`/Mesa/DetalleMesa?id=${idMesa}`)
-            .then(r => r.json())
-            .then(d => {
-                if (!d) return;
-                mesaDetalleActual = d;
+    fetch(`/Mesa/DetalleMesa?id=${idMesa}`)
+        .then(r => r.json())
+        .then(d => {
+            if (!d) return;
+            mesaDetalleActual = d;
 
-                document.getElementById('dNumero').textContent  = 'Mesa ' + d.numeroMesa;
-                document.getElementById('dEspacio').textContent = d.espacioOcupable + ' personas';
+            document.getElementById('dNumero').textContent  = 'Mesa ' + d.numeroMesa;
+            document.getElementById('dEspacio').textContent = d.espacioOcupable + ' personas';
 
-                const estadoMap = {
-                    1: ['Libre',     'badge-libre'],
-                    2: ['Pendiente', 'badge-pendiente'],
-                    3: ['Ocupada',   'badge-ocupado']
-                };
-                const [txt, cls] = estadoMap[d.estado] || ['Sin estado', ''];
-                document.getElementById('dEstado').innerHTML =
-                    `<span class="badge-estado ${cls}">${txt}</span>`;
+            const estadoMap = {
+                1: ['Libre',     'badge-libre'],
+                2: ['Pendiente', 'badge-pendiente'],
+                3: ['Ocupada',   'badge-ocupado']
+            };
+            const [txt, cls] = estadoMap[d.estado] || ['Sin estado', ''];
+            document.getElementById('dEstado').innerHTML =
+                `<span class="badge-estado ${cls}">${txt}</span>`;
 
-                const rowOcupado = document.getElementById('dRowOcupadoPor');
-                if (d.ocupadoPor && d.ocupadoPor.trim() !== '') {
-                    document.getElementById('dOcupadoPor').textContent = d.ocupadoPor;
-                    rowOcupado.style.display = 'block';
-                } else {
-                    rowOcupado.style.display = 'none';
-                }
+            const nombreReservado = d.reserva?.nombreCliente ?? d.cliente?.nombreCompleto ?? null;
+            const horaReserva = (d.reserva?.horaReserva && d.reserva.horaReserva !== '00:00:00') 
+                                ? d.reserva.horaReserva 
+                                : null;
 
-                const rowFecha = document.getElementById('dRowFecha');
-                if (d.fechaReserva) {
-                    const fecha = new Date(d.fechaReserva);
-                    document.getElementById('dFecha').textContent =
-                        fecha.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    rowFecha.style.display = 'block';
-                } else {
-                    rowFecha.style.display = 'none';
-                }
+            const rowOcupado  = document.getElementById('dRowOcupadoPor');
+            const labelOcupado = document.querySelector('#dRowOcupadoPor .dato-lbl');
 
-                const rowHora = document.getElementById('dRowHora');
-                if (d.horaReserva) {
-                    document.getElementById('dHora').textContent = d.horaReserva;
-                    rowHora.style.display = 'block';
-                } else {
-                    rowHora.style.display = 'none';
-                }
+            if ((d.estado === 2 || d.estado === 3) && nombreReservado) {
+                document.getElementById('dOcupadoPor').textContent = nombreReservado;
+                labelOcupado.textContent = d.estado === 3 ? 'Ocupada por' : 'Reservada para';
+                rowOcupado.style.display = 'block';
+            } else {
+                rowOcupado.style.display = 'none';
+            }
 
-                document.getElementById('modalDetalle').classList.add('show');
-            });
+            const rowHora = document.getElementById('dRowHora');
+            if ((d.estado === 2 || d.estado === 3) && horaReserva) {
+                document.getElementById('dHora').textContent = formatearHora(horaReserva);
+                rowHora.style.display = 'block';
+            } else {
+                rowHora.style.display = 'none';
+            }
+
+            document.getElementById('dRowFecha').style.display = 'none';
+            document.getElementById('modalDetalle').classList.add('show');
+        });
     }
 
     function cerrarDetalle() { document.getElementById('modalDetalle').classList.remove('show'); }
@@ -667,6 +658,16 @@
         if (mesaDetalleActual) abrirModalMesa(mesaDetalleActual.idMesa);
     }
 
+    function formatearHora(hora) {
+        if (!hora) return '—';
+        const partes = hora.split(':');
+        let horas = parseInt(partes[0]);
+        const minutos = partes[1].padStart(2, '0');
+        const periodo = horas >= 12 ? 'PM' : 'AM';
+        horas = horas % 12 || 12;
+        return `${horas}:${minutos} ${periodo}`;
+    }
+        
     renderSalon();
 </script>
 
