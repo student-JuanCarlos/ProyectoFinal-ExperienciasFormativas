@@ -13,9 +13,9 @@ namespace App_Web.Models.VM
 
         public decimal Precio { get; set; }
 
-        public int IdCategoria { get; set; }
+        public int? IdCategoria { get; set; }
 
-        public CategoriaVM categoria { get; set; }
+        public CategoriaVM? categoria { get; set; }
 
         public string FotoActual { get; set; }
 

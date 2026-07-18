@@ -15,9 +15,9 @@ namespace Entities
 
         public decimal Precio { get; set; }
 
-        public int IdCategoria { get; set; }
+        public int? IdCategoria { get; set; }
 
-        public Categoria categoria { get; set; }
+        public Categoria? categoria { get; set; }
 
     }
 }

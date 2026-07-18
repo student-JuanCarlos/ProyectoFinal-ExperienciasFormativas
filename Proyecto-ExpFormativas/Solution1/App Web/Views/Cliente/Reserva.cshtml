@@ -53,6 +53,20 @@
             box-shadow: 0 30px 80px rgba(0,0,0,0.4);
         }
 
+        .hora-chip.hora-bloqueada {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+            text-decoration: line-through;
+            color: #aaa;
+        }
+
+        .btn-hora.hora-bloqueada {
+            opacity: 0.35;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
         .card-header {
             padding: 1.2rem 1.8rem;
             display: flex; align-items: center; justify-content: space-between;
@@ -410,6 +424,7 @@
                     <span class="turno-hora">16:00 — 23:00</span>
                 </button>
             </div>
+            <div id="alertaTurno" class="alerta-form" style="display:none;"></div>
         </div>
 
         <!-- PASO 5 — HORA -->
@@ -579,6 +594,28 @@
         irPaso(3);
     }
 
+    function tieneHorasDisponibles(turno) {
+        const inicio = turno === 'almuerzo' ? 10 : 16;
+        const fin    = turno === 'almuerzo' ? 16 : 23;
+        const ahora  = new Date();
+        const hoyStr = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`;
+        const fechaStr = estado.fecha
+            ? `${estado.fecha.getFullYear()}-${String(estado.fecha.getMonth()+1).padStart(2,'0')}-${String(estado.fecha.getDate()).padStart(2,'0')}`
+            : '';
+        const esHoy = fechaStr === hoyStr;
+
+        if (!esHoy) return true; 
+
+        for (let h = inicio; h < fin; h++) {
+            for (let m = 0; m < 60; m += 30) {
+                const horaBtn = new Date();
+                horaBtn.setHours(h, m, 0, 0);
+                if (horaBtn > new Date(ahora.getTime() + 15 * 60000)) return true;
+            }
+        }
+        return false;
+    }
+
     function renderCalendario() {
         const hoy      = new Date(); hoy.setHours(0,0,0,0);
         const año      = calFecha.getFullYear();
@@ -636,6 +673,16 @@
     }
 
     function selTurno(turno) {
+        if (!tieneHorasDisponibles(turno)) {
+            const nombreTurno = turno === 'almuerzo' ? 'Almuerzo' : 'Cena';
+        
+            const alerta = document.getElementById('alertaTurno'); 
+            if (alerta) {
+                alerta.textContent   = `El turno de ${nombreTurno} ya no tiene horas disponibles para hoy.`;
+                alerta.style.display = 'block';
+            }
+            return; 
+        }
         estado.turno = turno;
         renderHoras();
         irPaso(5);
@@ -647,15 +694,37 @@
         const lista  = document.getElementById('horasLista');
         lista.innerHTML = '';
 
+        const ahora  = new Date();
+        const hoyStr = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`;
+        const fechaStr = estado.fecha
+            ? `${estado.fecha.getFullYear()}-${String(estado.fecha.getMonth()+1).padStart(2,'0')}-${String(estado.fecha.getDate()).padStart(2,'0')}`
+            : '';
+        const esHoy = fechaStr === hoyStr;
+
         for (let h = inicio; h < fin; h++) {
             for (let m = 0; m < 60; m += 30) {
                 const hh  = String(h).padStart(2, '0');
                 const mm  = String(m).padStart(2, '0');
                 const txt = `${hh}:${mm}`;
-                lista.innerHTML += `
-                <button class="btn-hora" onclick="selHora('${txt}')">
-                    <i class="bi bi-clock"></i> ${txt}
-                </button>`;
+
+                let bloqueada = false;
+                if (esHoy) {
+                    const horaBtn = new Date();
+                    horaBtn.setHours(h, m, 0, 0);
+                    bloqueada = horaBtn <= new Date(ahora.getTime() + 15 * 60000);
+                }
+
+                if (bloqueada) {
+                    lista.innerHTML += `
+                    <button class="btn-hora hora-bloqueada" disabled>
+                        <i class="bi bi-clock"></i> ${txt}
+                    </button>`;
+                } else {
+                    lista.innerHTML += `
+                    <button class="btn-hora" onclick="selHora('${txt}')">
+                        <i class="bi bi-clock"></i> ${txt}
+                    </button>`;
+                }
             }
         }
     }
@@ -850,6 +919,47 @@
         });
 
         irPaso(7);
+    }
+
+    function generarHoras(turno) {
+        horaSeleccionada = null;
+        const contenedor = document.getElementById('horasContainer');
+        contenedor.innerHTML = '';
+
+        const horas = turno === 'almuerzo'
+            ? ['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30']
+            : ['16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00','22:30','23:00'];
+
+        const fechaSeleccionada = document.getElementById('fechaReserva').value;
+        const ahora             = new Date();
+        const hoyStr            = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`;
+        const esHoy             = fechaSeleccionada === hoyStr;
+
+        horas.forEach(h => {
+            const [hh, mm] = h.split(':').map(Number);
+
+            let bloqueada = false;
+            if (esHoy) {
+                const horaChip = new Date();
+                horaChip.setHours(hh, mm, 0, 0);
+                bloqueada = horaChip <= new Date(ahora.getTime() + 15 * 60000);
+            }
+
+            const chip = document.createElement('div');
+            chip.className = 'hora-chip' + (bloqueada ? ' hora-bloqueada' : '');
+            chip.textContent = h;
+
+            if (!bloqueada) {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('.hora-chip').forEach(c => c.classList.remove('selected'));
+                    chip.classList.add('selected');
+                    horaSeleccionada = h;
+                });
+            }
+
+            contenedor.appendChild(chip);
+        });
+        
     }
 
     function confirmarReserva() {

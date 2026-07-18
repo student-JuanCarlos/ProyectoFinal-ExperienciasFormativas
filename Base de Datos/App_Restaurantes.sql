@@ -195,59 +195,6 @@ BEGIN
 	FROM Rol
 	WHERE (@Busqueda IS NULL OR NombreRol LIKE '%'+@Busqueda+'%')
 END
-
-------------------------------------
---------SP DE Cargo
-------------------------------------
-GO
-CREATE PROC sp_InsertarCargo
-@NombreCargo VARCHAR(50),
-@Descripcion VARCHAR(150) NULL
-AS
-BEGIN
-	SET NOCOUNT ON;
-	INSERT INTO Cargo(NombreCargo, Descripcion) VALUES(@NombreCargo, @Descripcion)
-END
-
-GO
-CREATE PROC sp_ActualizarCargo
-@IdCargo INT,
-@NombreCargo VARCHAR(50),
-@Descripcion VARCHAR(150) NULL
-AS
-BEGIN
-	SET NOCOUNT ON;
-	UPDATE Cargo
-	SET NombreCargo = @NombreCargo,
-	Descripcion = @Descripcion 
-	WHERE IdCargo = @IdCargo
-END
-
-GO
-CREATE PROC sp_DetalleCargo
-@IdCargo INT
-AS
-BEGIN
-	SELECT
-		IdCargo,
-		NombreCargo,
-		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
-	FROM Cargo
-	WHERE IdCargo = @IdCargo
-END
-
-GO
-CREATE PROC sp_ListadoCargo
-@Busqueda VARCHAR(50) = NULL
-AS
-BEGIN
-	SELECT
-		IdCargo,
-		NombreCargo,
-		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
-	FROM Cargo
-	WHERE (@Busqueda IS NULL OR NombreCargo LIKE '%'+@Busqueda+'%')
-END
 ------------------------------------
 --------SP DE Mesa
 ------------------------------------
@@ -321,7 +268,8 @@ BEGIN
         END AS Estado
     FROM Mesa m
 END
-
+DROP PROC sp_DetalleMesa
+EXEC sp_DetalleMesa @IdMesa = 1
 GO
 CREATE PROC sp_DetalleMesa
 @IdMesa INT
@@ -353,82 +301,13 @@ BEGIN
 		ISNULL(r.HoraReserva, NULL) AS HoraReserva,
         ISNULL(c.Nombres+' '+c.Apellidos, r.NombreCliente) AS OcupadoPor
     FROM Mesa m
-    INNER JOIN DetalleReserva dm ON dm.IdMesa = m.IdMesa
-    INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva
+    LEFT JOIN DetalleReserva dm ON dm.IdMesa = m.IdMesa
+    LEFT JOIN Reserva r ON r.IdReserva = dm.IdReserva
         AND r.FechaReserva = CAST(GETDATE() AS DATE)
         AND r.Estado = 1
     LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
     WHERE m.IdMesa = @IdMesa
 	ORDER BY r.HoraReserva
-END
-
-------------------------------------
---------SP DE Categoria
-------------------------------------
-GO
-CREATE PROC sp_InsertarCategoria
-@NombreCategoria VARCHAR(50),
-@Descripcion VARCHAR(150) NULL
-AS
-BEGIN
-	SET NOCOUNT ON;
-	INSERT INTO Categoria(NombreCategoria, Descripcion)
-	VALUES(@NombreCategoria, @Descripcion)
-END
-
-GO
-CREATE PROC sp_ActualizarCategoria
-@IdCategoria INT,
-@NombreCategoria VARCHAR(50),
-@Descripcion VARCHAR(150) NULL
-AS
-BEGIN
-	UPDATE Categoria
-		SET NombreCategoria = @NombreCategoria,
-			Descripcion = @Descripcion
-			WHERE IdCategoria = @IdCategoria
-END
-
-GO
-CREATE PROC sp_FiltradoCategoria
-@Busqueda VARCHAR(50) = NULL
-AS
-BEGIN
-	SELECT
-		IdCategoria,
-		NombreCategoria,
-		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
-	FROM Categoria
-	WHERE (@Busqueda IS NULL OR NombreCategoria LIKE '%'+ @Busqueda +'%')
-END
-
-GO
-CREATE PROC sp_DetalleCategoria
-@IdCategoria INT
-AS
-BEGIN
-	SELECT
-		IdCategoria,
-		NombreCategoria,
-		ISNULL(Descripcion, 'Sin Descripcion') AS Descripcion
-	FROM Categoria
-	WHERE IdCategoria = @IdCategoria
-END
-
-GO
-CREATE PROC sp_EliminarCategoria
-@IdCategoria INT
-AS
-BEGIN
-	SET NOCOUNT ON
-	BEGIN TRAN;
-		UPDATE Platillo
-		SET IdCategoria = NULL
-		WHERE IdCategoria = @IdCategoria
-
-		DELETE FROM Categoria
-		WHERE IdCategoria = @IdCategoria
-	COMMIT;
 END
 ------------------------------------
 --------SP DE Cliente
@@ -777,7 +656,7 @@ BEGIN
 		c.NombreCategoria,
 		p.Precio
 	FROM Platillo p
-	INNER JOIN Categoria c ON c.IdCategoria = p.IdCategoria
+	LEFT JOIN Categoria c ON c.IdCategoria = p.IdCategoria
 	WHERE (@Busqueda IS NULL OR NombrePlatillo LIKE '%'+@Busqueda+'%' OR c.NombreCategoria LIKE '%'+@Busqueda+'%')
 END
 
@@ -794,7 +673,7 @@ BEGIN
 		c.NombreCategoria,
 		p.Precio
 	FROM Platillo p
-	INNER JOIN Categoria c ON c.IdCategoria = p.IdCategoria
+	LEFT JOIN Categoria c ON c.IdCategoria = p.IdCategoria
 	WHERE IdPlatillo = @IdPlatillo
 END
 
@@ -1239,6 +1118,7 @@ SELECT * FROM DetalleDescuento;
 SELECT * FROM DetalleVenta;
 SELECT * FROM Cargo;
 SELECT * FROM Categoria;
+SELECT * FROM Platillo;
 
 ------------------------------------
 --------INDICES

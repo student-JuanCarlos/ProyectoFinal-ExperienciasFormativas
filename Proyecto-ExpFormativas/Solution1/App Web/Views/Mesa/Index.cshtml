@@ -591,15 +591,9 @@
             method: 'POST',
             body: formData
         })
-        .then(r => r.json())
-        .then(data => {
-            if (data.resultado) {
-                cerrarModalMesa();
-                location.reload();
-            } else {
-                alerta.textContent   = data.mensaje;
-                alerta.style.display = 'block';
-            }
+        .then(r => {
+            if (r.redirected) window.location.href = r.url;
+            else location.reload();
         });
     }
 

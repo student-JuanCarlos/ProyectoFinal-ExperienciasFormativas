@@ -1,6 +1,8 @@
-﻿using Data.Infraestructure;
+﻿using Data.Context;
+using Data.Infraestructure;
 using Entities;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -10,147 +12,51 @@ namespace Data.Repository
 {
     public class CategoriaRepository : ICategoria
     {
-        private readonly string cadenaConexion;
+        private readonly AppDbContext _context;
 
-        public CategoriaRepository(IConfiguration config)
+        public CategoriaRepository(AppDbContext context)
         {
-            cadenaConexion = config["ConnectionStrings:database"] ?? string.Empty;
+            _context = context;
         }
 
         public int Actualizar(Categoria c)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ActualizarCategoria";
-                    cmd.Parameters.AddWithValue("@NombreCategoria", c.NombreCategoria);
-                    cmd.Parameters.AddWithValue("@Descripcion", c.Descripcion == null ? (object)DBNull.Value : c.Descripcion);
-                    cmd.Parameters.AddWithValue("@IdCategoria", c.IdCategoria);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Categorias.Update(c);
+            return _context.SaveChanges();
         }
 
         public int Agregar(Categoria c)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_InsertarCategoria";
-                    cmd.Parameters.AddWithValue("@NombreCategoria", c.NombreCategoria);
-                    cmd.Parameters.AddWithValue("@Descripcion", c.Descripcion == null ? (object)DBNull.Value : c.Descripcion);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Categorias.Add(c);
+            return _context.SaveChanges();
         }
 
         public Categoria Detalle(int id)
         {
-            var categoria = new Categoria();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_DetalleCategoria";
-                    cmd.Parameters.AddWithValue("@IdCategoria", id);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        categoria = new Categoria()
-                        {
-                            IdCategoria = Convert.ToInt32(reader["IdCategoria"]),
-                            NombreCategoria = reader["NombreCategoria"].ToString(),
-                            Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString()
-                        };
-                    }
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return categoria;
+            return _context.Categorias.Find(id);
         }
 
         public List<Categoria> Listado(string Busqueda)
         {
-            var listado = new List<Categoria>();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            var query = _context.Categorias.AsQueryable();
+
+            if (!string.IsNullOrEmpty(Busqueda))
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_FiltradoCategoria";
-                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        listado.Add(new Categoria()
-                        {
-                            IdCategoria = Convert.ToInt32(reader["IdCategoria"]),
-                            NombreCategoria = reader["NombreCategoria"].ToString(),
-                            Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString()
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                query = _context.Categorias.Where(c => c.NombreCategoria.Contains(Busqueda));
             }
-            return listado;
+
+            return query.AsNoTracking().ToList();
         }
 
         public int Eliminar(int id)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_EliminarCategoria";
-                    cmd.Parameters.AddWithValue("@IdCategoria", id);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Platillos
+                .Where(p => p.IdCategoria == id)
+                .ExecuteUpdate(setters => setters.SetProperty(p => p.IdCategoria, (int?)null));
+
+            return _context.Categorias
+                .Where(c => c.IdCategoria == id)
+                .ExecuteDelete();
         }
     }
 }

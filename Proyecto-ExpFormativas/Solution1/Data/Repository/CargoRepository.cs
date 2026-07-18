@@ -5,129 +5,47 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Data.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace Data.Repository
 {
     public class CargoRepository : ICargo
     {
-        private readonly string cadenaConexion;
+        private readonly AppDbContext _context;
 
-        public CargoRepository(IConfiguration config)
+        public CargoRepository(AppDbContext context)
         {
-            cadenaConexion = config["ConnectionStrings:database"] ?? string.Empty;
+            _context = context;
         }
 
         public int Actualizar(Cargo c)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ActualizarCargo";
-                    cmd.Parameters.AddWithValue("@NombreCargo", c.NombreCargo);
-                    cmd.Parameters.AddWithValue("@Descripcion", c.Descripcion == null ? (object)DBNull.Value : c.Descripcion);
-                    cmd.Parameters.AddWithValue("@IdCargo", c.IdCargo);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Cargos.Update(c);
+            return _context.SaveChanges();
         }
 
         public int Agregar(Cargo c)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_InsertarCargo";
-                    cmd.Parameters.AddWithValue("@NombreCargo", c.NombreCargo);
-                    cmd.Parameters.AddWithValue("@Descripcion", c.Descripcion == null ? (object)DBNull.Value : c.Descripcion );
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Cargos.Add(c);
+            return _context.SaveChanges();
         }
 
         public Cargo Detalle(int id)
         {
-            var cargo = new Cargo();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_DetalleCargo";
-                    cmd.Parameters.AddWithValue("@IdCargo", id);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        cargo = new Cargo()
-                        {
-                            IdCargo = Convert.ToInt32(reader["IdCargo"]),
-                            NombreCargo = reader["NombreCargo"].ToString(),
-                            Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString()
-                        };
-                    }
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return cargo;
+            return _context.Cargos.Find(id);
         }
 
         public List<Cargo> Listado(string Busqueda)
         {
-            var listado = new List<Cargo>();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            var query = _context.Cargos.AsQueryable();
+
+            if (!string.IsNullOrEmpty(Busqueda))
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ListadoCargo";
-                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        listado.Add(new Cargo()
-                        {
-                            IdCargo = Convert.ToInt32(reader["IdCargo"]),
-                            NombreCargo = reader["NombreCargo"].ToString(),
-                            Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString()
-                        });
-                    }
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                query = query.Where(c => c.NombreCargo.Contains(Busqueda));
             }
-            return listado;
+
+            return query.AsNoTracking().ToList();
         }
     }
 }
