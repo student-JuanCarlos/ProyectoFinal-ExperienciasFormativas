@@ -87,10 +87,6 @@ namespace Data.Repository
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        Cliente cliente = new Cliente()
-                        {
-                            NombreCompleto = reader["NombreCompleto"].ToString()
-                        };
 
                         Reserva reserva = new Reserva()
                         {
@@ -133,7 +129,6 @@ namespace Data.Repository
                     {
                         Cliente cliente = new Cliente()
                         {
-                            NombreCompleto = reader["NombreCompleto"] == DBNull.Value ? null : reader["NombreCompleto"].ToString(),
                             Email = reader["Contacto"].ToString(),
                         };
 

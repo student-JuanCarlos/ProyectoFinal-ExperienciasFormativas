@@ -28,7 +28,6 @@ namespace App_Web.Models.Extension
             return new Cliente()
             {
                 IdCliente = model.IdCliente,
-                NombreCompleto = model.NombreCompleto,
                 Nombres = model.Nombres,
                 Apellidos = model.Apellidos,
                 Fotografia = model.FotoActual,

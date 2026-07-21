@@ -13,16 +13,14 @@ namespace App_Web.Controllers
         private readonly PlatilloService platilloService;
         private readonly DescuentoService descuentoService;
         private readonly ReservaService reservaService;
-        private readonly ClienteService clienteService;
         private readonly VentaPDFService ventaPDFService;
 
-        public VentaController(VentaService venta, PlatilloService platillo, DescuentoService descuento, ReservaService reserva, ClienteService cliente, VentaPDFService ventapdf)
+        public VentaController(VentaService venta, PlatilloService platillo, DescuentoService descuento, ReservaService reserva, VentaPDFService ventapdf)
         {
             ventaService = venta;
             platilloService = platillo;
             descuentoService = descuento;
             reservaService = reserva;
-            clienteService = cliente;
             ventaPDFService = ventapdf;
         }
 

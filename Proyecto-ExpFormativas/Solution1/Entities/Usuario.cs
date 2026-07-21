@@ -28,11 +28,11 @@ namespace Entities
 
         public int IdCargo {  get; set; }
 
+        public Cargo cargo { get; set; }
+
         public int IdRol {  get; set; }
 
         public Rol rol {  get; set; }
-
-        public Cargo cargo { get; set; }
 
     }
 }

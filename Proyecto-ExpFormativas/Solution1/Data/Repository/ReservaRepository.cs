@@ -310,10 +310,6 @@ namespace Data.Repository
                     while (reader.Read())
                     {
 
-                        Cliente cliente = new Cliente()
-                        {
-                            NombreCompleto = reader["Cliente"] == DBNull.Value ? null : reader["Cliente"].ToString()
-                        };
 
                         listado.Add(new Reserva
                         {
@@ -325,7 +321,6 @@ namespace Data.Repository
                             CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
                             CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
                             Estado = Convert.ToInt32(reader["Estado"]),
-                            cliente = cliente
                         });
                     }
                 }

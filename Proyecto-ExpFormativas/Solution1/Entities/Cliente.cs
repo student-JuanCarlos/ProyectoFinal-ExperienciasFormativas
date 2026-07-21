@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Entities
@@ -9,7 +10,8 @@ namespace Entities
 
         public int IdCliente { get; set; }
 
-        public string NombreCompleto { get; set; }
+        [NotMapped]
+        public string NombreCompleto => $"{Nombres} {Apellidos}";
 
         public string Nombres { get; set; }
 

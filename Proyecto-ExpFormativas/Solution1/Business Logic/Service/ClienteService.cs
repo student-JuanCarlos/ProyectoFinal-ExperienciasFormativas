@@ -23,11 +23,6 @@ namespace Business_Logic.Service
                 return clienteDB.Actualizar(c);
         }
 
-        public List<Cliente> ListadoClienteHoy(string Busqueda)
-        {
-            return clienteDB.Listado(Busqueda);
-        }
-
         public Cliente Detalle(int id)
         {
             return clienteDB.Detalle(id);

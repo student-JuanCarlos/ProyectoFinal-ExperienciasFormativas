@@ -102,10 +102,6 @@ namespace Data.Repository
                     SqlDataReader reader = cmd.ExecuteReader();
                     if (reader.Read())
                     {
-                        var cliente = new Cliente()
-                        {
-                            NombreCompleto = reader["OcupadoPor"] == DBNull.Value ? null : reader["OcupadoPor"].ToString()
-                        };
 
                         var reserva = new Reserva()
                         {
@@ -120,7 +116,6 @@ namespace Data.Repository
                             EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
                             Estado = Convert.ToInt32(reader["Estado"]),
                             reserva = reserva,
-                            cliente = cliente
                         };
                     }
                 }
