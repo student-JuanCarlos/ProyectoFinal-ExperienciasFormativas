@@ -1,6 +1,8 @@
-﻿using Data.Infraestructure;
+﻿using Data.Context;
+using Data.Infraestructure;
 using Entities;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -10,185 +12,73 @@ namespace Data.Repository
 {
     public class DescuentoRepository: IDescuento
     {
-        private readonly string cadenaConexion;
+        private readonly AppDbContext _context;
 
-        public DescuentoRepository(IConfiguration config)
+        public DescuentoRepository(AppDbContext context)
         {
-            cadenaConexion = config["ConnectionStrings:database"] ?? string.Empty;
+            _context = context;
         }
 
         public int Actualizar(Descuento d)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ActualizarDescuento";
-                    cmd.Parameters.AddWithValue("@NombreDescuento", d.NombreDescuento);
-                    cmd.Parameters.AddWithValue("@TipoDescuento", d.TipoDescuento);
-                    cmd.Parameters.AddWithValue("@PorcentajeDescuento", d.PorcentajeDescuento);
-                    cmd.Parameters.AddWithValue("@FechaInicio", d.FechaInicio == null ? (object)DBNull.Value : d.FechaInicio);
-                    cmd.Parameters.AddWithValue("@FechaFin", d.FechaFin == null ? (object)DBNull.Value : d.FechaFin);
-                    cmd.Parameters.AddWithValue("@ColorCard", d.ColorCard);
-                    cmd.Parameters.AddWithValue("@IdDescuento", d.IdDescuento);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Descuentos.Update(d);
+            return _context.SaveChanges();
         }
 
         public int ActualizarEstadoDescuentosHoy()
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ActualizarEstadoDescuentosHoy";
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Descuentos
+                .Where(d => d.FechaInicio != null && d.FechaFin != null && (DateTime.Now < d.FechaInicio || DateTime.Now > d.FechaFin))
+                .ExecuteUpdate(setters => setters.SetProperty(d => d.Estado, (bool)false));
+
+            _context.Descuentos
+                .Where(d => d.FechaInicio != null && d.FechaFin != null && (DateTime.Now >= d.FechaInicio && DateTime.Now <= d.FechaFin))
+                .ExecuteUpdate(setters => setters.SetProperty(d => d.Estado, (bool)true));
+
+            return 0;
         }
 
         public int Agregar(Descuento d)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_InsertarDescuento";
-                    cmd.Parameters.AddWithValue("@NombreDescuento", d.NombreDescuento);
-                    cmd.Parameters.AddWithValue("@TipoDescuento", d.TipoDescuento);
-                    cmd.Parameters.AddWithValue("@PorcentajeDescuento", d.PorcentajeDescuento);
-                    cmd.Parameters.AddWithValue("@FechaInicio", d.FechaInicio == null ? (object)DBNull.Value : d.FechaInicio);
-                    cmd.Parameters.AddWithValue("@FechaFin", d.FechaFin == null ? (object)DBNull.Value : d.FechaFin);
-                    cmd.Parameters.AddWithValue("@ColorCard", d.ColorCard);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            _context.Descuentos.Add(d);
+            return _context.SaveChanges();
         }
 
         public int CambiarEstado(int id)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            var descuento = _context.Descuentos.Find(id);
+
+            if(descuento == null)
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_CambiarEstadoDescuento";
-                    cmd.Parameters.AddWithValue("@IdDescuento", id);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                return 0;
             }
-            return f;
+
+            descuento.Estado = !descuento.Estado;
+
+            return _context.SaveChanges();
+
         }
 
         public Descuento Detalle(int id)
         {
-            var descuento = new Descuento();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_DetalleDescuento";
-                    cmd.Parameters.AddWithValue("@IdDescuento", id);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        descuento = new Descuento()
-                        {
-                            NombreDescuento = reader["NombreDescuento"].ToString(),
-                            TipoDescuento = reader["TipoDescuento"].ToString(),
-                            PorcentajeDescuento = Convert.ToDecimal(reader["PorcentajeDescuento"]),
-                            FechaInicio = reader["FechaInicio"] == DBNull.Value ? null : Convert.ToDateTime(reader["FechaInicio"]),
-                            FechaFin = reader["FechaFin"] == DBNull.Value ? null : Convert.ToDateTime(reader["FechaFin"]),
-                            ColorCard = reader["ColorCard"].ToString(),
-                            Estado = Convert.ToBoolean(reader["Estado"])
-                        };
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return descuento;
+            return _context.Descuentos.Find(id);
         }
 
         public List<Descuento> Listado(string Busqueda, bool? Estado)
         {
-            var listado = new List<Descuento>();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            var query = _context.Descuentos.AsQueryable();
+
+            if(Busqueda != null)
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_FiltradoDescuento";
-                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
-                    cmd.Parameters.AddWithValue("@Estado", Estado == null ? (object)DBNull.Value : Estado);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        listado.Add(new Descuento()
-                        {
-                            IdDescuento = Convert.ToInt32(reader["IdDescuento"]),
-                            NombreDescuento = reader["NombreDescuento"].ToString(),
-                            TipoDescuento = reader["TipoDescuento"].ToString(),
-                            PorcentajeDescuento = Convert.ToDecimal(reader["PorcentajeDescuento"]),
-                            ColorCard = reader["ColorCard"].ToString(),
-                            Estado = Convert.ToBoolean(reader["Estado"])
-                        });
-                    }
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                query = _context.Descuentos.Where(d => d.NombreDescuento.Contains(Busqueda));
             }
-            return listado;
+
+            if(Estado != null)
+            {
+                query = _context.Descuentos.Where(d => d.Estado == Estado);
+            }
+
+            return query.AsNoTracking().ToList();
         }
 
         #region

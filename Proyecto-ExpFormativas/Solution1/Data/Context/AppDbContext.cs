@@ -13,6 +13,8 @@ namespace Data.Context
         public DbSet<Platillo> Platillos { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Descuento> Descuentos { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +42,13 @@ namespace Data.Context
                 entity.HasKey(c => c.IdCliente);
                 entity.HasIndex(c => c.Documento).IsUnique();
                 entity.HasIndex(c => c.Email).IsUnique();
+            });
+
+            modelBuilder.Entity<Descuento>(entity =>
+            {
+                entity.ToTable("Descuento", d => d.HasCheckConstraint("CK_Descuento_Tipo", "TipoDescuento IN ('Sin Fecha', 'Con Fecha')"));
+                entity.HasKey(d => d.IdDescuento);
+                entity.Property(d => d.PorcentajeDescuento).HasColumnType("decimal(4,2)");
             });
 
             modelBuilder.Entity<Usuario>(entity =>
