@@ -75,13 +75,12 @@ namespace Data.Repository
 
             if(Busqueda != null)
             {
-                query = _context.Usuarios
-                                .Where(u => u.NombreUsuario.Contains(Busqueda) || u.Email.Contains(Busqueda));
+                query = query.Where(u => u.NombreUsuario.Contains(Busqueda) || u.Email.Contains(Busqueda));
             }
 
-            if (Estado != null)
+            if (Estado.HasValue)
             {
-                query = _context.Usuarios.Where(u => u.Estado == Estado);
+                query = query.Where(u => u.Estado == Estado);
             }
 
             return query.AsNoTracking().ToList();

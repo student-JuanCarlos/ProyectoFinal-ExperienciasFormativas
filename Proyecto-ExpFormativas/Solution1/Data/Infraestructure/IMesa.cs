@@ -1,16 +1,24 @@
-﻿using Entities;
+﻿using Data.DTOs.MesaDTO;
+using Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Data.Infraestructure
 {
-    public interface IMesa : IGeneric<Mesa>
+    public interface IMesa
     {
-        public List<Mesa> Listado();
+        public List<MesaListadoDTO> Listado();
+
+        public MesaDetalleDTO Detalle(int id);
 
         public void ActualizarEstadoMesasHoy();
 
-        public List<Mesa> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva);
+        public List<MesaListadoDTO> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva);
+
+        public int Actualizar(Mesa m);
+
+        public int Agregar(Mesa m);
+
     }
 }

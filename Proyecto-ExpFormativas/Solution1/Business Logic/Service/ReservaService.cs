@@ -1,4 +1,6 @@
-﻿using Data.Infraestructure;
+﻿using Data.DTOs.ReservaDTO.Cliente;
+using Data.DTOs.ReservaDTO.Reserva;
+using Data.Infraestructure;
 using Entities;
 using System;
 using System.Collections.Generic;
@@ -31,19 +33,19 @@ namespace Business_Logic.Service
             return reservaDB.Listado(Busqueda, Estado);
         }
 
-        public Reserva Detalle(int id)
+        public ReservaDetalleCompletoDTO Detalle(int id)
         {
             return reservaDB.Detalle(id);
         }
 
-        public int CancelarReserva(int IdReserva, DataTable mesas)
+        public int CancelarReserva(int IdReserva, List<int>IdMesas)
         {
-            return reservaDB.CancelarReserva(IdReserva, mesas);
+            return reservaDB.CancelarReserva(IdReserva, IdMesas);
         }
 
-        public int ActualizarMesas(int IdReserva, DataTable mesas)
+        public int ActualizarMesas(int IdReserva, List<int>IdMesas)
         {
-            return reservaDB.ActualizarMesas(IdReserva, mesas);
+            return reservaDB.ActualizarMesas(IdReserva, IdMesas);
         }
 
         public List<Reserva> ListadoReserva_Cliente(int IdCliente)
@@ -51,9 +53,9 @@ namespace Business_Logic.Service
             return reservaDB.ListadoReserva_Cliente(IdCliente);
         }
 
-        public Reserva DetalleReserva_Cliente(int id)
+        public DetalleReservaClienteCompletoDTO DetalleReservaCliente(int id)
         {
-            return reservaDB.DetalleReserva_Cliente(id);
+            return reservaDB.DetalleReservaCliente(id);
         }
 
         public int ActualizarReserva_Cliente(Reserva r)

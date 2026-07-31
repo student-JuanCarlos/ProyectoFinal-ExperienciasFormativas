@@ -1,4 +1,5 @@
-﻿using Data.Infraestructure;
+﻿using Data.DTOs.MesaDTO;
+using Data.Infraestructure;
 using Entities;
 using System;
 using System.Collections.Generic;
@@ -24,12 +25,12 @@ namespace Business_Logic.Service
                 return mesaDB.Actualizar(m);
         }
 
-        public List<Mesa> ListadoMesa()
+        public List<MesaListadoDTO> ListadoMesa()
         {
             return mesaDB.Listado();
         }
 
-        public Mesa Detalle(int id)
+        public MesaDetalleDTO Detalle(int id)
         {
             return mesaDB.Detalle(id);
         }
@@ -39,7 +40,7 @@ namespace Business_Logic.Service
             mesaDB.ActualizarEstadoMesasHoy();
         }
 
-        public List<Mesa> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva)
+        public List<MesaListadoDTO> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva)
         {
             return mesaDB.FiltradoMesas_Cliente(FechaReserva, HoraReserva);
         }

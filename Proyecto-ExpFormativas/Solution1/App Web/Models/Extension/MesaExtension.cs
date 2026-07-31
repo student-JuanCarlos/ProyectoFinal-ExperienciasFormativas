@@ -1,4 +1,5 @@
 ﻿using App_Web.Models.VM;
+using Data.DTOs.MesaDTO;
 using Data.Infraestructure;
 using Entities;
 
@@ -7,24 +8,34 @@ namespace App_Web.Models.Extension
     public static class MesaExtension
     {
 
-        public static MesaVM ToViewModel(this Mesa mesa)
+        public static MesaVM DetalleDTOtoVM(this MesaDetalleDTO dto)
         {
             return new MesaVM()
             {
-                IdMesa = mesa.IdMesa,
-                NumeroMesa = mesa.NumeroMesa,
-                EspacioOcupable = mesa.EspacioOcupable,
-                Estado = mesa.Estado,
-                reserva = mesa.reserva != null ? new ReservaVM()
+                IdMesa = dto.IdMesa,
+                NumeroMesa = dto.NumeroMesa,
+                EspacioOcupable = dto.EspacioOcupable,
+                Estado = dto.Estado,
+                reserva = dto.HoraReserva != null ? new ReservaVM()
                 {
-                    FechaReserva = mesa.reserva.FechaReserva,
-                    HoraReserva = mesa.reserva.HoraReserva,
-                    NombreCliente = mesa.reserva.NombreCliente
+                    HoraReserva = dto.HoraReserva,
+                    NombreCliente = dto.OcupadoPor
                 } : null,
-                cliente = mesa.cliente != null ? new ClienteVM()
+                cliente = dto.OcupadoPor != null ? new ClienteVM()
                 {
-                    NombreCompleto = mesa.cliente.NombreCompleto
+                    NombreCompleto = dto.OcupadoPor
                 } : null
+            };
+        }
+
+        public static MesaVM ListadoDTOtoVM (this MesaListadoDTO dto)
+        {
+            return new MesaVM()
+            {
+                IdMesa = dto.IdMesa,
+                NumeroMesa = dto.NumeroMesa,
+                EspacioOcupable = dto.EspacioOcupable,
+                Estado = dto.Estado,
             };
         }
 

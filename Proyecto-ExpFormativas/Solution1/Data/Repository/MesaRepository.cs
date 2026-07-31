@@ -1,6 +1,9 @@
-﻿using Data.Infraestructure;
+﻿using Data.Context;
+using Data.DTOs.MesaDTO;
+using Data.Infraestructure;
 using Entities;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -10,187 +13,86 @@ namespace Data.Repository
 {
     public class MesaRepository : IMesa
     {
-        private readonly string cadenaConexion;
+        private readonly AppDbContext _context;
 
-        public MesaRepository(IConfiguration config)
+        public MesaRepository(AppDbContext context)
         {
-            cadenaConexion = config["ConnectionStrings:database"] ?? string.Empty;
+            _context = context;
         }
 
         public int Actualizar(Mesa m)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            var mesa = _context.Mesas.Find(m.IdMesa);
+
+            if(mesa == null)
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ActualizarMesa";
-                    cmd.Parameters.AddWithValue("@NumeroMesa", m.NumeroMesa);
-                    cmd.Parameters.AddWithValue("@EspacioOcupable", m.EspacioOcupable);
-                    cmd.Parameters.AddWithValue("@IdMesa", m.IdMesa);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                return 0;
             }
-            return f;
+
+            mesa.NumeroMesa = m.NumeroMesa;
+            mesa.EspacioOcupable = m.EspacioOcupable;
+
+            return _context.SaveChanges();
         }
 
         public void ActualizarEstadoMesasHoy()
         {
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ActualizarEstadoMesasHoy";
-                    cn.Open();
-                    cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
+            _context.Database
+                .ExecuteSqlRaw("EXEC sp_ActualizarEstadoMesasHoy");
         }
 
         public int Agregar(Mesa m)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+
+            var mesa = new Mesa()
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_InsertarMesa";
-                    cmd.Parameters.AddWithValue("@NumeroMesa", m.NumeroMesa);
-                    cmd.Parameters.AddWithValue("@EspacioOcupable", m.EspacioOcupable);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+                NumeroMesa = m.NumeroMesa,
+                EspacioOcupable = m.EspacioOcupable,
+            };
+
+            _context.Mesas.Add(mesa);
+
+            return _context.SaveChanges();
         }
 
-        public Mesa Detalle(int id)
+        public MesaDetalleDTO Detalle(int id)
         {
-            var mesa = new Mesa();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_DetalleMesa";
-                    cmd.Parameters.AddWithValue("@IdMesa", id);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-
-                        var reserva = new Reserva()
-                        {
-                            HoraReserva = reader["HoraReserva"] == DBNull.Value ? null : (TimeSpan)reader["HoraReserva"],
-                            NombreCliente = reader["OcupadoPor"] == DBNull.Value ? null : reader["OcupadoPor"].ToString()
-                        };
-
-                        mesa = new Mesa()
-                        {
-                            IdMesa = Convert.ToInt32(reader["IdMesa"]),
-                            NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
-                            EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
-                            Estado = Convert.ToInt32(reader["Estado"]),
-                            reserva = reserva,
-                        };
-                    }
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return mesa;
+            return _context.Database
+                   .SqlQuery<MesaDetalleDTO>($"EXEC sp_DetalleMesa @IdMesa = {id}")
+                   .AsEnumerable()
+                   .FirstOrDefault();
+            
         }
 
-        public List<Mesa> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva)
+        public List<MesaListadoDTO> FiltradoMesas_Cliente(DateTime FechaReserva, TimeSpan HoraReserva)
         {
-            var listado = new List<Mesa>();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
+            var fechaHoraReserva = FechaReserva.Date.Add(HoraReserva);  
+            var fechaHoraLimite = fechaHoraReserva.AddHours(3);
+
+            var limiteFecha = fechaHoraReserva.Date;
+            var limiteHora = fechaHoraLimite.TimeOfDay;
+
+            return _context.Mesas
+                .Select(m => new MesaListadoDTO()
                 {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_FiltradoReservas_Cliente";
-                    cmd.Parameters.AddWithValue("@FechaReserva", FechaReserva);
-                    cmd.Parameters.AddWithValue("@HoraReserva", HoraReserva);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        listado.Add(new Mesa()
-                        {
-                            IdMesa = Convert.ToInt32(reader["IdMesa"]),
-                            NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
-                            EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
-                            Estado = Convert.ToInt32(reader["Estado"])
-                        });
-                    }
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return listado;
+                    IdMesa = m.IdMesa,
+                    NumeroMesa = m.NumeroMesa,
+                    EspacioOcupable = m.EspacioOcupable,
+                    Estado = _context.Reservas
+                             .Any(r => r.DetalleMesa.Any(dr => dr.IdMesa == m.IdMesa)
+                                 && r.FechaReserva == limiteFecha && r.HoraReserva < limiteHora
+                                 && r.Estado == 1)
+                             ? 3 : 1
+                })
+                .ToList();
         }
 
-        public List<Mesa> Listado()
+        public List<MesaListadoDTO> Listado()
         {
-            var listado = new List<Mesa>();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_FiltradoMesa";
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        listado.Add(new Mesa()
-                        {
-                            IdMesa = Convert.ToInt32(reader["IdMesa"]),
-                            NumeroMesa = Convert.ToInt32(reader["NumeroMesa"]),
-                            EspacioOcupable = Convert.ToInt32(reader["EspacioOcupable"]),
-                            Estado = Convert.ToInt32(reader["Estado"]),
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return listado;
+            return _context.Database
+                   .SqlQuery<MesaListadoDTO>($"EXEC sp_FiltradoMesa")
+                   .AsNoTracking()
+                   .ToList();
         }
 
         #region

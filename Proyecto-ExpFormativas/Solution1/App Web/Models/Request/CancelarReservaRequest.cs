@@ -4,7 +4,7 @@
     {
 
         public int IdReserva { get; set; }
-        public List<int> Mesas { get; set; }
+        public List<int> IdMesas { get; set; }
 
     }
 }

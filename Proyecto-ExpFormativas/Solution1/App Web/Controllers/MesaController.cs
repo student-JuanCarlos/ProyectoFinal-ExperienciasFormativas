@@ -31,7 +31,7 @@ namespace App_Web.Controllers
             ViewBag.PrecioReserva = precio.ToViewModel();
             var listado = mesaservice.ListadoMesa();
 
-            return View(listado.Select(m => m.ToViewModel()));
+            return View(listado.Select(m => m.ListadoDTOtoVM()));
         }
 
         [HttpPost]
@@ -45,7 +45,7 @@ namespace App_Web.Controllers
         [HttpGet]
         public JsonResult DetalleMesa(int id)
         {
-            var mesa = mesaservice.Detalle(id).ToViewModel();
+            var mesa = mesaservice.Detalle(id).DetalleDTOtoVM();
 
             return Json(mesa);
         }

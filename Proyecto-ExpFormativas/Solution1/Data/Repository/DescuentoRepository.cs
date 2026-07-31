@@ -70,12 +70,12 @@ namespace Data.Repository
 
             if(Busqueda != null)
             {
-                query = _context.Descuentos.Where(d => d.NombreDescuento.Contains(Busqueda));
+                query = query.Where(d => d.NombreDescuento.Contains(Busqueda));
             }
 
-            if(Estado != null)
+            if(Estado.HasValue)
             {
-                query = _context.Descuentos.Where(d => d.Estado == Estado);
+                query = query.Where(d => d.Estado == Estado);
             }
 
             return query.AsNoTracking().ToList();

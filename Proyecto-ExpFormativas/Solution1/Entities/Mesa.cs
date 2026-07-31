@@ -13,9 +13,5 @@ namespace Entities
         public int EspacioOcupable {  get; set; }
 
         public int Estado {  get; set; }
-
-        public Cliente cliente { get; set; }
-
-        public Reserva reserva { get; set; }
     }
 }

@@ -31,7 +31,7 @@ namespace App_Web.Controllers
             var usuario = JsonConvert.DeserializeObject<App_Web.Models.VM.UsuarioVM>(json);
             ViewBag.Usuario = usuario;
 
-            ViewBag.Mesas = mesaService.ListadoMesa().Select(m => m.ToViewModel()).ToList();
+            ViewBag.Mesas = mesaService.ListadoMesa().Select(m => m.ListadoDTOtoVM()).ToList();
 
             var listado = reservaService.ListadoReserva(Busqueda, Estado).Select(r => r.ToViewModel()).ToList();
 
@@ -66,12 +66,8 @@ namespace App_Web.Controllers
         [HttpPost]
         public IActionResult CancelarReserva([FromBody]CancelarReservaRequest request)
         {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("IdMesa", typeof(int));
-            foreach (var id in request.Mesas)
-                dt.Rows.Add(id);
 
-            reservaService.CancelarReserva(request.IdReserva, dt);
+            reservaService.CancelarReserva(request.IdReserva, request.IdMesas);
 
             return RedirectToAction("Index", "Reserva");
         }
@@ -79,12 +75,8 @@ namespace App_Web.Controllers
         [HttpPost]
         public IActionResult ActualizarMesas([FromBody]CancelarReservaRequest request)
         {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("IdMesa", typeof(int));
-            foreach(var id in request.Mesas)
-                dt.Rows.Add(id);
 
-            reservaService.ActualizarMesas(request.IdReserva, dt);
+            reservaService.ActualizarMesas(request.IdReserva, request.IdMesas);
 
             return RedirectToAction("Index", "Reserva");
         }
@@ -92,7 +84,7 @@ namespace App_Web.Controllers
         [HttpGet]
         public JsonResult Detalle(int id)
         {
-            var reserva = reservaService.Detalle(id).ToViewModel();
+            var reserva = reservaService.Detalle(id).DetalleDTOtoVM();
 
             return Json(reserva);
         }

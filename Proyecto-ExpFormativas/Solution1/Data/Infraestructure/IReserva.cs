@@ -1,4 +1,6 @@
-﻿using Entities;
+﻿using Data.DTOs.ReservaDTO.Cliente;
+using Data.DTOs.ReservaDTO.Reserva;
+using Entities;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,17 +15,17 @@ namespace Data.Infraestructure
 
         public List<Reserva> Listado(string Busqueda, int? Estado);
 
-        public Reserva Detalle(int id);
+        public ReservaDetalleCompletoDTO Detalle(int id);
 
-        public int ActualizarMesas(int IdReserva, DataTable mesas);
+        public int ActualizarMesas(int IdReserva, List<int> IdMesas);
 
-        public int CancelarReserva(int IdReserva, DataTable mesas);
+        public int CancelarReserva(int IdReserva, List<int> IdMesas);
 
         public int ActualizarReserva(Reserva r);
 
         public List<Reserva> ListadoReserva_Cliente(int IdCliente);
 
-        public Reserva DetalleReserva_Cliente(int id);
+        public DetalleReservaClienteCompletoDTO DetalleReservaCliente(int id);
 
         public int ActualizarReserva_Cliente(Reserva r);
 

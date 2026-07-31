@@ -112,7 +112,7 @@ CREATE TABLE Reserva(
 );
 
 CREATE TABLE DetalleReserva(
-	IdDetalleMesa INT IDENTITY(1,1) PRIMARY KEY,
+	IdDetalleReserva INT IDENTITY(1,1) PRIMARY KEY,
 	IdReserva INT NOT NULL FOREIGN KEY REFERENCES Reserva(IdReserva),
 	IdMesa INT NOT NULL FOREIGN KEY REFERENCES Mesa(IdMesa),
 );
@@ -141,51 +141,9 @@ CREATE TABLE DetalleDescuento(
 	IdDescuento INT NOT NULL FOREIGN KEY REFERENCES Descuento(IdDescuento),
 	DescuentoUnitario DECIMAL(4,2) NOT NULL 
 );
-
 ------------------------------------
 --------SP DE Mesa
 ------------------------------------
-GO
-CREATE PROC	sp_InsertarMesa
-@NumeroMesa INT,
-@EspacioOcupable INT
-AS
-BEGIN
-	BEGIN TRAN
-		SET NOCOUNT ON;
-		IF @NumeroMesa IN(SELECT NumeroMesa FROM Mesa)
-		BEGIN
-			ROLLBACK;
-			RAISERROR('Ya existe este numero de mesa', 16, 1);
-			RETURN;
-		END
-		INSERT INTO Mesa(NumeroMesa, EspacioOcupable)
-		VALUES(@NumeroMesa, @EspacioOcupable)
-	COMMIT
-END
-
-GO
-CREATE PROC sp_ActualizarMesa
-@IdMesa INT,
-@NumeroMesa INT,
-@EspacioOcupable INT
-AS
-BEGIN
-	SET NOCOUNT ON;
-	BEGIN TRAN
-		IF @NumeroMesa IN(SELECT NumeroMesa FROM Mesa WHERE @IdMesa <> IdMesa)
-		BEGIN
-			ROLLBACK;
-			RAISERROR('Ya existe este numero de mesa', 16, 1);
-			RETURN;
-		END
-		UPDATE Mesa
-		SET NumeroMesa = @NumeroMesa,
-			EspacioOcupable = @EspacioOcupable
-			WHERE IdMesa = @IdMesa
-	COMMIT
-END
-
 GO
 CREATE PROC sp_FiltradoMesa
 AS
@@ -215,14 +173,13 @@ BEGIN
         END AS Estado
     FROM Mesa m
 END
-DROP PROC sp_DetalleMesa
-EXEC sp_DetalleMesa @IdMesa = 1
+
 GO
 CREATE PROC sp_DetalleMesa
 @IdMesa INT
 AS
 BEGIN
-    SELECT
+    SELECT 
         m.IdMesa,
         m.NumeroMesa,
         m.EspacioOcupable,
@@ -254,159 +211,59 @@ BEGIN
         AND r.Estado = 1
     LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
     WHERE m.IdMesa = @IdMesa
-	ORDER BY r.HoraReserva
+	ORDER BY r.HoraReserva DESC
 END
 
+GO
+CREATE PROC sp_ActualizarEstadoMesasHoy
+AS
+BEGIN
+	SET NOCOUNT ON;
+    UPDATE Mesa 
+    SET Estado = 1 -- Libre
+    WHERE Estado = 2 
+    AND IdMesa IN (    
+        SELECT dm.IdMesa 
+        FROM DetalleReserva dm    
+        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva    
+        WHERE r.FechaReserva < CAST(GETDATE() AS DATE)    
+        AND r.Estado = 1  
+    )
+    AND IdMesa NOT IN (
+        SELECT dm2.IdMesa 
+        FROM DetalleReserva dm2    
+        INNER JOIN Reserva r2 ON r2.IdReserva = dm2.IdReserva    
+        WHERE r2.FechaReserva = CAST(GETDATE() AS DATE)    
+        AND r2.Estado = 1
+    );
+
+    UPDATE Mesa 
+    SET Estado = 2 -- Pendiente
+    WHERE Estado = 1 
+    AND IdMesa IN (    
+        SELECT dm.IdMesa 
+        FROM DetalleReserva dm    
+        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva    
+        WHERE r.FechaReserva = CAST(GETDATE() AS DATE)    
+        AND r.Estado = 1  
+    );
+
+	UPDATE Reserva
+	SET Estado = 3
+	WHERE Estado = 1 AND FechaReserva < CAST(GETDATE() AS DATE)
+END 
 ------------------------------------
 --------SP DE Reserva
 ------------------------------------
+------------RESERVA 
 GO
-CREATE TYPE TVP_Mesas AS TABLE(
-    IdMesa INT
-);
-GO
-CREATE PROC sp_InsertarReserva
-@IdCliente        INT NULL,
-@TipoReserva      VARCHAR(20),
-@NombreCliente	  VARCHAR(100) = NULL,
-@TelefonoCliente  VARCHAR(100) = NULL,
-@FechaReserva     DATE = NULL,
-@HoraReserva      TIME = NULL, --Solo para que tome la hora exacta al momento del registro
-@CantidadPersonas INT,
-@IdUsuario        INT NULL,
-@Mesas            TVP_Mesas READONLY
-AS
-BEGIN
-    SET NOCOUNT ON;
-    DECLARE @CostoTotal DECIMAL(10,2) = 0;
-    DECLARE @IdReserva  INT;
-
-    BEGIN TRY
-        BEGIN TRAN
-
-        IF (SELECT SUM(m.EspacioOcupable) 
-            FROM @Mesas ms
-            INNER JOIN Mesa m ON m.IdMesa = ms.IdMesa) < @CantidadPersonas
-        BEGIN
-            RAISERROR('Espacio insuficiente para la cantidad de personas', 16, 1);
-            ROLLBACK;
-            RETURN;
-        END
-
-        IF @TipoReserva = 'Web'
-        BEGIN
-            DECLARE @Precio DECIMAL(10,2);
-            SELECT @Precio = PrecioReserva FROM ConfiguracionReserva WHERE IdConfiguracion = 1;
-            SET @CostoTotal = @Precio * @CantidadPersonas;
-        END
-
-        INSERT INTO Reserva(IdCliente, TipoReserva, NombreCliente, TelefonoCliente, FechaReserva, HoraReserva, CantidadPersonas, CostoTotal, IdUsuario)
-        VALUES(@IdCliente, @TipoReserva, @NombreCliente, @TelefonoCliente, @FechaReserva, @HoraReserva, @CantidadPersonas, @CostoTotal, @IdUsuario);
-        SET @IdReserva = SCOPE_IDENTITY();
-
-        INSERT INTO DetalleReserva(IdReserva, IdMesa)
-        SELECT @IdReserva, ms.IdMesa
-        FROM @Mesas ms;
-
-        IF @FechaReserva = CAST(GETDATE() AS DATE)
-		BEGIN
-			UPDATE Mesa SET Estado = 2
-			WHERE IdMesa IN (SELECT IdMesa FROM @Mesas)
-		END
-
-        COMMIT;
-    END TRY
-    BEGIN CATCH
-        ROLLBACK;
-        THROW;
-    END CATCH
-END
-
-GO
-CREATE PROC sp_ActualizarReserva 
-@IdReserva INT,
-@NombreCliente VARCHAR(100),
-@TelefonoCliente VARCHAR(100),
-@CantidadPersonas INT
-AS
-BEGIN
-	SET NOCOUNT ON;
-	UPDATE Reserva
-	SET NombreCliente = @NombreCliente,
-		TelefonoCliente = @TelefonoCliente,
-		CantidadPersonas = @CantidadPersonas,
-		CostoTotal = CASE
-						WHEN TipoReserva = 'Web'
-						THEN @CantidadPersonas * (SELECT PrecioReserva FROM ConfiguracionReserva WHERE IdConfiguracion = 1)
-						ELSE 0
-					 END
-		WHERE IdReserva = @IdReserva
-END
-
-GO
-CREATE PROC sp_CancelarReserva
-@IdReserva INT,
-@Mesas TVP_Mesas READONLY
-AS
-BEGIN
-	SET NOCOUNT ON;
-	BEGIN TRY
-		BEGIN TRAN
-			UPDATE Reserva
-			SET Estado = 3
-			WHERE Estado = 1 AND IdReserva = @IdReserva
-
-			UPDATE Mesa
-			SET Estado = 1
-			WHERE IdMesa IN (SELECT IdMesa FROM @Mesas)
-		COMMIT
-	END TRY
-	BEGIN CATCH
-		ROLLBACK;
-		THROW;
-	END CATCH
-END
-
-GO
-CREATE PROC sp_ActualizarMesas
-@IdReserva INT,
-@Mesas TVP_Mesas READONLY
-AS
-BEGIN
-	SET NOCOUNT ON;
-
-	BEGIN TRY
-		BEGIN TRAN
-			UPDATE Mesa
-			SET Estado = 1
-			WHERE IdMesa IN (SELECT IdMesa FROM DetalleReserva WHERE IdReserva = @IdReserva) AND IdMesa NOT IN (SELECT IdMesa FROM @Mesas)
-
-			DELETE FROM DetalleReserva
-			WHERE IdReserva = @IdReserva
-
-			INSERT INTO DetalleReserva(IdReserva, IdMesa)
-			SELECT @IdReserva, ms.IdMesa
-			FROM @Mesas ms;
-
-			UPDATE Mesa 
-			SET Estado = 2
-			WHERE IdMesa IN (SELECT IdMesa FROM @Mesas) AND EXISTS
-			(SELECT 1 FROM Reserva WHERE IdReserva = @IdReserva AND FechaReserva = CAST(GETDATE() AS DATE))
-		COMMIT
-    END TRY
-	BEGIN CATCH
-		ROLLBACK;
-		THROW;
-	END CATCH
-END
-
-GO
-CREATE PROC sp_DetalleReserva
+CREATE PROC sp_DetalleReserva_Encabezado
 @IdReserva INT
 AS
 BEGIN
 	SELECT 
-		ISNULL(c.Nombres, u.NombreUsuario) AS GeneradoPor,
+		r.IdReserva,
+		ISNULL(c.Nombres+' '+c.Apellidos, u.NombreUsuario) AS GeneradoPor,
 		r.NombreCliente,
 		r.TelefonoCliente,
 		r.TipoReserva,
@@ -418,15 +275,27 @@ BEGIN
 	FROM Reserva r
 	LEFT JOIN Usuario u ON u.IdUsuario = r.IdUsuario
 	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
-	WHERE IdReserva = @IdReserva
+	WHERE r.IdReserva = @IdReserva
+END
+GO
 
+CREATE PROC sp_DetalleReserva_Mesas-----Compartido para Ambos DTO
+@IdReserva INT
+AS
+BEGIN
 	SELECT 
 		m.IdMesa,
 		m.NumeroMesa
 	FROM Mesa m
 	INNER JOIN DetalleReserva dr ON dr.IdMesa = m.IdMesa
 	WHERE dr.IdReserva = @IdReserva
+END
 
+GO
+CREATE PROC sp_DetalleReserva_Cliente
+@IdReserva INT
+AS
+BEGIN
 	SELECT 
 		c.IdCliente,
 		c.Nombres+' '+c.Apellidos AS NombreCompleto,
@@ -436,30 +305,12 @@ BEGIN
 		c.Documento
 	FROM Cliente c
 	LEFT JOIN Reserva r ON r.IdCliente = c.IdCliente
-	LEFT JOIN DetalleReserva dr ON dr.IdReserva = r.IdReserva
 	WHERE r.IdReserva = @IdReserva
 END
-
+------------
+------------CLIENTE
 GO
-CREATE PROC sp_ListadoReserva_Cliente --Las reservas de un unico cliente
-@IdCliente INT
-AS
-BEGIN
-	SELECT 
-		r.IdReserva,
-		r.FechaReserva,
-		r.HoraReserva,
-		r.CantidadPersonas,
-		r.CostoTotal,
-		r.Estado
-	FROM Reserva r
-	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
-	WHERE c.IdCliente = @IdCliente AND r.Estado = 1
-	ORDER BY r.FechaReserva
-END
-
-GO
-CREATE PROC sp_DetalleReserva_Cliente
+CREATE PROC sp_DetalleReserva_Cliente_Encabezado
 @IdReserva INT
 AS
 BEGIN
@@ -471,81 +322,9 @@ BEGIN
 		r.CostoTotal,
 		r.Estado
 	FROM Reserva r
-	WHERE IdReserva = @IdReserva
-
-	SELECT 
-		m.IdMesa,
-		m.NumeroMesa
-	FROM Mesa m
-	INNER JOIN DetalleReserva dr ON dr.IdMesa = m.IdMesa
-	WHERE dr.IdReserva = @IdReserva 
+	WHERE r.IdReserva = @IdReserva
 END
-
-GO
-CREATE PROC sp_ActualizarReserva_Cliente
-@IdReserva INT,
-@FechaReserva DATE,
-@HoraReserva TIME,
-@CantidadPersonas INT
-AS
-BEGIN
-	SET NOCOUNT ON;
-	UPDATE Reserva 
-	SET FechaReserva = @FechaReserva,
-		HoraReserva = @HoraReserva,
-		CantidadPersonas = @CantidadPersonas
-		WHERE IdReserva = @IdReserva
-END
-
-GO
-CREATE PROC sp_FiltradoReservas
-@Busqueda VARCHAR(150),
-@Estado INT
-AS
-BEGIN
-	SELECT
-		r.IdReserva,
-		r.TipoReserva,
-		ISNULL(r.NombreCliente, c.Nombres+' '+c.Apellidos) AS Cliente,
-		r.FechaReserva,
-		r.HoraReserva,
-		r.CantidadPersonas,
-		r.CostoTotal,
-		r.Estado
-	FROM Reserva r
-	LEFT JOIN Cliente c ON c.IdCliente = r.IdCliente
-	WHERE (@Busqueda IS NULL OR r.TipoReserva = @Busqueda
-	OR c.Nombres+' '+c.Apellidos LIKE '%'+@Busqueda+'%') AND 
-	(@Estado IS NULL OR r.Estado = @Estado)
-	AND r.FechaReserva = CAST(GETDATE() AS DATE)
-END
-GO
-
---Para el controlador de los clientes
-CREATE PROC sp_FiltradoReservas_Cliente
-@FechaReserva DATE,
-@HoraReserva TIME
-AS
-BEGIN
-    SELECT 
-        m.IdMesa,
-        m.NumeroMesa,
-        m.EspacioOcupable,
-        CASE 
-            WHEN EXISTS (
-                SELECT 1 FROM Reserva r
-                INNER JOIN DetalleReserva dr ON dr.IdReserva = r.IdReserva
-                WHERE dr.IdMesa = m.IdMesa
-                AND r.FechaReserva = @FechaReserva
-                AND r.Estado IN (1, 2) 
-                AND @HoraReserva < DATEADD(HOUR, 3, r.HoraReserva)
-                AND DATEADD(HOUR, 3, @HoraReserva) > r.HoraReserva
-            ) THEN 3  
-            ELSE 1    
-        END AS Estado
-    FROM Mesa m
-END
-
+------------
 ------------------------------------
 --------SP DE Venta
 ------------------------------------
@@ -683,7 +462,7 @@ INSERT INTO Cargo (NombreCargo) VALUES('Admin');
 
 INSERT INTO Usuario(NombreUsuario, Documento, Telefono, Email, Contraseña, Sueldo, IdCargo, IdRol) VALUES('useradmin', 11111111, 2222222, 'useradmin@gmail.com', 123, 1200.00, 1, 1)
 ------------------------------------
---------INSERCIONES BASICAS
+--------SELECTS
 ------------------------------------
 SELECT * FROM Cliente;
 SELECT * FROM Mesa;
@@ -699,7 +478,6 @@ SELECT * FROM DetalleVenta;
 SELECT * FROM Cargo;
 SELECT * FROM Categoria;
 SELECT * FROM Platillo;
-
 ------------------------------------
 --------INDICES
 ------------------------------------
@@ -724,42 +502,3 @@ BEGIN
 	UPDATE ConfiguracionReserva
 	SET PrecioReserva = @Precio
 END
-
-GO
-CREATE PROC sp_ActualizarEstadoMesasHoy
-AS
-BEGIN
-	SET NOCOUNT ON;
-    UPDATE Mesa 
-    SET Estado = 1 -- Libre
-    WHERE Estado = 2 
-    AND IdMesa IN (    
-        SELECT dm.IdMesa 
-        FROM DetalleReserva dm    
-        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva    
-        WHERE r.FechaReserva < CAST(GETDATE() AS DATE)    
-        AND r.Estado = 1  
-    )
-    AND IdMesa NOT IN (
-        SELECT dm2.IdMesa 
-        FROM DetalleReserva dm2    
-        INNER JOIN Reserva r2 ON r2.IdReserva = dm2.IdReserva    
-        WHERE r2.FechaReserva = CAST(GETDATE() AS DATE)    
-        AND r2.Estado = 1
-    );
-
-    UPDATE Mesa 
-    SET Estado = 2 -- Pendiente
-    WHERE Estado = 1 
-    AND IdMesa IN (    
-        SELECT dm.IdMesa 
-        FROM DetalleReserva dm    
-        INNER JOIN Reserva r ON r.IdReserva = dm.IdReserva    
-        WHERE r.FechaReserva = CAST(GETDATE() AS DATE)    
-        AND r.Estado = 1  
-    );
-
-	UPDATE Reserva
-	SET Estado = 3
-	WHERE Estado = 1 AND FechaReserva < CAST(GETDATE() AS DATE)
-END 

@@ -760,7 +760,7 @@ async function guardarEdicion() {
         const r2 = await fetch('/Cliente/ActualizarMesas', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ IdReserva: idReserva, Mesas: mesasSeleccionadas })
+            body:    JSON.stringify({ IdReserva: idReserva, IdMesas: mesasSeleccionadas })
         });
 
         if (r2.redirected) window.location.href = r2.url;

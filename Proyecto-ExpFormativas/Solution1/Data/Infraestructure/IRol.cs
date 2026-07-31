@@ -5,7 +5,10 @@ using System.Text;
 
 namespace Data.Infraestructure
 {
-    public interface IRol: IGeneric<Rol>
+    public interface IRol
     {
+
+        public List<Rol> Listado();
+
     }
 }

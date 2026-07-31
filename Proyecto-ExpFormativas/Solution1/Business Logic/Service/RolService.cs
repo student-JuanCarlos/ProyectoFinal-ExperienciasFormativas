@@ -10,27 +10,9 @@ namespace Business_Logic.Service
     {
         private readonly IRol rolDB;
 
-        public RolService(IRol service)
+        public List<Rol> Listado()
         {
-            rolDB = service;
-        }
-
-        public int GestionarRol(Rol r)
-        {
-            if (r.IdRol == 0)
-                return rolDB.Agregar(r);
-            else
-                return rolDB.Actualizar(r);
-        }
-
-        public List<Rol> Listado(string Busqueda)
-        {
-            return rolDB.Listado(Busqueda);
-        }
-
-        public Rol Detalle(int id)
-        {
-            return rolDB.Detalle(id);
+            return rolDB.Listado();
         }
     }
 }

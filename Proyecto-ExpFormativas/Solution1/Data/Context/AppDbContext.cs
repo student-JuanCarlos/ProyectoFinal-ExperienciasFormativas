@@ -9,12 +9,16 @@ namespace Data.Context
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Cargo> Cargos { get; set; }
+        public DbSet<Rol> Roles { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<Platillo> Platillos { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Descuento> Descuentos { get; set; }
-
+        public DbSet<Mesa> Mesas { get; set;  }
+        public DbSet<Reserva> Reservas { get; set; }
+        public DbSet<DetalleReserva> DetalleReserva { get; set; }
+        public DbSet<ConfiguracionReserva> ConfiReserva { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,12 +63,12 @@ namespace Data.Context
                 entity.Property(u => u.FechaRegistro).HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(u => u.cargo)
-                    .WithMany()
-                    .HasForeignKey(u => u.IdCargo);
+                      .WithMany()
+                      .HasForeignKey(u => u.IdCargo);
 
                 entity.HasOne(u => u.rol)
-                       .WithMany()
-                       .HasForeignKey(u => u.IdRol);
+                      .WithMany()
+                      .HasForeignKey(u => u.IdRol);
             });
 
             modelBuilder.Entity<Rol>(entity =>
@@ -78,6 +82,54 @@ namespace Data.Context
                 entity.ToTable("Cargo");
                 entity.HasKey(c => c.IdCargo);
             });
+
+            modelBuilder.Entity<Mesa>(entity =>
+            {
+                entity.ToTable("Mesa", m => m.HasCheckConstraint("CK_Mesa_ValidationEstado", "Estado IN (1, 2, 3)"));
+                entity.HasKey(m => m.IdMesa);
+                entity.HasIndex(m => m.NumeroMesa).IsUnique();
+                entity.Property(m => m.Estado).HasDefaultValue(1);
+            });
+
+            modelBuilder.Entity<Reserva>(entity =>
+            {
+                entity.ToTable("Reserva", r =>
+                {
+                    r.HasCheckConstraint("CK_Reserva_ValidationTipoReserva", "TipoReserva IN ('Directa', 'Web')");
+                    r.HasCheckConstraint("CK_Reserva_ValidationEstado", "Estado IN (1, 2, 3)"); //1 = Pendiente, 2 = Concluido, 3 = Cancelado
+                    r.HasCheckConstraint("CK_Reserva_ValidationSesion", "IdCliente IS NOT NULL OR IdUsuario IS NOT NULL");
+                });
+                entity.HasKey(r => r.IdReserva);
+                entity.Property(r => r.CostoTotal).HasColumnType("decimal(10, 2)");
+                entity.Property(r => r.CostoTotal).HasDefaultValue(0);
+                entity.Property(r => r.Estado).HasDefaultValue(1);
+                entity.HasOne(r => r.cliente)
+                       .WithMany()
+                       .HasForeignKey(r => r.IdCliente);
+                entity.HasOne(r => r.usuario)
+                       .WithMany()
+                       .HasForeignKey(r => r.IdUsuario);
+                
+            });
+
+            modelBuilder.Entity<DetalleReserva>(entity =>
+            {
+                entity.ToTable("DetalleReserva");
+                entity.HasKey(dr => dr.IdDetalleReserva);
+                entity.HasOne(dr => dr.reserva)
+                       .WithMany(dr => dr.DetalleMesa)
+                       .HasForeignKey(dr => dr.IdReserva);
+                entity.HasOne(dr => dr.mesa)
+                       .WithMany()
+                       .HasForeignKey(dr => dr.IdMesa);
+            });
+
+            modelBuilder.Entity<ConfiguracionReserva>(entity =>
+            {
+                entity.ToTable("ConfiguracionReserva", cr => cr.HasCheckConstraint("CK_Confi_ValidationID", "CHECK (IdConfiguration = 1)"));
+                entity.HasKey(cr => cr.IdConfiguracion);
+            });
+
         }
 
     }

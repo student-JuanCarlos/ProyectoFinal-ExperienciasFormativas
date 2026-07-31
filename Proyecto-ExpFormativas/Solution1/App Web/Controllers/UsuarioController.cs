@@ -35,7 +35,7 @@ namespace App_Web.Controllers
                 return RedirectToAction("Login", "Usuario");
             }
 
-            ViewBag.Rol = rolService.Listado(null).Select(r => r.ToViewModel()).ToList();
+            ViewBag.Rol = rolService.Listado().Select(r => r.ToViewModel()).ToList();
             ViewBag.Cargo = cargoService.ListadoCargo(null).Select(c => c.ToViewModel()).ToList();
 
             var listado = usuarioService.ListadoUsuario(Busqueda, Estado).Select(u => u.ToViewModel()).ToList(); ;

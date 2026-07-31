@@ -1055,6 +1055,7 @@
     function guardarEdicion() {
         const alerta  = document.getElementById('alertaEditar');
         const personas = parseInt(document.getElementById('ePersonas').value) || 0;
+        console.log(eIdReserva);
         if (personas <= 0) {
             alerta.textContent = 'Ingresa la cantidad de personas.';
             alerta.style.display = 'block'; return;
@@ -1172,7 +1173,7 @@
         fetch('/Reserva/ActualizarMesas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ IdReserva: idReserva, Mesas: mesasSeleccionadasMesas })
+            body: JSON.stringify({ IdReserva: idReserva, IdMesas: mesasSeleccionadasMesas })
         }).then(() => location.reload());
     }
 
@@ -1275,7 +1276,7 @@
         fetch('/Reserva/CancelarReserva', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ IdReserva: cancelarIdPendiente, Mesas: cancelarMesasPendientes })
+            body: JSON.stringify({ IdReserva: cancelarIdPendiente, IdMesas: cancelarMesasPendientes })
         }).then(() => location.reload());
     }
 </script>

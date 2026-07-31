@@ -84,7 +84,7 @@ namespace App_Web.Controllers
         [HttpGet]
         public IActionResult DetalleReserva(int IdReserva)
         {
-            var detalle = reservaService.DetalleReserva_Cliente(IdReserva).ToViewModel();
+            var detalle = reservaService.DetalleReservaCliente(IdReserva).DetalleClienteDTOtoVM();
 
             return View(detalle);
         }
@@ -146,7 +146,7 @@ namespace App_Web.Controllers
         public JsonResult DetalleReserva_Cliente(int id)
         {
 
-            var detalle = reservaService.DetalleReserva_Cliente(id).ToViewModel();
+            var detalle = reservaService.DetalleReservaCliente(id).DetalleClienteDTOtoVM();
 
             return Json(detalle);
         }
@@ -169,7 +169,7 @@ namespace App_Web.Controllers
         [HttpGet]
         public JsonResult FiltradoMesas(DateTime FechaReserva, TimeSpan HoraReserva)
         {
-            var mesas = mesaService.FiltradoMesas_Cliente(FechaReserva, HoraReserva).Select(m => m.ToViewModel()).ToList();
+            var mesas = mesaService.FiltradoMesas_Cliente(FechaReserva, HoraReserva).Select(m => m.ListadoDTOtoVM()).ToList();
 
             return Json(mesas);
         }
@@ -201,12 +201,7 @@ namespace App_Web.Controllers
         public IActionResult CancelarReserva([FromBody] CancelarReservaRequest request)
         {
 
-            DataTable dt = new DataTable();
-            dt.Columns.Add("IdMesa", typeof(int));
-            foreach (var id in request.Mesas)
-                dt.Rows.Add(id);
-
-            reservaService.CancelarReserva(request.IdReserva, dt);
+            reservaService.CancelarReserva(request.IdReserva, request.IdMesas);
 
             return RedirectToAction("MiCuenta", "Cliente");
         }
@@ -214,12 +209,8 @@ namespace App_Web.Controllers
         [HttpPost]
         public IActionResult ActualizarMesas([FromBody] CancelarReservaRequest request)
         {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("IdMesa", typeof(int));
-            foreach (var id in request.Mesas)
-                dt.Rows.Add(id);
 
-            reservaService.ActualizarMesas(request.IdReserva, dt);
+            reservaService.ActualizarMesas(request.IdReserva, request.IdMesas);
 
             return RedirectToAction("DetalleReserva", new { IdReserva = request.IdReserva});
             

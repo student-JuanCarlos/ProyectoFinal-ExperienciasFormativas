@@ -10,9 +10,9 @@ namespace Entities
 
         public int IdReserva { get; set; }
 
-        public int IdMesa { get; set; }
-
         public Reserva reserva { get; set; }
+
+        public int IdMesa { get; set; }
 
         public Mesa mesa { get; set; }
 
