@@ -1,6 +1,11 @@
-﻿using Data.Infraestructure;
+﻿using Data.Context;
+using Data.DTOs.ReservaDTO.Reserva;
+using Data.DTOs.VentaDTO;
+using Data.Infraestructure;
 using Entities;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -11,193 +16,142 @@ namespace Data.Repository
 {
     public class VentaRepository: IVenta
     {
-        private readonly string cadenaConexion;
+        private readonly AppDbContext _context;
 
-        public VentaRepository(IConfiguration config)
+        public VentaRepository(AppDbContext context)
         {
-            cadenaConexion = config["ConnectionStrings:database"] ?? string.Empty;
+            _context = context;
         }
 
         public int RegistrarVenta(Venta v, List<DetalleVenta> detalle, List<DetalleDescuento> descuentos)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+
+            if (detalle == null)
             {
-                try
-                {
-                    DataTable dventa = new DataTable();
-                    dventa.Columns.Add("IdPlatillo", typeof(int));
-                    dventa.Columns.Add("Cantidad", typeof(int));
-
-                    foreach (var d in detalle)
-                    {
-                        dventa.Rows.Add(d.IdPlatillo, d.Cantidad);
-                    }
-
-                    DataTable ddesc = new DataTable();
-                    ddesc.Columns.Add("IdDescuento", typeof(int));
-                    ddesc.Columns.Add("PorcentajeAplicado", typeof(decimal));
-
-                    foreach(var d in descuentos)
-                    {
-                        ddesc.Rows.Add(d.IdDescuento, d.DescuentoUnitario);
-                    }
-
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_RegistrarVenta";
-                    cmd.Parameters.AddWithValue("@IdReserva", v.IdReserva);
-                    cmd.Parameters.AddWithValue("@IdUsuario", v.IdUsuario);
-                    cmd.Parameters.AddWithValue("@MetodoPago", v.MetodoPago);
-
-                    SqlParameter tvpd = cmd.Parameters.AddWithValue("@Detalle", dventa);
-                    tvpd.SqlDbType = SqlDbType.Structured;
-                    tvpd.TypeName = "TVP_DetalleVenta";
-
-                    SqlParameter tvpdes = cmd.Parameters.AddWithValue("@Descuento", ddesc);
-                    tvpdes.SqlDbType = SqlDbType.Structured;
-                    tvpdes.TypeName = "TVP_DetalleDescuento";
-
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                throw new InvalidOperationException("No se encontraron platillos agregados a la venta");
             }
-            return f;
+
+            //calcular descuentoUnitario de los descuentos
+            #region
+            var IdDescuentos = descuentos.Select(dd => dd.IdDescuento).ToList();
+
+            var porcentajes = _context.Descuentos
+                                      .Where(d => IdDescuentos.Contains(d.IdDescuento))
+                                      .ToDictionary(d => d.IdDescuento, d => d.PorcentajeDescuento); //diccionario = clave - valor
+
+            foreach(var d in descuentos)
+            {
+                d.DescuentoUnitario = porcentajes[d.IdDescuento];
+            }
+
+            var porcentajeDescuento = descuentos != null && descuentos.Any() ? 
+                                      descuentos.Sum(d => d.DescuentoUnitario / 100) : 
+                                      0;
+            #endregion
+
+            //encontrar mesas
+            var IdMesas = _context.DetalleReserva
+                                  .Where(dr => dr.IdReserva == v.IdReserva)
+                                  .Select(dr => dr.IdMesa);
+
+            //calcular precios de los platillos
+            #region
+            var IdPlatillos = detalle.Select(dv => dv.IdPlatillo).ToList();
+
+            var precios = _context.Platillos
+                                  .Where(p => IdPlatillos.Contains(p.IdPlatillo))
+                                  .ToDictionary(p => p.IdPlatillo, p => p.Precio); //dicionario = clave - valor
+
+            foreach(var d in detalle)
+            {
+                d.PrecioUnitario = precios[d.IdPlatillo];
+            }
+
+            var costoVenta = detalle.Sum(dv => dv.Cantidad * dv.PrecioUnitario); //al estar en memoria, tomar el dv.SubTotal directamente
+                                                                                 // siempre seria 0, hay que calcularlo manualmente
+            #endregion
+
+            var costoReserva = _context.Reservas
+                                       .Where(r => r.IdReserva == v.IdReserva)
+                                       .Select(r => r.CostoTotal)
+                                       .FirstOrDefault();
+
+            var TotalVenta = costoVenta + costoReserva;
+
+            var TotalConDescuento = TotalVenta - (TotalVenta * porcentajeDescuento);
+
+            var venta = new Venta()
+            {
+                IdReserva = v.IdReserva,
+                IdUsuario = v.IdUsuario,
+                MetodoPago = v.MetodoPago,
+                Total = TotalConDescuento,
+                detalles = detalle,
+                descuentos = descuentos,
+            };
+
+            using var transaccion = _context.Database.BeginTransaction();
+
+            try
+            {
+
+                _context.Ventas.Add(venta);
+                _context.SaveChanges();
+
+                _context.Mesas
+                        .Where(m => IdMesas.Contains(m.IdMesa))
+                        .ExecuteUpdate(setters => setters.SetProperty(m => m.Estado, (int)1));
+
+                _context.Reservas
+                        .Where(r => r.IdReserva == venta.IdReserva)
+                        .ExecuteUpdate(setters => setters.SetProperty(r => r.Estado, (int)2));
+
+                transaccion.Commit();
+                return venta.IdVenta;
+
+            }
+            catch
+            {
+                transaccion.Rollback();
+                throw;
+            }
         }
 
         public List<Venta> Listado(string Busqueda)
         {
-            var listado = new List<Venta>();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            var query = _context.Ventas.Include(v => v.reserva).Include(v => v.reserva.cliente).AsQueryable();
+
+            if(Busqueda != null)
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_FiltradoVentas";
-                    cmd.Parameters.AddWithValue("@Busqueda", Busqueda == null ? (object)DBNull.Value : Busqueda);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-
-                        Reserva reserva = new Reserva()
-                        {
-                            NombreCliente = reader["NombreCompleto"].ToString()
-                        };
-
-                        listado.Add(new Venta
-                        {
-                            IdVenta = Convert.ToInt32(reader["IdVenta"]),
-                            reserva = reserva,
-                            FechaVenta = Convert.ToDateTime(reader["FechaVenta"]),
-                            MetodoPago = reader["MetodoPago"].ToString(),
-                            Total = Convert.ToDecimal(reader["Total"])
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                query = query.Where(v => Busqueda.Contains(v.reserva.cliente.Nombres) || Busqueda.Contains(v.reserva.NombreCliente));
             }
-            return listado;
+
+            return query.AsNoTracking().ToList();
         }
 
-        public Venta Detalle(int id)
+        public VentaDetalleCompletoDTO Detalle(int id)
         {
-            var venta = new Venta();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
+            var encabezado = _context.Database
+                .SqlQuery<VentaEncabezadoDTO>($"EXEC sp_DetalleVenta_Encabezado @IdVenta = {id}")
+                .AsEnumerable()
+                .FirstOrDefault();
+
+            var platillos = _context.Database
+                .SqlQuery<VentaPlatilloDTO>($"EXEC sp_DetalleVenta_Platillos @IdVenta = {id}")
+                .AsEnumerable()
+                .ToList();
+
+            var descuentos = _context.Database
+                .SqlQuery<VentaDescuentoDTO>($"EXEC sp_DetalleVenta_Descuentos @IdVenta = {id}")
+                .AsEnumerable()
+                .ToList();
+
+            return new VentaDetalleCompletoDTO
             {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_DetalleVenta";
-                    cmd.Parameters.AddWithValue("@IdVenta", id);
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        Cliente cliente = new Cliente()
-                        {
-                            Email = reader["Contacto"].ToString(),
-                        };
-
-                        Reserva reserva = new Reserva()
-                        {
-                            NombreCliente = reader["NombreCompleto"] == DBNull.Value ? null : reader["NombreCompleto"].ToString(),
-                            TelefonoCliente = reader["Contacto"] == DBNull.Value ? null : reader["Contacto"].ToString(),
-                            TipoReserva = reader["TipoReserva"].ToString(),
-                            CantidadPersonas = Convert.ToInt32(reader["CantidadPersonas"]),
-                            CostoTotal = Convert.ToDecimal(reader["CostoTotal"]),
-                            cliente = cliente
-                        };
-
-                        Usuario usuario = new Usuario()
-                        {
-                            NombreUsuario = reader["NombreUsuario"].ToString()
-                        };
-
-                        venta = new Venta()
-                        {
-                            IdVenta = Convert.ToInt32(reader["IdVenta"]),
-                            reserva = reserva,
-                            usuario = usuario,
-                            FechaVenta = Convert.ToDateTime(reader["FechaVenta"]),
-                            MetodoPago = reader["MetodoPago"].ToString(),
-                            Total = Convert.ToDecimal(reader["Total"]),
-                            detalles = new List<DetalleVenta>(),
-                            descuentos = new List<DetalleDescuento>()
-                        };
-
-                        reader.NextResult();
-                        while (reader.Read())
-                        {
-                            Platillo platillo = new Platillo()
-                            {
-                                NombrePlatillo = reader["NombrePlatillo"].ToString()
-                            };
-
-                            venta.detalles.Add(new DetalleVenta
-                            {
-                                Cantidad = Convert.ToInt32(reader["Cantidad"]),
-                                PrecioUnitario = Convert.ToDecimal(reader["PrecioUnitario"]),
-                                platillo = platillo
-                            });
-                        }
-
-                        reader.NextResult();
-                        while (reader.Read())
-                        {
-                            Descuento descuento = new Descuento()
-                            {
-                                NombreDescuento = reader["NombreDescuento"].ToString(),
-                                ColorCard = reader["ColorCard"].ToString()
-                            };
-
-                            venta.descuentos.Add(new DetalleDescuento
-                            {
-                                DescuentoUnitario = Convert.ToDecimal(reader["DescuentoUnitario"]),
-                                descuento = descuento
-                            });
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return venta;
+                Encabezado = encabezado,
+                Platillos = platillos,
+                Descuentos = descuentos
+            };
         }
 
     }

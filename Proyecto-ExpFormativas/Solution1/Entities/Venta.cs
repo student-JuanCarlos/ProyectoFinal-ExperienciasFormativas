@@ -9,17 +9,17 @@ namespace Entities
 
         public int IdVenta { get; set; }
 
-        public int IdReserva { get; set; }
-
-        public int IdUsuario { get; set; }
-
         public DateTime FechaVenta { get; set; }
 
         public string MetodoPago { get; set; }
 
         public decimal Total {  get; set; }
 
+        public int IdReserva { get; set; }
+
         public Reserva reserva { get; set; }
+
+        public int IdUsuario { get; set; }
 
         public Usuario usuario { get; set; }
 

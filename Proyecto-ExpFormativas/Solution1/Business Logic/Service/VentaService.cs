@@ -1,4 +1,5 @@
-﻿using Data.Infraestructure;
+﻿using Data.DTOs.VentaDTO;
+using Data.Infraestructure;
 using Entities;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace Business_Logic.Service
             return ventaDB.RegistrarVenta(v, d, des);
         }
 
-        public Venta Detalle(int id)
+        public VentaDetalleCompletoDTO Detalle(int id)
         {
             return ventaDB.Detalle(id);
         }

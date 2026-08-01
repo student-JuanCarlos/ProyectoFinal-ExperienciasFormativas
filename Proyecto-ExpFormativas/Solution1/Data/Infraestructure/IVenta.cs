@@ -1,4 +1,5 @@
-﻿using Entities;
+﻿using Data.DTOs.VentaDTO;
+using Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Data.Infraestructure
     {
         public int RegistrarVenta(Venta v, List<DetalleVenta> d, List<DetalleDescuento> des);
 
-        public Venta Detalle(int id);
+        public VentaDetalleCompletoDTO Detalle(int id);
 
         public List<Venta> Listado(string Busqueda);
     }

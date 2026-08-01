@@ -70,7 +70,7 @@ namespace App_Web.Models.Extension
                     Email = dto.Cliente.Email,
                     Documento = dto.Cliente.Documento
                 } : null,
-                usuario = dto.Cliente == null ? new UsuarioVM()
+                usuario = dto.Cliente != null ? new UsuarioVM()
                 {
                     NombreUsuario = dto.Encabezado.GeneradoPor
                 } : null,

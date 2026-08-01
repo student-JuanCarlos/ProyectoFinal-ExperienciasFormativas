@@ -57,7 +57,7 @@ namespace App_Web.Controllers
         [HttpGet]
         public JsonResult Detalle(int id)
         {
-            var venta = ventaService.Detalle(id).ToViewModel();
+            var venta = ventaService.Detalle(id).DetalleDTOtoVM();
 
             return Json(venta);
         }
@@ -67,7 +67,7 @@ namespace App_Web.Controllers
         {
             var venta = ventaService.Detalle(id);
 
-            var (bytes, nombre) = ventaPDFService.ObtenerArchivo(venta);
+            var (bytes, nombre) = ventaPDFService.ObtenerArchivo(venta.DetalleEntitytoDTO());
 
             return File(bytes, "application/pdf", nombre);
         }

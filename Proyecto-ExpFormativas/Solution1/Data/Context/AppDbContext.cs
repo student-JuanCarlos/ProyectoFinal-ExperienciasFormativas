@@ -19,6 +19,9 @@ namespace Data.Context
         public DbSet<Reserva> Reservas { get; set; }
         public DbSet<DetalleReserva> DetalleReserva { get; set; }
         public DbSet<ConfiguracionReserva> ConfiReserva { get; set; }
+        public DbSet<Venta> Ventas { get; set; }
+        public DbSet<DetalleVenta> DetalleVenta { get; set; }
+        public DbSet<DetalleDescuento> DetalleDescuento { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -109,7 +112,7 @@ namespace Data.Context
                 entity.HasOne(r => r.usuario)
                        .WithMany()
                        .HasForeignKey(r => r.IdUsuario);
-                
+
             });
 
             modelBuilder.Entity<DetalleReserva>(entity =>
@@ -128,6 +131,46 @@ namespace Data.Context
             {
                 entity.ToTable("ConfiguracionReserva", cr => cr.HasCheckConstraint("CK_Confi_ValidationID", "CHECK (IdConfiguration = 1)"));
                 entity.HasKey(cr => cr.IdConfiguracion);
+            });
+
+            modelBuilder.Entity<Venta>(entity =>
+            {
+                entity.ToTable("Venta");
+                entity.HasKey(v => v.IdVenta);
+                entity.Property(v => v.FechaVenta).HasDefaultValueSql("GETDATE()");
+                entity.HasOne(v => v.reserva)
+                       .WithMany()
+                       .HasForeignKey(v => v.IdReserva);
+                entity.HasOne(v => v.usuario)
+                       .WithMany()
+                       .HasForeignKey(v => v.IdUsuario);
+            });
+
+            modelBuilder.Entity<DetalleVenta>(entity =>
+            {
+                entity.ToTable("DetalleVenta");
+                entity.HasKey(dv => dv.IdDetalleVenta);
+                entity.Property(dv => dv.PrecioUnitario).HasColumnType("decimal(5, 2)");
+                entity.Property(dv => dv.SubTotal).HasComputedColumnSql("Cantidad * PrecioUnitario");
+                entity.HasOne(dv => dv.venta)
+                       .WithMany(dv => dv.detalles)
+                       .HasForeignKey(dv => dv.IdVenta);
+                entity.HasOne(dv => dv.platillo)
+                       .WithMany()
+                       .HasForeignKey(dv => dv.IdPlatillo);
+            });
+
+            modelBuilder.Entity<DetalleDescuento>(entity =>
+            {
+                entity.ToTable("DetalleDescuento");
+                entity.HasKey(dd => dd.IdDetalleDescuento);
+                entity.Property(dd => dd.DescuentoUnitario).HasDefaultValueSql("decimal(4, 2)");
+                entity.HasOne(dd => dd.venta)
+                       .WithMany(dd => dd.descuentos)
+                       .HasForeignKey(dd => dd.IdVenta);
+                entity.HasOne(dd => dd.descuento)
+                       .WithMany()
+                       .HasForeignKey(dd => dd.IdDescuento);
             });
 
         }

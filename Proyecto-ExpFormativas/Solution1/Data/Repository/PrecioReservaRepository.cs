@@ -1,6 +1,8 @@
-﻿using Data.Infraestructure;
+﻿using Data.Context;
+using Data.Infraestructure;
 using Entities;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -10,63 +12,22 @@ namespace Data.Repository
 {
     public class PrecioReservaRepository: IConfigurationReserva
     {
-        private readonly string cadenaConexion;
+        private readonly AppDbContext _context;
 
-        public PrecioReservaRepository(IConfiguration config)
+        public PrecioReservaRepository(AppDbContext context)
         {
-            cadenaConexion = config["ConnectionStrings:database"] ?? string.Empty;
+            _context = context;
         }
 
         public int ActualizarPrecio(decimal precio)
         {
-            int f = 0;
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_PrecioReserva";
-                    cmd.Parameters.AddWithValue("@Precio", precio);
-                    cn.Open();
-                    f = cmd.ExecuteNonQuery();
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return f;
+            return _context.ConfiReserva
+                .ExecuteUpdate(setters => setters.SetProperty(c => c.PrecioReserva, (decimal)precio));
         }
 
         public ConfiguracionReserva DetallePrecioReserva()
         {
-            var config = new ConfiguracionReserva();
-            using (SqlConnection cn = new SqlConnection(cadenaConexion))
-            {
-                try
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = cn;
-                    cmd.CommandText = "SELECT PrecioReserva FROM ConfiguracionReserva";
-                    cn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        config = new ConfiguracionReserva()
-                        {
-                            PrecioReserva = Convert.ToDecimal(reader["PrecioReserva"])
-                        };
-                    };
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            return config;
-
+            return _context.ConfiReserva.FirstOrDefault();
         }
     }
 }
