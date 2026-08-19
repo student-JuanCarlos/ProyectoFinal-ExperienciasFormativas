@@ -1,5 +1,7 @@
 ﻿using App_Web.Models.Extension;
 using App_Web.Models.VM;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Business_Logic.Service;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
@@ -10,11 +12,15 @@ namespace App_Web.Controllers
     {
         private readonly PlatilloService platilloservice;
         private readonly CategoriaService categoriaService;
+        private readonly BlobContainerClient _blobContainer;
+        private readonly ILogger<PlatilloController> _logguer;
 
-        public PlatilloController(PlatilloService platillo, CategoriaService categoria)
+        public PlatilloController(PlatilloService platillo, CategoriaService categoria, BlobContainerClient blob, ILogger<PlatilloController> logguer)
         {
             platilloservice = platillo;
             categoriaService = categoria;
+            _blobContainer = blob;
+            _logguer = logguer;
         }
 
         public IActionResult Index(int page = 1, string Busqueda = null)
@@ -42,42 +48,43 @@ namespace App_Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult GestionarPlatillo(PlatilloVM platillo)
+        public async Task<IActionResult> GestionarPlatillo(PlatilloVM platillo)
         {
-            bool resultado = true;
-            string mensaje = "";
+            string urlImagen = platillo.FotoActual ?? "";
 
             try
             {
-
-                string nombreImagen = platillo.FotoActual ?? "";
-
-                if (platillo.Fotografia != null)
+                if(platillo.Fotografia != null)
                 {
-                    if (platillo.IdPlatillo != 0 && !string.IsNullOrEmpty(platillo.FotoActual))
-                    {
-                        var fotoAnterior = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", platillo.FotoActual);
-                        if (System.IO.File.Exists(fotoAnterior))
-                            System.IO.File.Delete(fotoAnterior);
-                    }
+                    var nombreBlob = $"{Guid.NewGuid()}{Path.GetExtension(platillo.Fotografia.FileName)}";
+                    var blobClient = _blobContainer.GetBlobClient(nombreBlob);
 
-                    var nombreRealImagen = Path.GetFileName(platillo.Fotografia.FileName);
-                    nombreImagen = $"assets/img/platillos/{nombreRealImagen}";
-                    var pathImagen = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/assets/img/platillos", nombreRealImagen);
+                    using var stream = platillo.Fotografia.OpenReadStream();
 
-                    using (var stream = new FileStream(pathImagen, FileMode.Create))
+                    var opcionesContent = new BlobUploadOptions
                     {
-                        platillo.Fotografia.CopyTo(stream);
-                    }
+                        HttpHeaders = new BlobHttpHeaders
+                        {
+                            ContentType = platillo.Fotografia.ContentType // el navegador dara png. jpeg, etc...
+                        }
+                    };
+
+                    await blobClient.UploadAsync(stream, opcionesContent);
+
+                    urlImagen = blobClient.Uri.ToString();
+                }
+                if(platillo.IdPlatillo != 0 && !string.IsNullOrEmpty(platillo.FotoActual))
+                {
+                    var nombreAnterior = Path.GetFileName(new Uri(platillo.FotoActual).LocalPath);
+                    await _blobContainer.DeleteBlobIfExistsAsync(nombreAnterior);
                 }
 
-                platillo.FotoActual = $"{nombreImagen}";
-
+                platillo.FotoActual = urlImagen;
                 platilloservice.GestionarPlatillo(platillo.ToEntity());
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                mensaje = ex.Message;
+                _logguer.LogError(ex, "Fallo al gestionar el platillo {IdPlatillo}", platillo.IdPlatillo);
             }
 
             return RedirectToAction("Index", "Platillo");

@@ -1,19 +1,3 @@
-USE master;
-GO
-IF EXISTS(SELECT name FROM sys.databases WHERE name = 'App_Restaurantes')
-BEGIN
-	ALTER DATABASE App_Restaurantes SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-	DROP DATABASE App_Restaurantes;
-END
-
-GO
-CREATE DATABASE App_Restaurantes
-
-GO
-USE App_Restaurantes;
-
-GO
-
 ------------------------------------
 --------TABLAS INDEPENDIENTES
 ------------------------------------
@@ -33,7 +17,7 @@ CREATE TABLE Mesa(
 	IdMesa INT IDENTITY(1,1) PRIMARY KEY,
 	NumeroMesa INT NOT NULL,
 	EspacioOcupable INT NOT NULL,
-	Estado INT DEFAULT 1 CHECK(Estado IN (1,2,3)), -- 1 = Libre, 2 = Pendiente, 3 = Ocupado
+	Estado INT DEFAULT 1 CHECK(Estado IN (1,2,3)) -- 1 = Libre, 2 = Pendiente, 3 = Ocupado
 );
 
 CREATE TABLE Categoria(
@@ -55,7 +39,7 @@ CREATE TABLE Cliente(
 	Documento VARCHAR(100) NOT NULL UNIQUE,
 	Telefono VARCHAR(50) NOT NULL, 
 	Email VARCHAR(150) NOT NULL UNIQUE,
-	Contraseña VARCHAR(255) NOT NULL,
+	Contraseña VARCHAR(255) NOT NULL
 );
 
 ------------------------------------
@@ -114,7 +98,7 @@ CREATE TABLE Reserva(
 CREATE TABLE DetalleReserva(
 	IdDetalleReserva INT IDENTITY(1,1) PRIMARY KEY,
 	IdReserva INT NOT NULL FOREIGN KEY REFERENCES Reserva(IdReserva),
-	IdMesa INT NOT NULL FOREIGN KEY REFERENCES Mesa(IdMesa),
+	IdMesa INT NOT NULL FOREIGN KEY REFERENCES Mesa(IdMesa)
 );
 
 CREATE TABLE Venta(
@@ -408,12 +392,23 @@ SELECT * FROM Platillo;
 ------------------------------------
 --------INDICES
 ------------------------------------
-CREATE INDEX IDX_Ciente_Id ON Cliente(IdCliente);
-CREATE INDEX IDX_Mesa_Id ON Mesa(IdMesa);
-CREATE INDEX IDX_Descuento_Id ON Descuento(IdDescuento);
-CREATE INDEX IDX_Reserva_Id ON Reserva(IdReserva);
-CREATE INDEX IDX_DetalleReserva ON DetalleReserva(IdDetalleMesa);
-CREATE INDEX IDX_Usuario_Id ON Usuario(IdUsuario);
-CREATE INDEX IDX_Venta_Id ON Venta(IdVenta);
-CREATE INDEX IDX_DetalleVenta_Id ON DetalleVenta(IdDetalleVenta);
-CREATE INDEX IDX_DetalleDescuento_Id ON DetalleDescuento(IdDetalleDescuento);
+CREATE INDEX IDX_DetalleReserva_IdReserva ON DetalleReserva(IdReserva);
+CREATE INDEX IDX_DetalleReserva_IdMesa ON DetalleReserva(IdMesa);
+CREATE INDEX IDX_DetalleVenta_IdVenta ON DetalleVenta(IdVenta);
+CREATE INDEX IDX_DetalleVenta_IdPlatillo ON DetalleVenta(IdPlatillo);
+CREATE INDEX IDX_DetalleDescuento_IdVenta ON DetalleDescuento(IdVenta);
+CREATE INDEX IDX_Venta_IdReserva ON Venta(IdReserva);
+CREATE INDEX IDX_Reserva_IdCliente ON Reserva(IdCliente);
+CREATE INDEX IDX_Reserva_IdUsuario ON Reserva(IdUsuario);
+
+CREATE INDEX IDX_Reserva_FechaReserva ON Reserva(FechaReserva);
+CREATE INDEX IDX_Reserva_HoraReserva ON Reserva(HoraReserva);
+
+SELECT 
+    t.name AS Tabla,
+    i.name AS Indice,
+    i.type_desc AS Tipo
+FROM sys.indexes i
+INNER JOIN sys.tables t ON t.object_id = i.object_id
+WHERE i.name LIKE 'IDX_%'
+ORDER BY t.name;

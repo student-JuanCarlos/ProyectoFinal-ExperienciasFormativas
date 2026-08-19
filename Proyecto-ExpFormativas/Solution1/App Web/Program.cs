@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using Business_Logic.Inyeccion;
 using Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.Inyeccion();
 builder.Services.AddDataLayer(builder.Configuration);
+builder.Services.AddSingleton(x => new BlobContainerClient(builder.Configuration["BlobStorage:ConnectionString"], "platillos"));
 builder.Services.AddSession();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
 

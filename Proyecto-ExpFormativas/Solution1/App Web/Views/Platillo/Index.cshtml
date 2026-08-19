@@ -410,7 +410,7 @@
                         <div class="card-foto">
                             @if (!string.IsNullOrEmpty(p.FotoActual))
                             {
-                                <img src="/@p.FotoActual" alt="@p.NombrePlatillo"
+                                <img src="@p.FotoActual" alt="@p.NombrePlatillo"
                                      onerror="this.parentElement.innerHTML='<div class=\'card-foto-placeholder\'><i class=\'bi bi-image\'></i></div>'" />
                             }
                             else
@@ -566,7 +566,7 @@
 
                 const preview = document.getElementById('fotoPreview');
                 if (d.fotoActual) {
-                    preview.innerHTML = `<img src="/${d.fotoActual}" alt="foto" />`;
+                    preview.innerHTML = `<img src="${d.fotoActual}" alt="foto" />`;
                 } else {
                     preview.innerHTML = '<i class="bi bi-image"></i>';
                 }

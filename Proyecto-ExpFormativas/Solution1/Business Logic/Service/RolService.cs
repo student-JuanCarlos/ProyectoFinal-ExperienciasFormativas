@@ -10,6 +10,11 @@ namespace Business_Logic.Service
     {
         private readonly IRol rolDB;
 
+        public RolService(IRol service)
+        {
+            rolDB = service;
+        }
+
         public List<Rol> Listado()
         {
             return rolDB.Listado();
