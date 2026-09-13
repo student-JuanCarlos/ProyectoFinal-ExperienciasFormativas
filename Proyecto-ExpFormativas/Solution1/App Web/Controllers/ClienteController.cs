@@ -1,6 +1,8 @@
 ﻿using App_Web.Models.Extension;
 using App_Web.Models.Request;
 using App_Web.Models.VM;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Business_Logic.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -18,13 +20,17 @@ namespace App_Web.Controllers
         private readonly MesaService mesaService;
         private readonly ReservaService reservaService;
         private readonly ConfiReservaService configService;
+        private readonly BlobContainerClient _blobContainer;
+        private readonly ILogger<ClienteController> _logger;
 
-        public ClienteController(ClienteService cliente, MesaService mesa, ReservaService reserva, ConfiReservaService confi)
+        public ClienteController(ClienteService cliente, MesaService mesa, ReservaService reserva, ConfiReservaService confi, BlobServiceClient blob, ILogger<ClienteController> logger)
         {
             clienteService = cliente;
             mesaService = mesa;
             reservaService = reserva;
             configService = confi;
+            _blobContainer = blob.GetBlobContainerClient("clientes");
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -90,45 +96,48 @@ namespace App_Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult GestionarCliente(ClienteVM model)
+        public async Task<IActionResult> GestionarCliente(ClienteVM model)
         {
-            bool resultado = true;
-            string mensaje = "";
-
+            string urlImagen = model.FotoActual ?? "";
             try
             {
-                string nombreImagen = model.FotoActual ?? "";
 
                 if (model.Fotografia != null)
                 {
-                    if (model.IdCliente != 0 && !string.IsNullOrEmpty(model.FotoActual))
-                    {
-                        var fotoAnterior = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", model.FotoActual);
-                        if (System.IO.File.Exists(fotoAnterior))
-                            System.IO.File.Delete(fotoAnterior);
-                    }
+                    var nombreBlob = $"{Guid.NewGuid()}{Path.GetExtension(model.Fotografia.FileName)}";
+                    var blobClient = _blobContainer.GetBlobClient(nombreBlob);
 
-                    var nombreRealImagen = Path.GetFileName(model.Fotografia.FileName);
-                    nombreImagen = $"assets/img/clientes/{nombreRealImagen}";
-                    var pathImagen = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/assets/img/clientes", nombreRealImagen);
+                    using var stream = model.Fotografia.OpenReadStream();
 
-                    using (var stream = new FileStream(pathImagen, FileMode.Create))
+                    var opcionesClient = new BlobUploadOptions
                     {
-                        model.Fotografia.CopyTo(stream);
+                        HttpHeaders = new BlobHttpHeaders
+                        {
+                            ContentType = model.Fotografia.ContentType
+                        }
+                    };
+
+                    await blobClient.UploadAsync(stream, opcionesClient);
+
+                    urlImagen = blobClient.Uri.ToString();
+
+                    if(model.IdCliente != 0 && !string.IsNullOrEmpty(model.FotoActual))
+                    {
+                        var nombreAnterior = Path.GetFileName(new Uri(model.FotoActual).LocalPath);
+                        await _blobContainer.DeleteBlobIfExistsAsync(nombreAnterior);
                     }
+                    
                 }
 
-                model.FotoActual = $"{nombreImagen}";
-
+                model.FotoActual = urlImagen;
                 clienteService.GestionarCliente(model.ToEntity());
             }
             catch(Exception ex)
             {
-                resultado = false;
-                mensaje = ex.Message;
+                _logger.LogError(ex, "Fallo al gestionar el cliente {IdCliente}", model.IdCliente);
             }
 
-            return Json(new { resultado, mensaje });
+            return RedirectToAction("MiCuenta", "Cliente");
         }
 
         [HttpPost]

@@ -86,13 +86,13 @@ namespace Data.Repository
             return query.AsNoTracking().ToList();
         }
 
-        public Usuario Login(string Email, string Contraseña)
+        public Usuario Login(string Email, string Contraseña) // ignoramos contraseña
         {
             return _context.Usuarios
                            .AsNoTracking()
                            .Include(u => u.rol)
                            .Include(u => u.cargo)
-                           .Where(u => u.Email == Email && u.Contraseña == Contraseña)
+                           .Where(u => u.Email == Email)
                            .FirstOrDefault();
                            
         }

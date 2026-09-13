@@ -8,11 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="QuestPDF" Version="2026.6.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Data\Data.csproj" />
+    <ProjectReference Include="..\Data\Data.csproj" PrivateAssets="none" />
     <ProjectReference Include="..\Entities\Entities.csproj" />
   </ItemGroup>
 

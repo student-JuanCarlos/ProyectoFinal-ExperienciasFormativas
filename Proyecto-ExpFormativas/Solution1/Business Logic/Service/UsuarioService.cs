@@ -3,6 +3,7 @@ using Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using BCrypt;
 
 namespace Business_Logic.Service
 {
@@ -18,7 +19,10 @@ namespace Business_Logic.Service
         public int GestionarUsuario(Usuario u)
         {
             if (u.IdUsuario == 0)
+            {
+                u.Contraseña = BCrypt.Net.BCrypt.HashPassword(u.Contraseña);
                 return usuarioDB.Agregar(u);
+            }
             else
                 return usuarioDB.Actualizar(u);
         }
@@ -35,7 +39,14 @@ namespace Business_Logic.Service
 
         public Usuario Login(string Email, string Contraseña)
         {
-            return usuarioDB.Login(Email, Contraseña);
+            var usuario = usuarioDB.Login(Email, Contraseña); // se ignora contraseña de igual manera, no influye
+
+            if (usuario == null)
+                return null;
+
+            bool DatosValidos = BCrypt.Net.BCrypt.Verify(Contraseña, usuario.Contraseña);
+
+            return DatosValidos ? usuario : null;
         }
 
         public int CambiarEstado(int id)

@@ -7,7 +7,7 @@ namespace Data.Infraestructure
 {
     public interface IUsuario: IGeneric<Usuario>
     {
-        public Usuario Login(string Email, String Contraseña);
+        public Usuario Login(string Email, string Contraseña);
 
         public int CambiarEstado(int id);
 

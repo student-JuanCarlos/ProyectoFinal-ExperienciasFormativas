@@ -1,0 +1,7 @@
+#Ignorar archivos para la contruccion correcta del Dockerfile
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.git/
+**/*.user

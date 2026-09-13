@@ -3,6 +3,7 @@ using App_Web.Models.VM;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Business_Logic.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 
@@ -15,11 +16,11 @@ namespace App_Web.Controllers
         private readonly BlobContainerClient _blobContainer;
         private readonly ILogger<PlatilloController> _logguer;
 
-        public PlatilloController(PlatilloService platillo, CategoriaService categoria, BlobContainerClient blob, ILogger<PlatilloController> logguer)
+        public PlatilloController(PlatilloService platillo, CategoriaService categoria, BlobServiceClient blob, ILogger<PlatilloController> logguer)
         {
             platilloservice = platillo;
             categoriaService = categoria;
-            _blobContainer = blob;
+            _blobContainer = blob.GetBlobContainerClient("platillos");
             _logguer = logguer;
         }
 
@@ -47,6 +48,7 @@ namespace App_Web.Controllers
             return View(listado.Skip(paginasPorOmitir).Take(registrosPorPagina));
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public async Task<IActionResult> GestionarPlatillo(PlatilloVM platillo)
         {

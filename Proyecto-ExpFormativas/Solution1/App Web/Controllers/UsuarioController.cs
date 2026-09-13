@@ -1,8 +1,11 @@
 ﻿using App_Web.Models.Extension;
 using App_Web.Models.VM;
 using Business_Logic.Service;
+using Business_Logic.Utilidades.JWT.Interface;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
@@ -16,14 +19,20 @@ namespace App_Web.Controllers
         private readonly RolService rolService;
         private readonly MesaService mesaService;
         private readonly DescuentoService descuentoService;
+        private readonly IConfiguration _configuration;
+        private readonly IJWT _jwt;
+        private readonly IClaims _claims;
 
-        public UsuarioController(UsuarioService usuario, CargoService cargo, RolService rol, MesaService mesa, DescuentoService descuento)
+        public UsuarioController(UsuarioService usuario, CargoService cargo, RolService rol, MesaService mesa, DescuentoService descuento, IConfiguration configuration, IClaims claims, IJWT jwt)
         {
             usuarioService = usuario;
             cargoService = cargo;
             rolService = rol;
             mesaService = mesa;
             descuentoService = descuento;
+            _configuration = configuration;
+            _claims = claims;
+            _jwt = jwt;
         }
 
         [HttpGet]
@@ -53,9 +62,11 @@ namespace App_Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult GestionarUsuario(UsuarioVM usuario)
         {
+
             usuarioService.GestionarUsuario(usuario.ToEntity());
 
             return RedirectToAction("Index", "Usuario");
@@ -80,11 +91,7 @@ namespace App_Web.Controllers
             mesaService.ActualizarEstadoMesasHoy();
             descuentoService.ActualizarEstadoDescuentosHoy();
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, usuario.NombreUsuario),
-                new Claim(ClaimTypes.Role, usuario.rol.NombreRol)
-            };
+            var claims = _claims.ClaimsUsuario(usuario);
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
@@ -92,9 +99,12 @@ namespace App_Web.Controllers
             HttpContext.Session.SetString("Usuario", JsonConvert.SerializeObject(usuario));
             HttpContext.Session.SetString("Rol", usuario.rol.NombreRol);
 
-            return RedirectToAction("DashBoard", "Usuario");
+            var token = _jwt.GenerarJWTUsuario(usuario);
+
+            return Json(new { token });
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpGet]
         public JsonResult Detalle(int id)
         {
@@ -103,6 +113,7 @@ namespace App_Web.Controllers
             return Json(usuario);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult CambiarEstadoUsuario(int id)
         {

@@ -1,4 +1,6 @@
 ﻿using Business_Logic.Service;
+using Business_Logic.Utilidades.JWT.Generate;
+using Business_Logic.Utilidades.JWT.Interface;
 using Business_Logic.Utilidades.PDF.Generate;
 using Business_Logic.Utilidades.PDF.Interface;
 using Data.Infraestructure;
@@ -51,6 +53,12 @@ namespace Business_Logic.Inyeccion
 
             services.AddScoped<IVentaPDF, VentaPDFService>();
             services.AddScoped<VentaPDFService>();
+
+            services.AddScoped<IJWT, GenerarJWTService>();
+            services.AddScoped<GenerarJWTService>();
+
+            services.AddScoped<IClaims, ObtenerClaimsService>();
+            services.AddScoped<ObtenerClaimsService>();
 
         }
 
