@@ -1,6 +1,7 @@
 ﻿using App_Web.Models.Extension;
 using App_Web.Models.VM;
 using Business_Logic.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace App_Web.Controllers
@@ -27,6 +28,7 @@ namespace App_Web.Controllers
             return View(listado);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult GestionarCargo(CargoVM cargo)
         {

@@ -2,6 +2,7 @@
 using App_Web.Models.Request;
 using Business_Logic.Service;
 using Business_Logic.Utilidades.PDF.Generate;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -62,6 +63,7 @@ namespace App_Web.Controllers
             return Json(venta);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpGet]
         public IActionResult ExportarVentaPDF(int id)
         {

@@ -4,22 +4,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using BCrypt;
+using Business_Logic.Utilidades.EMAIL.Usuario.Interface;
 
 namespace Business_Logic.Service
 {
     public class UsuarioService
     {
         private readonly IUsuario usuarioDB;
+        private readonly IEmailUsuario _email;
 
-        public UsuarioService(IUsuario service)
+        public UsuarioService(IUsuario service, IEmailUsuario email)
         {
             usuarioDB = service;
+            _email = email;
         }
 
         public int GestionarUsuario(Usuario u)
         {
             if (u.IdUsuario == 0)
             {
+                _email.EnviarCorreo(u);
                 u.Contraseña = BCrypt.Net.BCrypt.HashPassword(u.Contraseña);
                 return usuarioDB.Agregar(u);
             }

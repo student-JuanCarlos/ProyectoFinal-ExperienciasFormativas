@@ -1,6 +1,7 @@
 ﻿using App_Web.Models.Extension;
 using App_Web.Models.VM;
 using Business_Logic.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -37,6 +38,7 @@ namespace App_Web.Controllers
             return View(listado.Skip(paginasPorOmitir).Take(registrosPorPagina));
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult GestionarDescuento (DescuentoVM descuento)
         {
@@ -52,6 +54,7 @@ namespace App_Web.Controllers
             return RedirectToAction("Index", "Descuento");
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult CambiarEstadoDescuento(int id)
         {

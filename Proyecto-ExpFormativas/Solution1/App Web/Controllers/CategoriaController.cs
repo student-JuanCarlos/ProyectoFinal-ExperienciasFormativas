@@ -1,6 +1,7 @@
 ﻿using App_Web.Models.Extension;
 using App_Web.Models.VM;
 using Business_Logic.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace App_Web.Controllers
@@ -27,6 +28,7 @@ namespace App_Web.Controllers
             return View(listado);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult GestionarCategoria(CategoriaVM categoria)
         {
@@ -35,6 +37,7 @@ namespace App_Web.Controllers
             return RedirectToAction("Index", "Categoria");
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpGet]
         public JsonResult Detalle(int id)
         {
@@ -43,6 +46,7 @@ namespace App_Web.Controllers
             return Json(categoria);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult Eliminar(int id)
         {

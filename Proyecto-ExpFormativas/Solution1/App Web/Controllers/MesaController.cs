@@ -3,6 +3,7 @@ using App_Web.Models.VM;
 using Business_Logic.Service;
 using Data.Infraestructure;
 using Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace App_Web.Controllers
@@ -34,6 +35,7 @@ namespace App_Web.Controllers
             return View(listado.Select(m => m.ListadoDTOtoVM()));
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult GestionarMesa(MesaVM model)
         {
@@ -50,6 +52,7 @@ namespace App_Web.Controllers
             return Json(mesa);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult ActualizarPrecioReserva(decimal precio)
         {

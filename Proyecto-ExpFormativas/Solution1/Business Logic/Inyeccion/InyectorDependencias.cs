@@ -1,4 +1,8 @@
 ﻿using Business_Logic.Service;
+using Business_Logic.Utilidades.EMAIL.Cliente.Generate;
+using Business_Logic.Utilidades.EMAIL.Cliente.Interface;
+using Business_Logic.Utilidades.EMAIL.Usuario.Generate;
+using Business_Logic.Utilidades.EMAIL.Usuario.Interface;
 using Business_Logic.Utilidades.JWT.Generate;
 using Business_Logic.Utilidades.JWT.Interface;
 using Business_Logic.Utilidades.PDF.Generate;
@@ -59,6 +63,15 @@ namespace Business_Logic.Inyeccion
 
             services.AddScoped<IClaims, ObtenerClaimsService>();
             services.AddScoped<ObtenerClaimsService>();
+
+            services.AddScoped<IEmailUsuarioEstructure, EmailEstructureUsuarioService>();
+            services.AddScoped<EmailEstructureUsuarioService>();
+
+            services.AddScoped<IEmailUsuario, EmailUsuarioService>();
+            services.AddScoped<EmailUsuarioService>();
+
+            services.AddScoped<IEmailClienteEstructure, EmailEstructureClienteService>();
+            services.AddScoped<EmailEstructureClienteService>();
 
         }
 
