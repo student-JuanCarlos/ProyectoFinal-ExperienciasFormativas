@@ -5,6 +5,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Business_Logic.Service;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
@@ -95,6 +96,7 @@ namespace App_Web.Controllers
             return View(detalle);
         }
 
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost]
         public async Task<IActionResult> GestionarCliente(ClienteVM model)
         {
@@ -160,6 +162,7 @@ namespace App_Web.Controllers
             return Json(detalle);
         }
 
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost]
         public IActionResult Login(string Email, string Contraseña)
         {

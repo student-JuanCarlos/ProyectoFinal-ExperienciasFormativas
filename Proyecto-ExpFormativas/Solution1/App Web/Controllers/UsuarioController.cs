@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 using System.Security.Claims;
 
@@ -62,6 +63,7 @@ namespace App_Web.Controllers
             return View();
         }
 
+        [EnableRateLimiting("AuthPolicy")]
         [Authorize(Roles = "Administrador")]
         [HttpPost]
         public IActionResult GestionarUsuario(UsuarioVM usuario)
@@ -72,6 +74,7 @@ namespace App_Web.Controllers
             return RedirectToAction("Index", "Usuario");
         }
 
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost]
         public async Task<IActionResult> Login(string Email, string Contraseña)
         {
