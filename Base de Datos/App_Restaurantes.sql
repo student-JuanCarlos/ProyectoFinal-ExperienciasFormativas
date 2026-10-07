@@ -1,6 +1,22 @@
+USE App_Restaurantes;
+
 ------------------------------------
 --------TABLAS INDEPENDIENTES
 ------------------------------------
+CREATE TABLE Restaurante(
+	IdRestaurante INT IDENTITY(1, 1) PRIMARY KEY,
+	NombreRestaurante VARCHAR(155) NOT NULL,
+	Email VARCHAR(255) NOT NULL,
+	FechaRegistro DATE DEFAULT GETDATE()
+);
+
+CREATE TABLE TipoPlan(
+	IdTipoPlan INT IDENTITY(1, 1) PRIMARY KEY,
+	NombrePlan VARCHAR(50) NOT NULL,
+	PrecioMensual DECIMAL(10, 2),
+	Estado BIT NOT NULL
+);
+
 CREATE TABLE Rol(
 	IdRol INT IDENTITY(1,1) PRIMARY KEY,
 	NombreRol VARCHAR(50) NOT NULL,
@@ -125,6 +141,37 @@ CREATE TABLE DetalleDescuento(
 	IdDescuento INT NOT NULL FOREIGN KEY REFERENCES Descuento(IdDescuento),
 	DescuentoUnitario DECIMAL(4,2) NOT NULL 
 );
+
+CREATE TABLE Suscripcion(
+	IdSuscripcion INT IDENTITY(1, 1) PRIMARY KEY,
+	Estado VARCHAR(50) NOT NULL CHECK(Estado IN ('Activa', 'Vencida', 'Cancelada')),
+	FechaInicio DATE NOT NULL,
+	FechaVencimiento DATE NOT NULL,
+	RenovacionAutomatica BIT DEFAULT 0 NOT NULL,
+	IdRestaurante INT NOT NULL FOREIGN KEY REFERENCES Restaurante(IdRestaurante),
+	IdTipoPlan INT NOT NULL FOREIGN KEY REFERENCES TipoPlan(IdTipoPlan),
+);
+
+CREATE TABLE OrdenPago(
+	IdOrdenPago INT IDENTITY(1, 1) PRIMARY KEY,
+	Monto DECIMAL(10, 2) NOT NULL,
+	Moneda VARCHAR(10) NOT NULL CHECK(Moneda IN ('PEN', 'USD')),
+	Estado VARCHAR(50) NOT NULL CHECK(Estado IN('Pendiente', 'Procesando', 'Confirmado', 'Fallido', 'Expirado')),
+	FechaCreacion DATETIME NOT NULL DEFAULT GETDATE(),
+	FechaResolucion DATETIME NULL,
+	ReferenciaExterna VARCHAR(155) NOT NULL,
+	IdSuscripcion INT NOT NULL FOREIGN KEY REFERENCES Suscripcion(IdSuscripcion)
+); 
+
+CREATE TABLE TransaccionWebhook(
+	IdTransaccionWebhook INT IDENTITY(1, 1) PRIMARY KEY,
+	IdOrdenPago INT NULL FOREIGN KEY REFERENCES OrdenPago(IdOrdenPago),
+	IdEventoExterno VARCHAR(255) NOT NULL UNIQUE,
+	TipoEvento VARCHAR(155) NOT NULL,
+	Payload VARCHAR(255) NOT NULL,
+	Estado BIT NOT NULL, --PROCESADO / NO PROCESADO
+	FechaRecibido DATETIME NOT NULL
+); 
 ------------------------------------
 --------SP DE Mesa
 ------------------------------------
