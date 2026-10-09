@@ -165,12 +165,12 @@ CREATE TABLE OrdenPago(
 
 CREATE TABLE TransaccionWebhook(
 	IdTransaccionWebhook INT IDENTITY(1, 1) PRIMARY KEY,
-	IdOrdenPago INT NULL FOREIGN KEY REFERENCES OrdenPago(IdOrdenPago),
 	IdEventoExterno VARCHAR(255) NOT NULL UNIQUE,
 	TipoEvento VARCHAR(155) NOT NULL,
-	Payload VARCHAR(255) NOT NULL,
+	Payload VARCHAR(MAX) NOT NULL,
 	Estado BIT NOT NULL, --PROCESADO / NO PROCESADO
-	FechaRecibido DATETIME NOT NULL
+	FechaRecibido DATETIME NOT NULL,
+	IdOrdenPago INT NULL FOREIGN KEY REFERENCES OrdenPago(IdOrdenPago),
 ); 
 ------------------------------------
 --------SP DE Mesa

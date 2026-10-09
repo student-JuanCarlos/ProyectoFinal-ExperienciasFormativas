@@ -8,6 +8,8 @@ namespace Data.Context
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        public DbSet<Restaurante>Restaurantes { get; set; }
+        public DbSet<TipoPlan>TipoPlan { get; set; }
         public DbSet<Cargo> Cargos { get; set; }
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
@@ -22,9 +24,27 @@ namespace Data.Context
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetalleVenta { get; set; }
         public DbSet<DetalleDescuento> DetalleDescuento { get; set; }
+        public DbSet<Suscripcion> Suscripcion { get; set; }
+        public DbSet<OrdenPago> OrdenPago { get; set; }
+        public DbSet<TransaccionWebhook> Transaccion { get ; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            modelBuilder.Entity<Restaurante>(entity =>
+            {
+                entity.ToTable("Restaurante");
+                entity.HasKey(r => r.IdRestaurante);
+                entity.Property(r => r.FechaRegistro).HasDefaultValueSql("GETDATE()");
+            });
+
+            modelBuilder.Entity<TipoPlan>(entity =>
+            {
+                entity.ToTable("TipoPlan");
+                entity.HasKey(t => t.IdTipoPlan);
+                entity.Property(t => t.PrecioMensual).HasColumnType("decimal(10,2)");
+            });
 
             modelBuilder.Entity<Platillo>(entity =>
             {
@@ -164,13 +184,52 @@ namespace Data.Context
             {
                 entity.ToTable("DetalleDescuento");
                 entity.HasKey(dd => dd.IdDetalleDescuento);
-                entity.Property(dd => dd.DescuentoUnitario).HasDefaultValueSql("decimal(4, 2)");
+                entity.Property(dd => dd.DescuentoUnitario).HasColumnType("decimal(4, 2)");
                 entity.HasOne(dd => dd.venta)
                        .WithMany(dd => dd.descuentos)
                        .HasForeignKey(dd => dd.IdVenta);
                 entity.HasOne(dd => dd.descuento)
                        .WithMany()
                        .HasForeignKey(dd => dd.IdDescuento);
+            });
+
+            modelBuilder.Entity<Suscripcion>(entity =>
+            {
+                entity.ToTable("Suscripcion", s => s.HasCheckConstraint("CK_ValidationEstatus_Suscripcion", "Estado IN ('Activa', 'Vencida', 'Cancelada')"));
+                entity.HasKey(s => s.IdSuscripcion);
+                entity.Property(s => s.RenovacionAutomatica).HasDefaultValueSql("0");
+                entity.HasOne(s => s.restaurante)
+                       .WithMany()
+                       .HasForeignKey(s => s.IdRestaurante);
+                entity.HasOne(s => s.tipoPlan)
+                       .WithMany()
+                       .HasForeignKey(s => s.IdTipoPlan);
+            });
+
+            modelBuilder.Entity<OrdenPago>(entity =>
+            {
+                entity.ToTable("OrdenPago", o =>
+                {
+                    o.HasCheckConstraint("CK_ValidationMoneda", "Moneda IN ('PEN', 'USD')");
+                    o.HasCheckConstraint("CK_ValidateStatus_OrdenPago", "Estado IN ('Pendiente', 'Procesando', 'Confirmado', 'Fallido', 'Expirado')");
+                });
+
+                entity.HasKey(o => o.IdOrdenPago);
+                entity.Property(o => o.Monto).HasColumnType("decimal(10,2)");
+                entity.Property(o => o.FechaCreacion).HasDefaultValueSql("GETDATE()");
+                entity.HasOne(o => o.suscripcion)
+                       .WithMany()
+                       .HasForeignKey(o => o.IdSuscripcion);  
+            });
+
+            modelBuilder.Entity<TransaccionWebhook>(entity =>
+            {
+                entity.ToTable("TransaccionWebhook");
+                entity.HasKey(t => t.IdTransaccionWebhook);
+                entity.HasIndex(t => t.IdEventoExterno).IsUnique();
+                entity.HasOne(t => t.ordenPago)
+                       .WithMany()
+                       .HasForeignKey(t => t.IdOrdenPago);
             });
 
         }
