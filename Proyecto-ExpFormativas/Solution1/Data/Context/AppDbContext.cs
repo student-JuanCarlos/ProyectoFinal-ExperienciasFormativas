@@ -195,7 +195,7 @@ namespace Data.Context
 
             modelBuilder.Entity<Suscripcion>(entity =>
             {
-                entity.ToTable("Suscripcion", s => s.HasCheckConstraint("CK_ValidationEstatus_Suscripcion", "Estado IN ('Activa', 'Vencida', 'Cancelada')"));
+                entity.ToTable("Suscripcion", s => s.HasCheckConstraint("CK_ValidationEstatus_Suscripcion", "Estado IN ('Activa', 'Vencida', 'Cancelada', 'Pendiente')"));
                 entity.HasKey(s => s.IdSuscripcion);
                 entity.Property(s => s.RenovacionAutomatica).HasDefaultValueSql("0");
                 entity.HasOne(s => s.restaurante)

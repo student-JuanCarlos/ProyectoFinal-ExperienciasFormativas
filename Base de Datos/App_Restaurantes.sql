@@ -144,7 +144,7 @@ CREATE TABLE DetalleDescuento(
 
 CREATE TABLE Suscripcion(
 	IdSuscripcion INT IDENTITY(1, 1) PRIMARY KEY,
-	Estado VARCHAR(50) NOT NULL CHECK(Estado IN ('Activa', 'Vencida', 'Cancelada')),
+	Estado VARCHAR(50) NOT NULL CHECK(Estado IN ('Pendiente', 'Activa', 'Vencida', 'Cancelada')),
 	FechaInicio DATE NOT NULL,
 	FechaVencimiento DATE NOT NULL,
 	RenovacionAutomatica BIT DEFAULT 0 NOT NULL,
