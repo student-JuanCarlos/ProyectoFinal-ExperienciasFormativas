@@ -9,7 +9,7 @@ namespace Entities
 
         public int IdSuscripcion {  get; set; }
 
-        public string Estado { get; set; } //'Activa´ 'Vencida' 'Cancelada'
+        public string Estado { get; set; } //'Activa´ 'Vencida' 'Cancelada' 'Pendiente'
 
         public DateOnly FechaInicio {  get; set; }
 

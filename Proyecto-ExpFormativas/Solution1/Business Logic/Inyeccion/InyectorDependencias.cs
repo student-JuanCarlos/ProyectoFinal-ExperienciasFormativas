@@ -73,6 +73,8 @@ namespace Business_Logic.Inyeccion
             services.AddScoped<IEmailClienteEstructure, EmailEstructureClienteService>();
             services.AddScoped<EmailEstructureClienteService>();
 
+            services.AddScoped<ITipoPlan, >
+
         }
 
     }

@@ -7,5 +7,8 @@ namespace Data.Infraestructure
 {
     public interface ISuscripcion: IGeneric<Suscripcion>
     {
+
+        public Suscripcion ObtenerActivaPorRestaurante(int idRestaurante);
+
     }
 }

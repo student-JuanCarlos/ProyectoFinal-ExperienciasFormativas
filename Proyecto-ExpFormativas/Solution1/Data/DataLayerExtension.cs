@@ -36,6 +36,14 @@ namespace Data
 
             services.AddScoped<IVenta, VentaRepository>();
 
+            services.AddScoped<ITipoPlan, TipoPlanRepository>();
+
+            services.AddScoped<ISuscripcion, SuscripcionRepository>();
+
+            services.AddScoped<IOrdenPago, OrdenPagoRepository>();
+
+            services.AddScoped<ITransaccion, TransaccionWebhookRepository>();
+
             return services;
         }
 
