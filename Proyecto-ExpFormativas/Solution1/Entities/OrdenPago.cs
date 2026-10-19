@@ -19,7 +19,7 @@ namespace Entities
 
         public DateTime? FechaResolucion { get; set; }
 
-        public string ReferenciaExterna { get; set; }
+        public string? ReferenciaExterna { get; set; }
 
         public int IdSuscripcion { get; set; }
 

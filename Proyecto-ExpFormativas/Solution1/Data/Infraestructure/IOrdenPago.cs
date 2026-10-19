@@ -10,7 +10,7 @@ namespace Data.Infraestructure
 
         public OrdenPago ObtenerPorReferenciaExterna(string referencia);
 
-        public OrdenPago ObtenerPendienteReciente(int idRestaurante);
+        public OrdenPago ObtenerPendienteReciente(int idRestaurante, int idTipoPlan);
 
     }
 }

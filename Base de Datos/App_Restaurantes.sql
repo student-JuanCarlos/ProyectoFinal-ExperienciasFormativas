@@ -159,7 +159,7 @@ CREATE TABLE OrdenPago(
 	Estado VARCHAR(50) NOT NULL CHECK(Estado IN('Pendiente', 'Procesando', 'Confirmado', 'Fallido', 'Expirado')),
 	FechaCreacion DATETIME NOT NULL DEFAULT GETDATE(),
 	FechaResolucion DATETIME NULL,
-	ReferenciaExterna VARCHAR(155) NOT NULL,
+	ReferenciaExterna VARCHAR(155) NULL,
 	IdSuscripcion INT NOT NULL FOREIGN KEY REFERENCES Suscripcion(IdSuscripcion)
 ); 
 
@@ -450,6 +450,10 @@ CREATE INDEX IDX_Reserva_IdUsuario ON Reserva(IdUsuario);
 
 CREATE INDEX IDX_Reserva_FechaReserva ON Reserva(FechaReserva);
 CREATE INDEX IDX_Reserva_HoraReserva ON Reserva(HoraReserva);
+
+CREATE UNIQUE INDEX IDX_OrdenPago_ReferenciaExterna
+ON OrdenPago(ReferenciaExterna)
+WHERE ReferenciaExterna IS NOT NULL;
 
 SELECT 
     t.name AS Tabla,

@@ -217,6 +217,7 @@ namespace Data.Context
                 entity.HasKey(o => o.IdOrdenPago);
                 entity.Property(o => o.Monto).HasColumnType("decimal(10,2)");
                 entity.Property(o => o.FechaCreacion).HasDefaultValueSql("GETDATE()");
+                entity.HasIndex(o => o.ReferenciaExterna).IsUnique();
                 entity.HasOne(o => o.suscripcion)
                        .WithMany()
                        .HasForeignKey(o => o.IdSuscripcion);  

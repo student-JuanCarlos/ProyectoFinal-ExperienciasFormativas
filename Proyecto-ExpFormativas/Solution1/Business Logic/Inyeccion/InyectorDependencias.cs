@@ -73,7 +73,17 @@ namespace Business_Logic.Inyeccion
             services.AddScoped<IEmailClienteEstructure, EmailEstructureClienteService>();
             services.AddScoped<EmailEstructureClienteService>();
 
-            services.AddScoped<ITipoPlan, >
+            services.AddScoped<ITipoPlan, TipoPlanRepository>();
+            services.AddScoped<>
+
+                services.AddScoped<ISuscripcion, SuscripcionRepository>();
+            services.AddScoped<>
+
+                services.AddScoped<IOrdenPago, OrdenPagoRepository>();
+            services.AddScoped<>
+
+                services.AddScoped<ITransaccion, TransaccionWebhookRepository>();
+            services.AddScoped<>
 
         }
 
