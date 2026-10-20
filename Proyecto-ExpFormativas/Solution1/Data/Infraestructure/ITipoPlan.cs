@@ -10,5 +10,7 @@ namespace Data.Infraestructure
 
         public List<TipoPlan> ListarPlanesActivos();
 
+        public TipoPlan Detalle(int id);
+
     }
 }

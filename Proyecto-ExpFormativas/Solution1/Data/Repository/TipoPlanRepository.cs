@@ -18,6 +18,11 @@ namespace Data.Repository
             _context = context;
         }
 
+        public TipoPlan Detalle(int id)
+        {
+            return _context.TipoPlan.AsNoTracking().FirstOrDefault(t => t.IdTipoPlan == id);
+        }
+
         public List<TipoPlan> ListarPlanesActivos()
         {
             return _context.TipoPlan
