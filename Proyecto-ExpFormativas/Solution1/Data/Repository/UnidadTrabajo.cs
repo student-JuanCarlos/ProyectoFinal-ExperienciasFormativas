@@ -19,12 +19,12 @@ namespace Data.Repository
 
         public void Confirmar()
         {
-            _transaccion = _context.Database.BeginTransaction();
+            _transaccion.Commit();
         }
 
         public void Iniciar()
         {
-            _transaccion.Commit();
+            _transaccion = _context.Database.BeginTransaction();
         }
 
         public void Revertir()

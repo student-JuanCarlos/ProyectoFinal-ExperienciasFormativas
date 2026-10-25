@@ -19,12 +19,6 @@ namespace Data.Repository
 
         public int Actualizar(OrdenPago o)
         {
-            _context.OrdenPago.Add(o);
-            return _context.SaveChanges();
-        }
-
-        public int Agregar(OrdenPago o)
-        {
             var orden = _context.OrdenPago.Find(o.IdOrdenPago);
 
             if (orden == null)
@@ -34,6 +28,12 @@ namespace Data.Repository
             orden.FechaResolucion = o.FechaResolucion;
             orden.ReferenciaExterna = o.ReferenciaExterna;
 
+            return _context.SaveChanges();
+        }
+
+        public int Agregar(OrdenPago o)
+        {
+            _context.OrdenPago.Add(o);
             return _context.SaveChanges();
         }
 
@@ -55,8 +55,8 @@ namespace Data.Repository
         {
             return _context.OrdenPago
                            .AsNoTracking()
-                           .Where(o => o.ReferenciaExterna == referencia)
-                           .FirstOrDefault();
+                           .Include(o => o.suscripcion)
+                           .FirstOrDefault(o => o.ReferenciaExterna == referencia);
         }
         
         public OrdenPago Detalle(int id)
