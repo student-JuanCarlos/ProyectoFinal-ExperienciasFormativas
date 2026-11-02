@@ -26,25 +26,29 @@ CREATE TABLE Rol(
 CREATE TABLE Cargo(
 	IdCargo INT IDENTITY(1,1) PRIMARY KEY,
 	NombreCargo VARCHAR(100) NOT NULL,
-	Descripcion VARCHAR(150) NULL
+	Descripcion VARCHAR(150) NULL,
+	IdRestaurante INT NOT NULL FOREIGN KEY REFERENCES Restaurante(IdRestaurante)
 );
 
 CREATE TABLE Mesa(
 	IdMesa INT IDENTITY(1,1) PRIMARY KEY,
 	NumeroMesa INT NOT NULL,
 	EspacioOcupable INT NOT NULL,
-	Estado INT DEFAULT 1 CHECK(Estado IN (1,2,3)) -- 1 = Libre, 2 = Pendiente, 3 = Ocupado
+	Estado INT DEFAULT 1 CHECK(Estado IN (1,2,3)), -- 1 = Libre, 2 = Pendiente, 3 = Ocupado
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE Categoria(
 	IdCategoria INT IDENTITY(1,1) PRIMARY KEY,
 	NombreCategoria VARCHAR(50) NOT NULL,
-	Descripcion VARCHAR(150) NULL
+	Descripcion VARCHAR(150) NULL,
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE ConfiguracionReserva (
     IdConfiguracion INT PRIMARY KEY CHECK(IdConfiguracion = 1),
-    PrecioReserva   DECIMAL(10,2) NOT NULL
+    PrecioReserva   DECIMAL(10,2) NOT NULL,
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE Cliente(
@@ -72,7 +76,8 @@ CREATE TABLE Usuario(
 	Sueldo DECIMAL(6,2) NOT NULL,
 	Estado BIT DEFAULT 1,
 	IdCargo INT NOT NULL FOREIGN KEY REFERENCES Cargo(IdCargo),
-	IdRol INT NOT NULL FOREIGN KEY REFERENCES Rol(IdRol)
+	IdRol INT NOT NULL FOREIGN KEY REFERENCES Rol(IdRol),
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE Descuento(
@@ -83,7 +88,8 @@ CREATE TABLE Descuento(
 	FechaInicio DATE NULL,
 	FechaFin DATE NULL,
 	ColorCard VARCHAR(30) DEFAULT 'white',
-	Estado BIT DEFAULT 1
+	Estado BIT DEFAULT 1,
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE Platillo(
@@ -91,7 +97,8 @@ CREATE TABLE Platillo(
 	NombrePlatillo VARCHAR(150) NOT NULL,
 	Fotografia VARCHAR(255) NOT NULL,
 	Precio DECIMAL(5,2) NOT NULL,
-	IdCategoria INT NULL FOREIGN KEY REFERENCES Categoria(IdCategoria)
+	IdCategoria INT NULL FOREIGN KEY REFERENCES Categoria(IdCategoria),
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE Reserva(
@@ -106,6 +113,7 @@ CREATE TABLE Reserva(
 	CostoTotal DECIMAL (10,2) DEFAULT 0,
 	Estado INT DEFAULT 1 CHECK(Estado IN (1,2,3)), -- 1 = Pendiente, 2 = Concluido, 3 = Cancelado
 	IdUsuario INT NULL FOREIGN KEY REFERENCES Usuario(IdUsuario),
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante),
 	CONSTRAINT ValidacionSesion CHECK(
 		IdCliente IS NOT NULL OR IdUsuario IS NOT NULL
 	)
@@ -114,7 +122,8 @@ CREATE TABLE Reserva(
 CREATE TABLE DetalleReserva(
 	IdDetalleReserva INT IDENTITY(1,1) PRIMARY KEY,
 	IdReserva INT NOT NULL FOREIGN KEY REFERENCES Reserva(IdReserva),
-	IdMesa INT NOT NULL FOREIGN KEY REFERENCES Mesa(IdMesa)
+	IdMesa INT NOT NULL FOREIGN KEY REFERENCES Mesa(IdMesa),
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE Venta(
@@ -123,7 +132,8 @@ CREATE TABLE Venta(
 	IdUsuario INT NOT NULL FOREIGN KEY REFERENCES Usuario(IdUsuario),
 	FechaVenta DATE DEFAULT GETDATE(),
 	MetodoPago VARCHAR(50) NOT NULL,
-	Total DECIMAL(6,2) NOT NULL
+	Total DECIMAL(6,2) NOT NULL,
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE DetalleVenta(
@@ -132,14 +142,16 @@ CREATE TABLE DetalleVenta(
 	IdPlatillo INT NOT NULL FOREIGN KEY REFERENCES Platillo(IdPlatillo),
 	Cantidad INT NOT NULL,
 	PrecioUnitario DECIMAL (5,2) NOT NULL,
-	SubTotal AS (Cantidad * PrecioUnitario)
+	SubTotal AS (Cantidad * PrecioUnitario),
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE DetalleDescuento(
 	IdDetalleDescuento INT IDENTITY(1,1) PRIMARY KEY,
 	IdVenta INT NOT NULL FOREIGN KEY REFERENCES Venta(IdVenta),
 	IdDescuento INT NOT NULL FOREIGN KEY REFERENCES Descuento(IdDescuento),
-	DescuentoUnitario DECIMAL(4,2) NOT NULL 
+	DescuentoUnitario DECIMAL(4,2) NOT NULL,
+	IdRestaurante INT NOT NULL DEFAULT 1 FOREIGN KEY REFERENCES Restaurante (IdRestaurante)
 );
 
 CREATE TABLE Suscripcion(
@@ -419,6 +431,11 @@ INSERT INTO Rol (NombreRol)VALUES('Trabajador');
 INSERT INTO Cargo (NombreCargo) VALUES('Admin');
 
 INSERT INTO Usuario(NombreUsuario, Documento, Telefono, Email, Contraseña, Sueldo, IdCargo, IdRol) VALUES('useradmin', 11111111, 2222222, 'useradmin@gmail.com', 123, 1200.00, 1, 1)
+
+INSERT INTO Restaurante (NombreRestaurante, Email) VALUES ('Norkys', 'norkys@gmail.com')
+INSERT INTO TipoPlan (NombrePlan, PrecioMensual, Estado) VALUES ('Free', 0, 1)
+INSERT INTO TipoPlan (NombrePlan, PrecioMensual, Estado) VALUES ('Pro', 50, 1)
+INSERT INTO TipoPlan (NombrePlan, PrecioMensual, Estado) VALUES ('Max', 150, 1)
 ------------------------------------
 --------SELECTS
 ------------------------------------
@@ -436,6 +453,8 @@ SELECT * FROM DetalleVenta
 SELECT * FROM Cargo;
 SELECT * FROM Categoria;
 SELECT * FROM Platillo;
+SELECT * FROM Restaurante;
+SELECT * FROM TipoPlan;
 ------------------------------------
 --------INDICES
 ------------------------------------

@@ -54,6 +54,15 @@ namespace Data.Repository
 
         }
 
+        public Suscripcion ObtenerPendiente(int idRestaurante, int idTipoPlan)
+        {
+            return _context.Suscripcion
+                           .AsNoTracking()
+                           .FirstOrDefault(s => s.IdRestaurante == idRestaurante
+                                        && s.IdTipoPlan == idTipoPlan
+                                        && s.Estado == "Pendiente");
+        }
+
         #region
         public List<Suscripcion> Listado(string Busqueda)
         {

@@ -10,5 +10,7 @@ namespace Data.Infraestructure
 
         public Suscripcion ObtenerActivaPorRestaurante(int idRestaurante);
 
+        public Suscripcion ObtenerPendiente(int idRestaurante, int idTipoPlan);
+
     }
 }

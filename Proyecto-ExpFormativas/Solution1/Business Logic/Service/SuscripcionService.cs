@@ -62,11 +62,14 @@ namespace Business_Logic.Service
                     throw new InvalidOperationException("Para cambiar el plan contacta a soporte"); //por cambiar
                 }
 
-                if (suscripcion == null) //cliente nuevo o suscripcion nueva
+                var sub_Actual = suscripcion ?? suscripcionDB.ObtenerPendiente(IdRestaurante, IdTipoPlan); //usa o su sub actual activa o la que se genera
+                                                                                                           //cuando se entra, no se clona sin ser necesario
+
+                if (sub_Actual == null) //cliente nuevo o suscripcion nueva
                 {
                     var hoy = DateOnly.FromDateTime(DateTime.Today);
 
-                    suscripcion = new Suscripcion()
+                    sub_Actual = new Suscripcion()
                     {
                         Estado = "Pendiente",
                         FechaInicio = hoy,
@@ -76,7 +79,7 @@ namespace Business_Logic.Service
                         IdTipoPlan = IdTipoPlan,
                     };
 
-                    suscripcionDB.Agregar(suscripcion);
+                    suscripcionDB.Agregar(sub_Actual);
                 }
 
                 orden = new OrdenPago()
@@ -86,7 +89,7 @@ namespace Business_Logic.Service
                     Estado = "Pendiente",
                     FechaCreacion = DateTime.Now,
                     ReferenciaExterna = Guid.NewGuid().ToString(),
-                    IdSuscripcion = suscripcion.IdSuscripcion
+                    IdSuscripcion = sub_Actual.IdSuscripcion
                 };
 
                 ordenDB.Agregar(orden);
@@ -103,6 +106,11 @@ namespace Business_Logic.Service
                 ordenDB.Actualizar(orden);
                 throw;
             }
+        }
+
+        public Suscripcion ObtenerPendiente(int idRestaurante, int idTipoPlan)
+        {
+            return suscripcionDB.ObtenerPendiente(idRestaurante, idTipoPlan);
         }
 
         #region
