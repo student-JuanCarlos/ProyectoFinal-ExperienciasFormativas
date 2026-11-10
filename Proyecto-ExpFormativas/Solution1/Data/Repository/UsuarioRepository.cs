@@ -92,6 +92,7 @@ namespace Data.Repository
                            .AsNoTracking()
                            .Include(u => u.rol)
                            .Include(u => u.cargo)
+                           .Include(u => u.restaurante)
                            .Where(u => u.Email == Email)
                            .FirstOrDefault();
                            

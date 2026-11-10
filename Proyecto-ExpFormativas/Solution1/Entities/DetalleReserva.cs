@@ -16,5 +16,9 @@ namespace Entities
 
         public Mesa mesa { get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

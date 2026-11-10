@@ -85,9 +85,13 @@ namespace Business_Logic.Inyeccion
             services.AddScoped<ITransaccion, TransaccionWebhookRepository>();
             services.AddScoped<TransaccionWebhookService>();
 
-            services.AddScoped<PagoService>();
+            services.AddScoped<IUnidadTrabajo, UnidadTrabajo>();
 
             services.AddScoped<IPasarelaPago, PasarelaService>();
+
+            services.AddScoped<PagoService>();
+
+            
 
         }
 

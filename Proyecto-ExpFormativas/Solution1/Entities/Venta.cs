@@ -27,5 +27,9 @@ namespace Entities
 
         public List<DetalleDescuento> descuentos { get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

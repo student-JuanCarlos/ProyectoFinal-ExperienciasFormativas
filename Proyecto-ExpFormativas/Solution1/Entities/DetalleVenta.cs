@@ -23,5 +23,9 @@ namespace Entities
 
         public Platillo platillo { get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

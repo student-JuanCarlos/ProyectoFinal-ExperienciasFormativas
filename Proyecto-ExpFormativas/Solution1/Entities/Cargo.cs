@@ -13,5 +13,9 @@ namespace Entities
 
         public string? Descripcion { get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

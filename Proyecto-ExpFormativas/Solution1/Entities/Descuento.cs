@@ -24,5 +24,9 @@ namespace Entities
 
         public bool Estado { get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

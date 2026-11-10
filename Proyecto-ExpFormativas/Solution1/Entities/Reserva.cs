@@ -35,5 +35,9 @@ namespace Entities
 
         public List<DetalleReserva> DetalleMesa { get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

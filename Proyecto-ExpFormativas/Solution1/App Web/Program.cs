@@ -8,6 +8,8 @@ using System.Text;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Threading.RateLimiting;
+using Data.Infraestructure;
+using App_Web.Tenant;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,8 @@ builder.Services.Inyeccion();
 builder.Services.AddDataLayer(builder.Configuration);
 builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration["BlobStorage:ConnectionString"]));
 builder.Services.AddSession();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;

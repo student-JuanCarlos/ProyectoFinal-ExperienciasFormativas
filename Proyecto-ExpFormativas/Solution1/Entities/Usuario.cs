@@ -34,5 +34,9 @@ namespace Entities
 
         public Rol rol {  get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

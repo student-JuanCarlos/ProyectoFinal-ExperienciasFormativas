@@ -1,4 +1,5 @@
-﻿using Entities;
+﻿using Data.Infraestructure;
+using Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data.Context
@@ -6,7 +7,14 @@ namespace Data.Context
     public class AppDbContext : DbContext
     {
 
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        private readonly ITenantProvider _tenantProvider;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvider tenantProvider) : base(options) 
+        {
+            _tenantProvider = tenantProvider;
+        }
+
+        private int IdRestauranteActual => _tenantProvider.IdRestaurante;
 
         public DbSet<Restaurante>Restaurantes { get; set; }
         public DbSet<TipoPlan>TipoPlan { get; set; }
@@ -55,12 +63,14 @@ namespace Data.Context
                 entity.HasOne(p => p.categoria)
                        .WithMany()
                        .HasForeignKey(p => p.IdCategoria);
+                entity.HasQueryFilter(p => p.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Categoria>(entity =>
             {
                 entity.ToTable("Categoria");
                 entity.HasKey(c => c.IdCategoria);
+                entity.HasQueryFilter(c => c.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Cliente>(entity =>
@@ -76,6 +86,7 @@ namespace Data.Context
                 entity.ToTable("Descuento", d => d.HasCheckConstraint("CK_Descuento_Tipo", "TipoDescuento IN ('Sin Fecha', 'Con Fecha')"));
                 entity.HasKey(d => d.IdDescuento);
                 entity.Property(d => d.PorcentajeDescuento).HasColumnType("decimal(4,2)");
+                entity.HasQueryFilter(d => d.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Usuario>(entity =>
@@ -92,6 +103,11 @@ namespace Data.Context
                 entity.HasOne(u => u.rol)
                       .WithMany()
                       .HasForeignKey(u => u.IdRol);
+
+                entity.HasOne(u => u.restaurante)
+                       .WithMany()
+                       .HasForeignKey(u => u.IdRestaurante);
+                entity.HasQueryFilter(u => u.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Rol>(entity =>
@@ -104,6 +120,12 @@ namespace Data.Context
             {
                 entity.ToTable("Cargo");
                 entity.HasKey(c => c.IdCargo);
+
+                entity.HasOne(c => c.restaurante)
+                .WithMany()
+                .HasForeignKey(c => c.IdRestaurante);
+
+                entity.HasQueryFilter(c => c.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Mesa>(entity =>
@@ -112,6 +134,7 @@ namespace Data.Context
                 entity.HasKey(m => m.IdMesa);
                 entity.HasIndex(m => m.NumeroMesa).IsUnique();
                 entity.Property(m => m.Estado).HasDefaultValue(1);
+                entity.HasQueryFilter(m => m.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Reserva>(entity =>
@@ -132,6 +155,7 @@ namespace Data.Context
                 entity.HasOne(r => r.usuario)
                        .WithMany()
                        .HasForeignKey(r => r.IdUsuario);
+                entity.HasQueryFilter(r => r.IdRestaurante == IdRestauranteActual);
 
             });
 
@@ -145,12 +169,14 @@ namespace Data.Context
                 entity.HasOne(dr => dr.mesa)
                        .WithMany()
                        .HasForeignKey(dr => dr.IdMesa);
+                entity.HasQueryFilter(dr => dr.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<ConfiguracionReserva>(entity =>
             {
                 entity.ToTable("ConfiguracionReserva", cr => cr.HasCheckConstraint("CK_Confi_ValidationID", "CHECK (IdConfiguration = 1)"));
                 entity.HasKey(cr => cr.IdConfiguracion);
+                entity.HasQueryFilter(c => c.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Venta>(entity =>
@@ -164,6 +190,7 @@ namespace Data.Context
                 entity.HasOne(v => v.usuario)
                        .WithMany()
                        .HasForeignKey(v => v.IdUsuario);
+                entity.HasQueryFilter(v => v.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<DetalleVenta>(entity =>
@@ -178,6 +205,7 @@ namespace Data.Context
                 entity.HasOne(dv => dv.platillo)
                        .WithMany()
                        .HasForeignKey(dv => dv.IdPlatillo);
+                entity.HasQueryFilter(dv => dv.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<DetalleDescuento>(entity =>
@@ -191,6 +219,7 @@ namespace Data.Context
                 entity.HasOne(dd => dd.descuento)
                        .WithMany()
                        .HasForeignKey(dd => dd.IdDescuento);
+                entity.HasQueryFilter(dd => dd.IdRestaurante == IdRestauranteActual);
             });
 
             modelBuilder.Entity<Suscripcion>(entity =>

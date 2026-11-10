@@ -11,5 +11,9 @@ namespace Entities
 
         public decimal PrecioReserva { get; set; }
 
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
+
     }
 }

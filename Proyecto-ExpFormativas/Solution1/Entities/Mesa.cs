@@ -13,5 +13,9 @@ namespace Entities
         public int EspacioOcupable {  get; set; }
 
         public int Estado {  get; set; }
+
+        public int IdRestaurante { get; set; }
+
+        public Restaurante restaurante { get; set; }
     }
 }

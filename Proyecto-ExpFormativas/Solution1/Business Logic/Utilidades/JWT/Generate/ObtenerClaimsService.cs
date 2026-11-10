@@ -14,7 +14,8 @@ namespace Business_Logic.Utilidades.JWT.Generate
             var lista = new List<Claim>()
             {
                 new Claim(ClaimTypes.Name, usuario.NombreUsuario),
-                new Claim(ClaimTypes.Role, usuario.rol.NombreRol)
+                new Claim(ClaimTypes.Role, usuario.rol.NombreRol),
+                new Claim("IdRestaurante", usuario.IdRestaurante.ToString())
             };
 
             return lista;
