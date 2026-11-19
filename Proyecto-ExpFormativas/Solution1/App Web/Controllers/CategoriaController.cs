@@ -15,6 +15,7 @@ namespace App_Web.Controllers
             categoriaservice = categoria;
         }
 
+        [Authorize(Roles = "Administrador")]
         public IActionResult Index(string Busqueda)
         {
 

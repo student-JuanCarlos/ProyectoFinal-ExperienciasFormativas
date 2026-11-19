@@ -36,6 +36,7 @@ namespace App_Web.Controllers
             _jwt = jwt;
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpGet]
         public IActionResult Index(string Busqueda = null, bool? Estado = null)
         {
@@ -104,7 +105,12 @@ namespace App_Web.Controllers
 
             var token = _jwt.GenerarJWTUsuario(usuario);
 
-            return Json(new { token });
+            if(usuario.rol.NombreRol == "Administrador")
+            {
+                return RedirectToAction("DashBoard", "Usuario");
+            }
+
+            return RedirectToAction("Index", "Reserva");
         }
 
         [Authorize(Roles = "Administrador")]

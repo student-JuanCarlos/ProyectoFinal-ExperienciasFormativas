@@ -16,6 +16,7 @@ namespace App_Web.Controllers
             descuentoService = descuento;
         }
 
+        [Authorize(Roles = "Administrador")]
         public IActionResult Index(int page = 1, string Busqueda = null, bool? Estado = null)
         {
 

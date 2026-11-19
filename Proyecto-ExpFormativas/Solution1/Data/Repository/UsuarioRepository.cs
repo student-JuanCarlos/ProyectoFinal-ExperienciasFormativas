@@ -90,6 +90,7 @@ namespace Data.Repository
         {
             return _context.Usuarios
                            .AsNoTracking()
+                           .IgnoreQueryFilters()
                            .Include(u => u.rol)
                            .Include(u => u.cargo)
                            .Include(u => u.restaurante)

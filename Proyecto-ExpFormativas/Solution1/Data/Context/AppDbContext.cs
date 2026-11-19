@@ -61,8 +61,12 @@ namespace Data.Context
                 entity.Property(p => p.Precio).HasColumnType("decimal(5,2)");
 
                 entity.HasOne(p => p.categoria)
-                       .WithMany()
-                       .HasForeignKey(p => p.IdCategoria);
+                      .WithMany()
+                      .HasForeignKey(p => p.IdCategoria);
+
+                entity.HasOne(p => p.restaurante)
+                      .WithMany()
+                      .HasForeignKey(p => p.IdRestaurante);
                 entity.HasQueryFilter(p => p.IdRestaurante == IdRestauranteActual);
             });
 
@@ -70,6 +74,9 @@ namespace Data.Context
             {
                 entity.ToTable("Categoria");
                 entity.HasKey(c => c.IdCategoria);
+                entity.HasOne(c => c.restaurante)
+                      .WithMany()
+                      .HasForeignKey(c => c.IdRestaurante);
                 entity.HasQueryFilter(c => c.IdRestaurante == IdRestauranteActual);
             });
 
@@ -85,6 +92,9 @@ namespace Data.Context
             {
                 entity.ToTable("Descuento", d => d.HasCheckConstraint("CK_Descuento_Tipo", "TipoDescuento IN ('Sin Fecha', 'Con Fecha')"));
                 entity.HasKey(d => d.IdDescuento);
+                entity.HasOne(d => d.restaurante)
+                      .WithMany()
+                      .HasForeignKey(d => d.IdRestaurante);
                 entity.Property(d => d.PorcentajeDescuento).HasColumnType("decimal(4,2)");
                 entity.HasQueryFilter(d => d.IdRestaurante == IdRestauranteActual);
             });
@@ -122,8 +132,8 @@ namespace Data.Context
                 entity.HasKey(c => c.IdCargo);
 
                 entity.HasOne(c => c.restaurante)
-                .WithMany()
-                .HasForeignKey(c => c.IdRestaurante);
+                      .WithMany()
+                      .HasForeignKey(c => c.IdRestaurante);
 
                 entity.HasQueryFilter(c => c.IdRestaurante == IdRestauranteActual);
             });
@@ -132,6 +142,9 @@ namespace Data.Context
             {
                 entity.ToTable("Mesa", m => m.HasCheckConstraint("CK_Mesa_ValidationEstado", "Estado IN (1, 2, 3)"));
                 entity.HasKey(m => m.IdMesa);
+                entity.HasOne(m => m.restaurante)
+                      .WithMany()
+                      .HasForeignKey(m => m.IdRestaurante);
                 entity.HasIndex(m => m.NumeroMesa).IsUnique();
                 entity.Property(m => m.Estado).HasDefaultValue(1);
                 entity.HasQueryFilter(m => m.IdRestaurante == IdRestauranteActual);
@@ -155,6 +168,9 @@ namespace Data.Context
                 entity.HasOne(r => r.usuario)
                        .WithMany()
                        .HasForeignKey(r => r.IdUsuario);
+                entity.HasOne(r => r.restaurante)
+                      .WithMany()
+                      .HasForeignKey(r => r.IdRestaurante);
                 entity.HasQueryFilter(r => r.IdRestaurante == IdRestauranteActual);
 
             });
@@ -169,6 +185,9 @@ namespace Data.Context
                 entity.HasOne(dr => dr.mesa)
                        .WithMany()
                        .HasForeignKey(dr => dr.IdMesa);
+                entity.HasOne(dr => dr.restaurante)
+                      .WithMany()
+                      .HasForeignKey(dr => dr.IdRestaurante);
                 entity.HasQueryFilter(dr => dr.IdRestaurante == IdRestauranteActual);
             });
 
@@ -176,6 +195,9 @@ namespace Data.Context
             {
                 entity.ToTable("ConfiguracionReserva", cr => cr.HasCheckConstraint("CK_Confi_ValidationID", "CHECK (IdConfiguration = 1)"));
                 entity.HasKey(cr => cr.IdConfiguracion);
+                entity.HasOne(c => c.restaurante)
+                      .WithMany()
+                      .HasForeignKey(c => c.IdRestaurante);
                 entity.HasQueryFilter(c => c.IdRestaurante == IdRestauranteActual);
             });
 
@@ -190,6 +212,9 @@ namespace Data.Context
                 entity.HasOne(v => v.usuario)
                        .WithMany()
                        .HasForeignKey(v => v.IdUsuario);
+                entity.HasOne(v => v.restaurante)
+                      .WithMany()
+                      .HasForeignKey(v => v.IdRestaurante);
                 entity.HasQueryFilter(v => v.IdRestaurante == IdRestauranteActual);
             });
 
@@ -205,6 +230,9 @@ namespace Data.Context
                 entity.HasOne(dv => dv.platillo)
                        .WithMany()
                        .HasForeignKey(dv => dv.IdPlatillo);
+                entity.HasOne(dv => dv.restaurante)
+                      .WithMany()
+                      .HasForeignKey(dv => dv.IdRestaurante);
                 entity.HasQueryFilter(dv => dv.IdRestaurante == IdRestauranteActual);
             });
 
@@ -219,6 +247,9 @@ namespace Data.Context
                 entity.HasOne(dd => dd.descuento)
                        .WithMany()
                        .HasForeignKey(dd => dd.IdDescuento);
+                entity.HasOne(dd => dd.restaurante)
+                      .WithMany()
+                      .HasForeignKey(dd => dd.IdRestaurante);
                 entity.HasQueryFilter(dd => dd.IdRestaurante == IdRestauranteActual);
             });
 

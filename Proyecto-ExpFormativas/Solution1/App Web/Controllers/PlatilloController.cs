@@ -24,6 +24,7 @@ namespace App_Web.Controllers
             _logguer = logguer;
         }
 
+        [Authorize(Roles = "Administrador")]
         public IActionResult Index(int page = 1, string Busqueda = null)
         {
 
